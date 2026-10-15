@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net48</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <RootNamespace>Shutdown</RootNamespace>
+    <AssemblyName>Shutdown</AssemblyName>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\Shutdown.ico</ApplicationIcon>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <Prefer32Bit>false</Prefer32Bit>
+    <GenerateResourceUsePreserializedResources>false</GenerateResourceUsePreserializedResources>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <DebugType>portable</DebugType>
+
+    <Version>0.1.0</Version>
+    <Company>BGCoding</Company>
+    <Product>Shutdown</Product>
+    <AssemblyTitle>Shutdown</AssemblyTitle>
+    <Description>Shutdown timer</Description>
+    <Copyright>© 2026 BGCoding</Copyright>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Both languages live in the main assembly so the exe stays a single file. -->
+    <EmbeddedResource Update="Lang\en.resx" WithCulture="false" LogicalName="Shutdown.Lang.en.resources" />
+    <EmbeddedResource Update="Lang\de.resx" WithCulture="false" LogicalName="Shutdown.Lang.de.resources" />
+    <Resource Include="Assets\Shutdown.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Shutdown.Tests" />
+  </ItemGroup>
+
+</Project>

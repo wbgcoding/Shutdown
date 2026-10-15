@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="AppTitle" xml:space="preserve"><value>Shutdown</value></data>
+  <data name="Language" xml:space="preserve"><value>Language</value></data>
+  <data name="LangSystem" xml:space="preserve"><value>System</value></data>
+  <data name="LangEnglish" xml:space="preserve"><value>English</value></data>
+  <data name="LangGerman" xml:space="preserve"><value>Deutsch</value></data>
+  <data name="SecAction" xml:space="preserve"><value>Action</value></data>
+  <data name="ActShutdown" xml:space="preserve"><value>Shut down</value></data>
+  <data name="ActRestart" xml:space="preserve"><value>Restart</value></data>
+  <data name="ActHibernate" xml:space="preserve"><value>Hibernate</value></data>
+  <data name="HibernateUnavailable" xml:space="preserve"><value>Hibernate is turned off on this PC.</value></data>
+  <data name="SecWhen" xml:space="preserve"><value>When</value></data>
+  <data name="ModeCountdown" xml:space="preserve"><value>Countdown</value></data>
+  <data name="ModeAt" xml:space="preserve"><value>Date and time</value></data>
+  <data name="Hours" xml:space="preserve"><value>Hours</value></data>
+  <data name="Minutes" xml:space="preserve"><value>Minutes</value></data>
+  <data name="Hour" xml:space="preserve"><value>Hour</value></data>
+  <data name="Minute" xml:space="preserve"><value>Minute</value></data>
+  <data name="Date" xml:space="preserve"><value>Date</value></data>
+  <data name="Today" xml:space="preserve"><value>Today</value></data>
+  <data name="Tomorrow" xml:space="preserve"><value>Tomorrow</value></data>
+  <data name="PrevDay" xml:space="preserve"><value>Previous day</value></data>
+  <data name="NextDay" xml:space="preserve"><value>Next day</value></data>
+  <data name="IncreaseFmt" xml:space="preserve"><value>Increase {0}</value></data>
+  <data name="DecreaseFmt" xml:space="preserve"><value>Decrease {0}</value></data>
+  <data name="ChipMinutes" xml:space="preserve"><value>{0} min</value></data>
+  <data name="ChipHours" xml:space="preserve"><value>{0} h</value></data>
+  <data name="SummaryAt" xml:space="preserve"><value>{0} at {1}</value></data>
+  <data name="SummaryIn" xml:space="preserve"><value>in {0}</value></data>
+  <data name="SpanDays" xml:space="preserve"><value>{0} d</value></data>
+  <data name="SpanHours" xml:space="preserve"><value>{0} h</value></data>
+  <data name="SpanMinutes" xml:space="preserve"><value>{0} min</value></data>
+  <data name="SpanSeconds" xml:space="preserve"><value>{0} s</value></data>
+  <data name="ClockDays" xml:space="preserve"><value>{0} d {1}</value></data>
+  <data name="Force" xml:space="preserve"><value>Force</value></data>
+  <data name="ForceHint" xml:space="preserve"><value>Open apps close without asking. Unsaved work is lost.</value></data>
+  <data name="AppTimedForceOff" xml:space="preserve"><value>Without Force, Shutdown runs the countdown itself: keep this window open.</value></data>
+  <data name="AppTimedHibernate" xml:space="preserve"><value>Windows has no timer for hibernate, so Shutdown runs the countdown itself: keep this window open.</value></data>
+  <data name="Command" xml:space="preserve"><value>Command</value></data>
+  <data name="CommandAt" xml:space="preserve"><value>{0}  (at {1})</value></data>
+  <data name="StartShutdown" xml:space="preserve"><value>Schedule shutdown</value></data>
+  <data name="StartRestart" xml:space="preserve"><value>Schedule restart</value></data>
+  <data name="StartHibernate" xml:space="preserve"><value>Schedule hibernate</value></data>
+  <data name="Abort" xml:space="preserve"><value>Cancel scheduled</value></data>
+  <data name="PendingShutdown" xml:space="preserve"><value>Shutdown scheduled</value></data>
+  <data name="PendingRestart" xml:space="preserve"><value>Restart scheduled</value></data>
+  <data name="PendingHibernate" xml:space="preserve"><value>Hibernate scheduled</value></data>
+  <data name="PendingRemaining" xml:space="preserve"><value>{0} left</value></data>
+  <data name="PendingKeepOpen" xml:space="preserve"><value>Keep this window open.</value></data>
+  <data name="MsgAborted" xml:space="preserve"><value>Scheduled action cancelled.</value></data>
+  <data name="MsgNothingPending" xml:space="preserve"><value>Nothing was scheduled.</value></data>
+  <data name="MsgMissed" xml:space="preserve"><value>The time passed while the PC was asleep. Nothing was run.</value></data>
+  <data name="ErrTooShort" xml:space="preserve"><value>Choose at least 1 minute.</value></data>
+  <data name="ErrTooLong" xml:space="preserve"><value>Choose at most 10 years.</value></data>
+  <data name="ErrPast" xml:space="preserve"><value>This time is in the past.</value></data>
+  <data name="ErrRunFailed" xml:space="preserve"><value>Windows refused the command.</value></data>
+  <data name="ErrAccessDenied" xml:space="preserve"><value>This account may not shut down the PC. Ask an administrator for the right.</value></data>
+  <data name="ErrTimeout" xml:space="preserve"><value>shutdown.exe did not answer.</value></data>
+  <data name="ErrStart" xml:space="preserve"><value>shutdown.exe could not be started.</value></data>
+  <data name="ErrUnexpected" xml:space="preserve"><value>Something went wrong. Details are in the log.</value></data>
+  <data name="Copy" xml:space="preserve"><value>Copy</value></data>
+  <data name="OpenLog" xml:space="preserve"><value>Open log folder</value></data>
+  <data name="Dismiss" xml:space="preserve"><value>Dismiss</value></data>
+  <data name="CloseGuard" xml:space="preserve"><value>The countdown runs in this window. Closing it cancels the countdown.</value></data>
+  <data name="CloseAnyway" xml:space="preserve"><value>Close anyway</value></data>
+  <data name="KeepOpen" xml:space="preserve"><value>Keep open</value></data>
+  <data name="VersionFmt" xml:space="preserve"><value>Version {0}</value></data>
+</root>

@@ -1,0 +1,40 @@
+<UserControl x:Class="Shutdown.Ui.NumberSpinner"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Name="Root" Focusable="False">
+  <StackPanel MinWidth="84">
+    <Border Background="{DynamicResource Control}" BorderBrush="{DynamicResource ControlBorder}"
+            BorderThickness="1" CornerRadius="8" Padding="2">
+      <StackPanel>
+        <Button x:Name="UpButton" Style="{StaticResource GhostButton}" Click="OnUp" IsTabStop="False">
+          <TextBlock Style="{StaticResource Icon}" Text="&#xE70E;" FontSize="12"/>
+        </Button>
+        <TextBox x:Name="Box" FontFamily="{StaticResource DisplayFont}" FontSize="30" FontWeight="SemiBold"
+                 HorizontalContentAlignment="Center" Background="Transparent" BorderThickness="0"
+                 Foreground="{DynamicResource Text}" CaretBrush="{DynamicResource Text}"
+                 SelectionBrush="{DynamicResource Accent}" MaxLength="3" Padding="0"
+                 PreviewTextInput="OnPreviewText" PreviewKeyDown="OnKey" LostKeyboardFocus="OnLostFocus"
+                 GotKeyboardFocus="OnGotFocus" TextChanged="OnTextChanged"DataObject.Pasting="OnPaste">
+          <TextBox.Template>
+            <ControlTemplate TargetType="TextBox">
+              <Border x:Name="Bd" CornerRadius="5" Background="Transparent" BorderThickness="2" BorderBrush="Transparent">
+                <ScrollViewer x:Name="PART_ContentHost" Focusable="False" HorizontalScrollBarVisibility="Hidden"
+                              VerticalScrollBarVisibility="Hidden"/>
+              </Border>
+              <ControlTemplate.Triggers>
+                <Trigger Property="IsKeyboardFocused" Value="True">
+                  <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource Accent}"/>
+                </Trigger>
+              </ControlTemplate.Triggers>
+            </ControlTemplate>
+          </TextBox.Template>
+        </TextBox>
+        <Button x:Name="DownButton" Style="{StaticResource GhostButton}" Click="OnDown" IsTabStop="False">
+          <TextBlock Style="{StaticResource Icon}" Text="&#xE70D;" FontSize="12"/>
+        </Button>
+      </StackPanel>
+    </Border>
+    <TextBlock x:Name="CaptionText" HorizontalAlignment="Center" Margin="0,6,0,0" FontSize="12"
+               Foreground="{DynamicResource TextSub}"/>
+  </StackPanel>
+</UserControl>

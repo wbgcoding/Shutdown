@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="AppTitle" xml:space="preserve"><value>Shutdown</value></data>
+  <data name="Language" xml:space="preserve"><value>Sprache</value></data>
+  <data name="LangSystem" xml:space="preserve"><value>System</value></data>
+  <data name="LangEnglish" xml:space="preserve"><value>English</value></data>
+  <data name="LangGerman" xml:space="preserve"><value>Deutsch</value></data>
+  <data name="SecAction" xml:space="preserve"><value>Aktion</value></data>
+  <data name="ActShutdown" xml:space="preserve"><value>Herunterfahren</value></data>
+  <data name="ActRestart" xml:space="preserve"><value>Neustart</value></data>
+  <data name="ActHibernate" xml:space="preserve"><value>Ruhezustand</value></data>
+  <data name="HibernateUnavailable" xml:space="preserve"><value>Ruhezustand ist auf diesem PC deaktiviert.</value></data>
+  <data name="SecWhen" xml:space="preserve"><value>Wann</value></data>
+  <data name="ModeCountdown" xml:space="preserve"><value>Zeitspanne</value></data>
+  <data name="ModeAt" xml:space="preserve"><value>Datum und Uhrzeit</value></data>
+  <data name="Hours" xml:space="preserve"><value>Stunden</value></data>
+  <data name="Minutes" xml:space="preserve"><value>Minuten</value></data>
+  <data name="Hour" xml:space="preserve"><value>Stunde</value></data>
+  <data name="Minute" xml:space="preserve"><value>Minute</value></data>
+  <data name="Date" xml:space="preserve"><value>Datum</value></data>
+  <data name="Today" xml:space="preserve"><value>Heute</value></data>
+  <data name="Tomorrow" xml:space="preserve"><value>Morgen</value></data>
+  <data name="PrevDay" xml:space="preserve"><value>Vorheriger Tag</value></data>
+  <data name="NextDay" xml:space="preserve"><value>Nächster Tag</value></data>
+  <data name="IncreaseFmt" xml:space="preserve"><value>{0} erhöhen</value></data>
+  <data name="DecreaseFmt" xml:space="preserve"><value>{0} verringern</value></data>
+  <data name="ChipMinutes" xml:space="preserve"><value>{0} Min</value></data>
+  <data name="ChipHours" xml:space="preserve"><value>{0} Std</value></data>
+  <data name="SummaryAt" xml:space="preserve"><value>{0} um {1}</value></data>
+  <data name="SummaryIn" xml:space="preserve"><value>in {0}</value></data>
+  <data name="SpanDays" xml:space="preserve"><value>{0} T</value></data>
+  <data name="SpanHours" xml:space="preserve"><value>{0} Std</value></data>
+  <data name="SpanMinutes" xml:space="preserve"><value>{0} Min</value></data>
+  <data name="SpanSeconds" xml:space="preserve"><value>{0} Sek</value></data>
+  <data name="ClockDays" xml:space="preserve"><value>{0} T {1}</value></data>
+  <data name="Force" xml:space="preserve"><value>Erzwingen</value></data>
+  <data name="ForceHint" xml:space="preserve"><value>Offene Programme werden ohne Nachfrage geschlossen. Ungespeichertes geht verloren.</value></data>
+  <data name="AppTimedForceOff" xml:space="preserve"><value>Ohne Erzwingen zählt Shutdown selbst herunter: Fenster offen lassen.</value></data>
+  <data name="AppTimedHibernate" xml:space="preserve"><value>Windows hat für den Ruhezustand keinen Timer, darum zählt Shutdown selbst herunter: Fenster offen lassen.</value></data>
+  <data name="Command" xml:space="preserve"><value>Befehl</value></data>
+  <data name="CommandAt" xml:space="preserve"><value>{0}  (um {1})</value></data>
+  <data name="StartShutdown" xml:space="preserve"><value>Herunterfahren planen</value></data>
+  <data name="StartRestart" xml:space="preserve"><value>Neustart planen</value></data>
+  <data name="StartHibernate" xml:space="preserve"><value>Ruhezustand planen</value></data>
+  <data name="Abort" xml:space="preserve"><value>Geplantes abbrechen</value></data>
+  <data name="PendingShutdown" xml:space="preserve"><value>Herunterfahren geplant</value></data>
+  <data name="PendingRestart" xml:space="preserve"><value>Neustart geplant</value></data>
+  <data name="PendingHibernate" xml:space="preserve"><value>Ruhezustand geplant</value></data>
+  <data name="PendingRemaining" xml:space="preserve"><value>noch {0}</value></data>
+  <data name="PendingKeepOpen" xml:space="preserve"><value>Fenster offen lassen.</value></data>
+  <data name="MsgAborted" xml:space="preserve"><value>Geplanter Vorgang abgebrochen.</value></data>
+  <data name="MsgNothingPending" xml:space="preserve"><value>Es war nichts geplant.</value></data>
+  <data name="MsgMissed" xml:space="preserve"><value>Der Zeitpunkt ist verstrichen, während der PC im Standby war. Nichts wurde ausgeführt.</value></data>
+  <data name="ErrTooShort" xml:space="preserve"><value>Wähle mindestens 1 Minute.</value></data>
+  <data name="ErrTooLong" xml:space="preserve"><value>Wähle höchstens 10 Jahre.</value></data>
+  <data name="ErrPast" xml:space="preserve"><value>Dieser Zeitpunkt liegt in der Vergangenheit.</value></data>
+  <data name="ErrRunFailed" xml:space="preserve"><value>Windows hat den Befehl abgelehnt.</value></data>
+  <data name="ErrAccessDenied" xml:space="preserve"><value>Dieses Konto darf den PC nicht herunterfahren. Frag einen Administrator nach dem Recht.</value></data>
+  <data name="ErrTimeout" xml:space="preserve"><value>shutdown.exe hat nicht geantwortet.</value></data>
+  <data name="ErrStart" xml:space="preserve"><value>shutdown.exe konnte nicht gestartet werden.</value></data>
+  <data name="ErrUnexpected" xml:space="preserve"><value>Etwas ist schiefgelaufen. Details stehen im Protokoll.</value></data>
+  <data name="Copy" xml:space="preserve"><value>Kopieren</value></data>
+  <data name="OpenLog" xml:space="preserve"><value>Protokollordner öffnen</value></data>
+  <data name="Dismiss" xml:space="preserve"><value>Ausblenden</value></data>
+  <data name="CloseGuard" xml:space="preserve"><value>Der Countdown läuft in diesem Fenster. Schließen bricht ihn ab.</value></data>
+  <data name="CloseAnyway" xml:space="preserve"><value>Trotzdem schließen</value></data>
+  <data name="KeepOpen" xml:space="preserve"><value>Offen lassen</value></data>
+  <data name="VersionFmt" xml:space="preserve"><value>Version {0}</value></data>
+</root>
