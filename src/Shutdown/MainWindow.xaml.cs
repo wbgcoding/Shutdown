@@ -282,15 +282,13 @@ namespace Shutdown
         internal void OnTick()
         {
             var now = Now();
-            if (_pending != null && now.ToUniversalTime() >= _pending.TargetUtc)
+            // A schedule handed to Windows stays until aborted or replaced: Windows counts its own timer and may fire later than this clock.
+            if (_pending?.AppTimed == true && now.ToUniversalTime() >= _pending.TargetUtc)
             {
                 var p = _pending;
                 ClearPending();
-                if (p.AppTimed)
-                {
-                    if (now.ToUniversalTime() - p.TargetUtc > MissedGrace) ShowInfo("MsgMissed");
-                    else Execute(Schedule.ArgsFor(p.Action, p.Force, 0));
-                }
+                if (now.ToUniversalTime() - p.TargetUtc > MissedGrace) ShowInfo("MsgMissed");
+                else Execute(Schedule.ArgsFor(p.Action, p.Force, 0));
             }
             UpdateUi();
         }

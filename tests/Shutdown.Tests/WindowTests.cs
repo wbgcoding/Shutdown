@@ -306,6 +306,30 @@ namespace Shutdown.Tests
         });
 
         [Fact]
+        public void Windows_timed_pending_stays_after_its_target_until_aborted() => Sta.Run(() =>
+        {
+            var w = Make();
+            Click(w.StartButton);
+            _now = _now.AddHours(1).AddMinutes(5);
+            w.OnTick();
+            Assert.Equal(Visibility.Visible, w.PendingCard.Visibility);
+            Assert.Equal("0:00:00", w.PendingClock.Text);
+            Assert.True(w.AbortButton.IsEnabled);
+            Assert.Equal("Shutdown", _store.Load().PendingAction);
+            Click(w.AbortButton);
+            Assert.Equal(Visibility.Collapsed, w.PendingCard.Visibility);
+        });
+
+        [Fact]
+        public void Restored_windows_timed_pending_past_its_target_is_dropped() => Sta.Run(() =>
+        {
+            var s = new Settings { PendingAction = "Shutdown", PendingTarget = _now.AddMinutes(-1).ToUniversalTime().ToString("o"), PendingBoot = BootText };
+            var w = Make(s);
+            Assert.Equal(Visibility.Collapsed, w.PendingCard.Visibility);
+            Assert.Null(s.PendingTarget);
+        });
+
+        [Fact]
         public void Unforced_shutdown_fires_without_force_flag() => Sta.Run(() =>
         {
             var w = Make();
