@@ -100,7 +100,11 @@ namespace Shutdown.Core
         const long MaxBytes = 512 * 1024;
         static readonly object Gate = new object();
 
-        public static string FilePath => Path.Combine(AppPaths.LogDir, "shutdown.log");
+        static string _dir;
+        /// <summary>The log folder; tests point it elsewhere.</summary>
+        internal static string Dir { get => _dir ?? AppPaths.LogDir; set => _dir = value; }
+
+        public static string FilePath => Path.Combine(Dir, "shutdown.log");
 
         public static void Write(string what, Exception ex = null)
         {
@@ -108,7 +112,8 @@ namespace Shutdown.Core
             {
                 lock (Gate)
                 {
-                    Directory.CreateDirectory(AppPaths.LogDir);
+                    Directory.CreateDirectory(Dir);
+                    // Rotate: the full log moves to .1 (replacing the older one), so both stay under 1 MB.
                     var fi = new FileInfo(FilePath);
                     if (fi.Exists && fi.Length > MaxBytes)
                     {
