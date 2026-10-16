@@ -285,8 +285,11 @@ namespace Shutdown
         // The text changes every second in date mode; rewriting it would drop the selection someone is about to copy.
         void SetCommandText(string text)
         {
-            if (!CommandText.IsKeyboardFocusWithin) CommandText.Text = text;
+            if (!(CommandFocused?.Invoke() ?? CommandText.IsKeyboardFocusWithin)) CommandText.Text = text;
         }
+
+        /// <summary>Tests set this instead of focusing a shown window, which leaves the test host hanging at exit.</summary>
+        internal Func<bool> CommandFocused;
 
         // 59:59.6 left reads "in 1 h", not "in 59 min".
         static TimeSpan WholeMinutesUp(TimeSpan t) =>

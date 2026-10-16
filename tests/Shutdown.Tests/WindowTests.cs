@@ -521,20 +521,15 @@ namespace Shutdown.Tests
         {
             var w = Make();
             w.ModeAt.IsChecked = true;
-            w.Show();
-            try
-            {
-                Assert.Equal("shutdown /s /f /t 3600", w.CommandText.Text);
-                w.CommandText.Focus();
-                Assert.True(w.CommandText.IsKeyboardFocusWithin);
-                _now = _now.AddSeconds(5);
-                w.OnTick();
-                Assert.Equal("shutdown /s /f /t 3600", w.CommandText.Text);
-                Keyboard.ClearFocus();
-                w.OnTick();
-                Assert.Equal("shutdown /s /f /t 3595", w.CommandText.Text);
-            }
-            finally { w.Close(); }
+            Assert.Equal("shutdown /s /f /t 3600", w.CommandText.Text);
+            bool focused = true;
+            w.CommandFocused = () => focused;
+            _now = _now.AddSeconds(5);
+            w.OnTick();
+            Assert.Equal("shutdown /s /f /t 3600", w.CommandText.Text);
+            focused = false;
+            w.OnTick();
+            Assert.Equal("shutdown /s /f /t 3595", w.CommandText.Text);
         });
 
         [Fact]
