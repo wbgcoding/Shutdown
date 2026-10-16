@@ -14,7 +14,7 @@ With **Force** on, shutdown and restart are handed to Windows (`shutdown /s /f /
 
 Windows always forces apps closed when a timeout is set and has no timer for hibernate. So with **Force** off, or for **Hibernate**, the app counts down itself and then runs the command with `/t 0`. Keep the window open in that case; closing it asks first.
 
-Settings are stored in `Shutdown.settings.json` next to the exe (or in `%APPDATA%\Shutdown` if that folder is read-only). A small log lives in `%APPDATA%\Shutdown\logs`. Deleting the exe leaves that folder behind; remove it by hand if you like.
+Settings (`Shutdown.settings.json`) and a small log live in `%APPDATA%\Shutdown`; nothing is written next to the exe. Deleting the exe leaves that folder behind; remove it by hand if you like.
 
 ## Build
 
@@ -24,6 +24,6 @@ Requires the .NET SDK 8 or newer.
 build.bat
 ```
 
-Builds `out\Shutdown.exe` and starts it. `NOSTART=1` skips the start, `NOPAUSE=1` never waits for a key on errors. Tests: `dotnet test tests\Shutdown.Tests`.
+Builds `dist\Shutdown.exe` and starts it. `NOSTART=1` skips the start, `NOPAUSE=1` never waits for a key on errors. Tests: `dotnet test tests\Shutdown.Tests`.
 
 © 2026 BGCoding

@@ -41,25 +41,8 @@ namespace Shutdown.Core
 
         public SettingsStore(string filePath) { FilePath = filePath; }
 
-        /// <summary>Portable: beside the exe when that folder is writable, else %APPDATA%\Shutdown.</summary>
-        public static SettingsStore Default()
-        {
-            string exeDir = AppDomain.CurrentDomain.BaseDirectory;
-            if (IsWritable(exeDir)) return new SettingsStore(Path.Combine(exeDir, FileName));
-            return new SettingsStore(Path.Combine(AppPaths.AppData, FileName));
-        }
-
-        static bool IsWritable(string dir)
-        {
-            try
-            {
-                string probe = Path.Combine(dir, ".shutdown-" + Guid.NewGuid().ToString("N") + ".tmp");
-                File.WriteAllText(probe, "");
-                File.Delete(probe);
-                return true;
-            }
-            catch { return false; }
-        }
+        /// <summary>Always %APPDATA%\Shutdown, never beside the exe.</summary>
+        public static SettingsStore Default() => new SettingsStore(Path.Combine(AppPaths.AppData, FileName));
 
         public Settings Load()
         {
@@ -94,17 +77,8 @@ namespace Shutdown.Core
                         new DataContractJsonSerializer(typeof(Settings)).WriteObject(w, s);
                     File.WriteAllBytes(tmp, ms.ToArray());
                 }
-                if (!File.Exists(FilePath)) File.Move(tmp, FilePath);
-                else
-                {
-                    try { File.Replace(tmp, FilePath, null); }
-                    catch (IOException)
-                    {
-                        // Some file systems (FAT32 sticks, network shares) lack ReplaceFile.
-                        File.Delete(FilePath);
-                        File.Move(tmp, FilePath);
-                    }
-                }
+                if (File.Exists(FilePath)) File.Replace(tmp, FilePath, null);
+                else File.Move(tmp, FilePath);
             }
             catch (Exception ex)
             {
