@@ -2,6 +2,25 @@
 
 All notable changes to this project are documented here. The format follows Keep a Changelog; versions follow semantic versioning.
 
+## [Unreleased]
+
+### Changed
+- Cancelling no longer shows a confirmation message; the countdown card simply disappears.
+- An app-run countdown (Force off, or Hibernate) keeps the PC from going to sleep, so it can no longer miss its time.
+- A date and time must be at least 1 minute ahead.
+- The "in ..." summary rounds up to the next minute.
+- Always one window: a second start brings the running one to the front.
+
+### Fixed
+- A schedule from before a restart no longer shows up as still pending.
+- If `shutdown.exe` hangs while scheduling, it is stopped and the schedule is cancelled, so no hidden forced shutdown remains.
+- A shutdown handed to Windows stays cancellable after its time, in case Windows runs it late (for example after sleep).
+- Typing a minute above 59 or an hour above 23 no longer wraps around silently.
+- The command line can be selected and copied in date mode.
+- Displayed times follow a time zone change while the app is open.
+- Error messages are announced by screen readers.
+- `"Theme"` in the settings file is no longer case sensitive.
+
 ## [0.1.0] - 2026-10-16
 
 ### Added
