@@ -317,13 +317,11 @@ namespace Shutdown
         {
             HideMessage();
             // The app's own countdown stops in any case; a Windows schedule only counts as gone when /a says so.
-            bool hadAppTimed = _pending?.AppTimed == true;
-            if (hadAppTimed) ClearPending();
+            // Success needs no message: the pending card disappearing says it.
+            if (_pending?.AppTimed == true) ClearPending();
             if (TryRun(Schedule.AbortArgs, out int code))
             {
                 if (code == 0 || code == ShutdownRunner.ErrorNoShutdownInProgress) ClearPending();
-                if (code == 0 || (hadAppTimed && code == ShutdownRunner.ErrorNoShutdownInProgress)) ShowInfo("MsgAborted");
-                else if (code == ShutdownRunner.ErrorNoShutdownInProgress) ShowInfo("MsgNothingPending");
                 else ShowRunError(Schedule.AbortArgs, code);
             }
             UpdateUi();

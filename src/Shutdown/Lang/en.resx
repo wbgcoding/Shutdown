@@ -43,8 +43,6 @@
   <data name="PendingHibernate" xml:space="preserve"><value>Hibernate scheduled</value></data>
   <data name="PendingRemaining" xml:space="preserve"><value>{0} left</value></data>
   <data name="PendingKeepOpen" xml:space="preserve"><value>Keep this window open.</value></data>
-  <data name="MsgAborted" xml:space="preserve"><value>Scheduled action cancelled.</value></data>
-  <data name="MsgNothingPending" xml:space="preserve"><value>Nothing was scheduled.</value></data>
   <data name="MsgMissed" xml:space="preserve"><value>The time passed while the PC was asleep. Nothing was run.</value></data>
   <data name="ErrTooShort" xml:space="preserve"><value>Choose at least 1 minute.</value></data>
   <data name="ErrTooLong" xml:space="preserve"><value>Choose at most 10 years.</value></data>

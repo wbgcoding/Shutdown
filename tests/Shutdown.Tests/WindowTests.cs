@@ -32,7 +32,8 @@ namespace Shutdown.Tests
             var ready = new ManualResetEventSlim();
             var t = new Thread(() =>
             {
-                var app = new App();
+                // Dispatcher.Run would otherwise run App.OnStartup: the real window, settings and single-instance lock.
+                var app = new App { HostedByTests = true };
                 app.InitializeComponent();
                 app.ShutdownMode = ShutdownMode.OnExplicitShutdown;
                 Theme.Apply(app.Resources);
@@ -106,7 +107,7 @@ namespace Shutdown.Tests
         });
 
         [Fact]
-        public void Abort_reports_success_and_clears_pending() => Sta.Run(() =>
+        public void Abort_clears_pending_without_a_message() => Sta.Run(() =>
         {
             var w = Make();
             Click(w.StartButton);
@@ -114,8 +115,7 @@ namespace Shutdown.Tests
             Click(w.AbortButton);
             Assert.Equal(new[] { "/a" }, _runner.Calls);
             Assert.Equal(Visibility.Collapsed, w.PendingCard.Visibility);
-            Assert.Equal(Visibility.Visible, w.MessageCard.Visibility);
-            Assert.Equal(Loc.I["MsgAborted"], w.MessageText.Text);
+            Assert.Equal(Visibility.Collapsed, w.MessageCard.Visibility);
             Assert.Null(_store.Load().PendingAction);
         });
 
@@ -176,7 +176,7 @@ namespace Shutdown.Tests
         });
 
         [Fact]
-        public void Abort_of_app_countdown_reports_cancelled() => Sta.Run(() =>
+        public void Abort_of_app_countdown_stops_it_silently() => Sta.Run(() =>
         {
             var w = Make();
             w.ActHibernate.IsChecked = true;
@@ -184,7 +184,7 @@ namespace Shutdown.Tests
             _runner.Result = a => ShutdownRunner.ErrorNoShutdownInProgress;
             Click(w.AbortButton);
             Assert.Equal(Visibility.Collapsed, w.PendingCard.Visibility);
-            Assert.Equal(Loc.I["MsgAborted"], w.MessageText.Text);
+            Assert.Equal(Visibility.Collapsed, w.MessageCard.Visibility);
             _now = _now.AddHours(2);
             w.OnTick();
             Assert.DoesNotContain("/h /f", _runner.Calls);
@@ -202,13 +202,14 @@ namespace Shutdown.Tests
         });
 
         [Fact]
-        public void Abort_of_a_schedule_cancelled_elsewhere_says_nothing_was_scheduled() => Sta.Run(() =>
+        public void Abort_of_a_schedule_cancelled_elsewhere_just_clears_it() => Sta.Run(() =>
         {
             var w = Make(new Settings { PendingAction = "Shutdown", PendingTarget = _now.AddMinutes(30).ToString("o") });
             Assert.True(w.AbortButton.IsEnabled);
             _runner.Result = a => ShutdownRunner.ErrorNoShutdownInProgress;
             Click(w.AbortButton);
-            Assert.Equal(Loc.I["MsgNothingPending"], w.MessageText.Text);
+            Assert.Equal(Visibility.Collapsed, w.PendingCard.Visibility);
+            Assert.Equal(Visibility.Collapsed, w.MessageCard.Visibility);
             Assert.False(w.AbortButton.IsEnabled);
         });
 

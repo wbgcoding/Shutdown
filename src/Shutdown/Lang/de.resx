@@ -43,8 +43,6 @@
   <data name="PendingHibernate" xml:space="preserve"><value>Ruhezustand geplant</value></data>
   <data name="PendingRemaining" xml:space="preserve"><value>noch {0}</value></data>
   <data name="PendingKeepOpen" xml:space="preserve"><value>Fenster offen lassen.</value></data>
-  <data name="MsgAborted" xml:space="preserve"><value>Geplanter Vorgang abgebrochen.</value></data>
-  <data name="MsgNothingPending" xml:space="preserve"><value>Es war nichts geplant.</value></data>
   <data name="MsgMissed" xml:space="preserve"><value>Der Zeitpunkt ist verstrichen, während der PC im Standby war. Nichts wurde ausgeführt.</value></data>
   <data name="ErrTooShort" xml:space="preserve"><value>Wähle mindestens 1 Minute.</value></data>
   <data name="ErrTooLong" xml:space="preserve"><value>Wähle höchstens 10 Jahre.</value></data>
