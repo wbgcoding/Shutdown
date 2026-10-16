@@ -241,8 +241,9 @@ namespace Shutdown.Tests
             var w = Make();
             w.ActHibernate.IsChecked = true;
             Click(w.StartButton);
-            _runner.Result = a => ShutdownRunner.ErrorNoShutdownInProgress;
+            _runner.Result = a => ShutdownRunner.ErrorAccessDenied;
             Click(w.AbortButton);
+            Assert.Equal(new[] { "/a" }, _runner.Calls);
             Assert.Equal(Visibility.Collapsed, w.PendingCard.Visibility);
             Assert.Equal(Visibility.Collapsed, w.MessageCard.Visibility);
             _now = _now.AddHours(2);

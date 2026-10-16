@@ -346,9 +346,15 @@ namespace Shutdown
         void OnAbort(object sender, RoutedEventArgs e)
         {
             HideMessage();
-            // The app's own countdown stops in any case; a Windows schedule only counts as gone when /a says so.
+            // The app's own countdown needs no call: Start already cleared Windows' schedule.
+            // A Windows schedule only counts as gone when /a says so.
             // Success needs no message: the pending card disappearing says it.
-            if (_pending?.AppTimed == true) ClearPending();
+            if (_pending?.AppTimed == true)
+            {
+                ClearPending();
+                UpdateUi();
+                return;
+            }
             if (TryRun(Schedule.AbortArgs, out int code))
             {
                 if (code == 0 || code == ShutdownRunner.ErrorNoShutdownInProgress) ClearPending();
