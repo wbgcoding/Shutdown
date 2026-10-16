@@ -18,6 +18,7 @@ namespace Shutdown.Core
 
         readonly Dictionary<string, Dictionary<string, string>> _tables = new Dictionary<string, Dictionary<string, string>>();
         string _lang = "en";
+        bool _applied;
 
         public event PropertyChangedEventHandler PropertyChanged;
         public event EventHandler Changed;
@@ -63,7 +64,6 @@ namespace Shutdown.Core
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Item[]"));
             Changed?.Invoke(this, EventArgs.Empty);
         }
-        bool _applied;
 
         public static string Resolve(CultureInfo ui) => ui.TwoLetterISOLanguageName == "de" ? "de" : "en";
 
@@ -87,7 +87,7 @@ namespace Shutdown.Core
             if (t.Days > 0) parts.Add(F("SpanDays", t.Days));
             if (t.Hours > 0) parts.Add(F("SpanHours", t.Hours));
             if (t.Minutes > 0 && t.Days == 0) parts.Add(F("SpanMinutes", t.Minutes));
-            if (parts.Count == 0) parts.Add(t.TotalSeconds >= 1 ? F("SpanSeconds", (int)t.TotalSeconds) : F("SpanSeconds", 0));
+            if (parts.Count == 0) parts.Add(F("SpanSeconds", (int)t.TotalSeconds));
             return string.Join(" ", parts);
         }
 

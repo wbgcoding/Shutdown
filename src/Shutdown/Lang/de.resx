@@ -62,4 +62,5 @@
   <data name="KeepOpen" xml:space="preserve"><value>Offen lassen</value></data>
   <data name="VersionFmt" xml:space="preserve"><value>Version {0}</value></data>
   <data name="ErrInvalidTime" xml:space="preserve"><value>Diese Uhrzeit gibt es an diesem Tag wegen der Zeitumstellung nicht.</value></data>
+  <data name="ExitCodeFmt" xml:space="preserve"><value>Rückgabecode {0}</value></data>
 </root>

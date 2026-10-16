@@ -152,6 +152,30 @@ namespace Shutdown.Tests
         });
 
         [Fact]
+        public void Error_detail_follows_the_language() => Sta.Run(() =>
+        {
+            var w = Make();
+            _runner.Result = a => ShutdownRunner.ErrorAccessDenied;
+            Loc.I.Apply("de");
+            try
+            {
+                Click(w.StartButton);
+                Assert.Equal("shutdown /a: Rückgabecode 5", w.MessageDetail.Text);
+            }
+            finally { Loc.I.Apply("en"); }
+        });
+
+        [Fact]
+        public void Closed_window_no_longer_follows_language_changes() => Sta.Run(() =>
+        {
+            var w = Make();
+            w.Close();
+            Loc.I.Apply("de");
+            try { Assert.Equal("Schedule shutdown", w.StartText.Text); }
+            finally { Loc.I.Apply("en"); }
+        });
+
+        [Fact]
         public void Abort_of_app_countdown_reports_cancelled() => Sta.Run(() =>
         {
             var w = Make();

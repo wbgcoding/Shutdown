@@ -62,4 +62,5 @@
   <data name="KeepOpen" xml:space="preserve"><value>Keep open</value></data>
   <data name="VersionFmt" xml:space="preserve"><value>Version {0}</value></data>
   <data name="ErrInvalidTime" xml:space="preserve"><value>This time does not exist on that day because of the clock change.</value></data>
+  <data name="ExitCodeFmt" xml:space="preserve"><value>exit code {0}</value></data>
 </root>

@@ -99,13 +99,15 @@ namespace Shutdown.Ui
             e.Handled = true;
         }
 
-        void OnPreviewText(object sender, TextCompositionEventArgs e) =>
-            e.Handled = !e.Text.All(char.IsDigit);
+        // ASCII only: char.IsDigit also accepts other scripts' digits, which the parser rejects.
+        static bool IsDigits(string s) => s.Length > 0 && s.All(c => c >= '0' && c <= '9');
+
+        void OnPreviewText(object sender, TextCompositionEventArgs e) => e.Handled = !IsDigits(e.Text);
 
         void OnPaste(object sender, DataObjectPastingEventArgs e)
         {
             var text = e.SourceDataObject.GetData(DataFormats.UnicodeText) as string;
-            if (text == null || !text.Trim().All(char.IsDigit)) e.CancelCommand();
+            if (text == null || !IsDigits(text)) e.CancelCommand();
         }
 
         void OnKey(object sender, KeyEventArgs e)

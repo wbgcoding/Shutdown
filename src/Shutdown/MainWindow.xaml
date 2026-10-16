@@ -45,7 +45,7 @@
 
         <Border Style="{StaticResource SegmentHost}" Margin="0,0,0,10">
           <UniformGrid Rows="1">
-            <RadioButton x:Name="ModeCountdown" GroupName="Mode" Style="{StaticResource Segment}" Checked="OnModeChanged"
+            <RadioButton x:Name="ModeCountdown" GroupName="Mode" Style="{StaticResource Segment}" Checked="OnInputChanged"
                          AutomationProperties.AutomationId="ModeCountdown"
                          AutomationProperties.Name="{Binding [ModeCountdown], Source={x:Static core:Loc.I}}">
               <StackPanel Orientation="Horizontal">
@@ -53,7 +53,7 @@
                 <TextBlock Text="{Binding [ModeCountdown], Source={x:Static core:Loc.I}}"/>
               </StackPanel>
             </RadioButton>
-            <RadioButton x:Name="ModeAt" GroupName="Mode" Style="{StaticResource Segment}" Checked="OnModeChanged"
+            <RadioButton x:Name="ModeAt" GroupName="Mode" Style="{StaticResource Segment}" Checked="OnInputChanged"
                          AutomationProperties.AutomationId="ModeAt"
                          AutomationProperties.Name="{Binding [ModeAt], Source={x:Static core:Loc.I}}">
               <StackPanel Orientation="Horizontal">

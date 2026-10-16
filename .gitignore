@@ -1,4 +1,3 @@
-# see the stack-specific section below
 .tmp/
 .env
 .env.*
