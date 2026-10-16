@@ -189,6 +189,17 @@ namespace Shutdown.Tests
         });
 
         [Fact]
+        public void Timed_out_scheduling_call_is_cancelled_again() => Sta.Run(() =>
+        {
+            var w = Make();
+            _runner.Result = a => a == "/a" ? ShutdownRunner.ErrorNoShutdownInProgress : ShutdownRunner.TimeoutCode;
+            Click(w.StartButton);
+            Assert.Equal(new[] { "/a", "/s /f /t 3600", "/a" }, _runner.Calls);
+            Assert.Equal(Visibility.Collapsed, w.PendingCard.Visibility);
+            Assert.Equal(Loc.I["ErrTimeout"], w.MessageText.Text);
+        });
+
+        [Fact]
         public void Error_detail_follows_the_language() => Sta.Run(() =>
         {
             var w = Make();

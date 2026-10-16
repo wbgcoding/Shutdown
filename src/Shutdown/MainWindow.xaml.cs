@@ -318,7 +318,7 @@ namespace Shutdown
             {
                 _pending = new Pending { Action = action, TargetUtc = r.TargetUtc, AppTimed = true, Force = Force };
             }
-            else if (Execute(Schedule.ArgsFor(action, Force, r.Seconds)))
+            else if (Execute(Schedule.ArgsFor(action, Force, r.Seconds), true))
             {
                 _pending = new Pending { Action = action, TargetUtc = r.TargetUtc, AppTimed = false, Force = Force };
                 _settings.PendingAction = action.ToString();
@@ -356,10 +356,12 @@ namespace Shutdown
         }
 
         /// <summary>Runs shutdown.exe; false and an error message when it fails.</summary>
-        bool Execute(string args)
+        bool Execute(string args, bool scheduling = false)
         {
             if (!TryRun(args, out int code)) return false;
             if (code == 0) return true;
+            // A timed-out call may still have registered the schedule; take it back so none stays hidden.
+            if (scheduling && code == ShutdownRunner.TimeoutCode) TryRun(Schedule.AbortArgs, out _);
             ShowRunError(args, code);
             return false;
         }
@@ -383,7 +385,7 @@ namespace Shutdown
 
         void ShowRunError(string args, int code)
         {
-            string key = code == ShutdownRunner.ErrorAccessDenied ? "ErrAccessDenied" : code == -1 ? "ErrTimeout" : "ErrRunFailed";
+            string key = code == ShutdownRunner.ErrorAccessDenied ? "ErrAccessDenied" : code == ShutdownRunner.TimeoutCode ? "ErrTimeout" : "ErrRunFailed";
             ShowError(key, "shutdown " + args + ": " + Loc.I.F("ExitCodeFmt", code), false);
         }
 

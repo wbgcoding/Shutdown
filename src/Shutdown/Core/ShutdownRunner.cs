@@ -17,6 +17,8 @@ namespace Shutdown.Core
         public const int ErrorAccessDenied = 5;
         public const int ErrorNoShutdownInProgress = 1116;
         public const int ErrorShutdownIsScheduled = 1190;
+        /// <summary>The app's own marker for a shutdown.exe that did not finish in time.</summary>
+        public const int TimeoutCode = -1;
 
         static string ExePath =>
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "shutdown.exe");
@@ -41,7 +43,7 @@ namespace Shutdown.Core
                     {
                         // A hung shutdown.exe must not linger and act later.
                         try { p.Kill(); } catch (Exception) { }
-                        return -1;
+                        return TimeoutCode;
                     }
                     return p.ExitCode;
                 }
