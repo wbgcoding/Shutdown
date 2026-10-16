@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using System.Threading;
 using System.Windows;
 using System.Windows.Threading;
@@ -26,8 +25,7 @@ namespace Shutdown
             DispatcherUnhandledException += OnDispatcherError;
             AppDomain.CurrentDomain.UnhandledException += (s, a) => Log.Write("unhandled", a.ExceptionObject as Exception);
 
-            bool newInstance = e.Args.Any(a => a == "--new-instance" || a == "--second-instance");
-            if (!newInstance && !ClaimSingleInstance())
+            if (!ClaimSingleInstance())
             {
                 Shutdown();
                 return;
