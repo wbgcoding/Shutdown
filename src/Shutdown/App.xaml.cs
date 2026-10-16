@@ -32,7 +32,7 @@ namespace Shutdown
             var settings = store.Load();
             Theme.Override = settings.Theme;
             Theme.Apply(Resources);
-            Loc.I.Apply(settings.Language);
+            Loc.I.Apply("system");
 
             base.OnStartup(e);
             var w = new MainWindow(store, settings, new ShutdownRunner());

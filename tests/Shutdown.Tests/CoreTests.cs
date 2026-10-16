@@ -148,6 +148,19 @@ namespace Shutdown.Tests
         }
 
         [Fact]
+        public void Every_key_is_used_in_the_source()
+        {
+            var dir = AppDomain.CurrentDomain.BaseDirectory;
+            while (dir != null && !Directory.Exists(Path.Combine(dir, "src", "Shutdown"))) dir = Path.GetDirectoryName(dir);
+            Assert.NotNull(dir);
+            var src = string.Concat(Directory.GetFiles(Path.Combine(dir, "src", "Shutdown"), "*.*", SearchOption.AllDirectories)
+                .Where(f => (f.EndsWith(".cs") || f.EndsWith(".xaml")) && !f.Contains(@"\obj\") && !f.Contains(@"\bin\"))
+                .Select(File.ReadAllText));
+            var unused = Loc.LoadTable("en").Keys.Where(k => !src.Contains("\"" + k + "\"") && !src.Contains("[" + k + "]")).ToList();
+            Assert.Empty(unused);
+        }
+
+        [Fact]
         public void No_dashes_in_ui_text()
         {
             foreach (var lang in Loc.Languages)
@@ -171,12 +184,12 @@ namespace Shutdown.Tests
         public void Roundtrip_keeps_values()
         {
             var store = new SettingsStore(File_);
-            var s = new Settings { Language = "de", Force = false, Hours = 3, Minutes = 15, Action = "Restart",
+            var s = new Settings { Theme = "dark", Force = false, Hours = 3, Minutes = 15, Action = "Restart",
                                    PendingAction = "Shutdown", PendingTarget = "2026-10-16T20:00:00.0000000+02:00" };
             store.Save(s);
             store.Save(s);
             var back = store.Load();
-            Assert.Equal("de", back.Language);
+            Assert.Equal("dark", back.Theme);
             Assert.False(back.Force);
             Assert.Equal(3, back.Hours);
             Assert.Equal(15, back.Minutes);
@@ -188,20 +201,21 @@ namespace Shutdown.Tests
         [Fact]
         public void Missing_fields_get_defaults()
         {
-            File.WriteAllText(File_, "{\"Version\":1,\"Language\":\"en\"}");
+            File.WriteAllText(File_, "{\"Version\":1,\"Theme\":\"light\"}");
             var s = new SettingsStore(File_).Load();
             Assert.True(s.Force);
             Assert.Equal(1, s.Hours);
-            Assert.Equal("system", s.Theme);
+            Assert.Equal("light", s.Theme);
+            Assert.Equal("Countdown", s.Mode);
         }
 
         [Fact]
         public void Corrupt_or_future_file_falls_back_to_defaults()
         {
             File.WriteAllText(File_, "{ not json");
-            Assert.Equal("system", new SettingsStore(File_).Load().Language);
-            File.WriteAllText(File_, "{\"Version\":99,\"Language\":\"de\"}");
-            Assert.Equal("system", new SettingsStore(File_).Load().Language);
+            Assert.Equal("system", new SettingsStore(File_).Load().Theme);
+            File.WriteAllText(File_, "{\"Version\":99,\"Theme\":\"dark\"}");
+            Assert.Equal("system", new SettingsStore(File_).Load().Theme);
         }
     }
 }

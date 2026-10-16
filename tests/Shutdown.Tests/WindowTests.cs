@@ -64,7 +64,6 @@ namespace Shutdown.Tests
         {
             // Fixed language: "system" would follow the machine running the tests.
             s = s ?? new Settings();
-            s.Language = "en";
             Loc.I.Apply("en");
             _store = new SettingsStore(Path.Combine(_dir, SettingsStore.FileName));
             return new MainWindow(_store, s, _runner, () => _now);
@@ -166,12 +165,25 @@ namespace Shutdown.Tests
         });
 
         [Fact]
-        public void Abort_with_nothing_pending_says_so() => Sta.Run(() =>
+        public void Abort_is_only_enabled_while_something_is_scheduled() => Sta.Run(() =>
         {
             var w = Make();
+            Assert.False(w.AbortButton.IsEnabled);
+            Click(w.StartButton);
+            Assert.True(w.AbortButton.IsEnabled);
+            Click(w.AbortButton);
+            Assert.False(w.AbortButton.IsEnabled);
+        });
+
+        [Fact]
+        public void Abort_of_a_schedule_cancelled_elsewhere_says_nothing_was_scheduled() => Sta.Run(() =>
+        {
+            var w = Make(new Settings { PendingAction = "Shutdown", PendingTarget = _now.AddMinutes(30).ToString("o") });
+            Assert.True(w.AbortButton.IsEnabled);
             _runner.Result = a => ShutdownRunner.ErrorNoShutdownInProgress;
             Click(w.AbortButton);
             Assert.Equal(Loc.I["MsgNothingPending"], w.MessageText.Text);
+            Assert.False(w.AbortButton.IsEnabled);
         });
 
         [Fact]
@@ -291,17 +303,24 @@ namespace Shutdown.Tests
         });
 
         [Fact]
-        public void Language_switch_rerenders_live_and_persists() => Sta.Run(() =>
+        public void Language_change_rerenders_live() => Sta.Run(() =>
         {
             var w = Make();
             Assert.Equal("Schedule shutdown", w.StartText.Text);
-            w.LangBox.SelectedIndex = 2;
+            Loc.I.Apply("de");
             Assert.Equal("Herunterfahren planen", w.StartText.Text);
             Assert.Equal("Stunden", w.DurHours.CaptionText.Text);
-            Assert.Equal("de", _store.Load().Language);
-            w.LangBox.SelectedIndex = 1;
+            Loc.I.Apply("en");
             Assert.Equal("Schedule shutdown", w.StartText.Text);
         });
+
+        [Fact]
+        public void System_language_follows_the_ui_culture()
+        {
+            Assert.Equal("de", Loc.Resolve(System.Globalization.CultureInfo.GetCultureInfo("de-AT")));
+            Assert.Equal("en", Loc.Resolve(System.Globalization.CultureInfo.GetCultureInfo("fr-FR")));
+            Assert.Equal("en", Loc.Resolve(System.Globalization.CultureInfo.GetCultureInfo("en-GB")));
+        }
 
         [Fact]
         public void Spinner_clamps_and_wraps() => Sta.Run(() =>

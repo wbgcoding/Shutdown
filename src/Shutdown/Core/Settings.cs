@@ -12,7 +12,6 @@ namespace Shutdown.Core
         public const int CurrentVersion = 1;
 
         [DataMember(Order = 0)] public int Version { get; set; } = CurrentVersion;
-        [DataMember(Order = 1)] public string Language { get; set; } = "system";
         /// <summary>system, light or dark. Not shown in the UI, editable in the file.</summary>
         [DataMember(Order = 2)] public string Theme { get; set; } = "system";
         [DataMember(Order = 3)] public string Action { get; set; } = nameof(PowerAction.Shutdown);
@@ -29,7 +28,7 @@ namespace Shutdown.Core
         [OnDeserializing]
         void OnDeserializing(StreamingContext c)
         {
-            Version = CurrentVersion; Language = "system"; Theme = "system";
+            Version = CurrentVersion; Theme = "system";
             Action = nameof(PowerAction.Shutdown); Mode = nameof(TimeMode.Countdown);
             Force = true; Hours = 1; Minutes = 0;
         }

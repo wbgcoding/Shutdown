@@ -50,6 +50,7 @@ namespace Shutdown.Ui
                 return;
             }
 
+            var a = AccentPalette();
             if (IsDark)
             {
                 Set(res, "Bg", "#202020");
@@ -61,11 +62,12 @@ namespace Shutdown.Ui
                 Set(res, "ControlHover", "#404040");
                 Set(res, "ControlPressed", "#2F2F2F");
                 Set(res, "ControlBorder", "#4A4A4A");
-                Set(res, "Accent", "#A996FF");
-                Set(res, "AccentHover", "#B9A9FF");
-                Set(res, "AccentText", "#1A1433");
-                Set(res, "AccentSoft", "#352F52");
-                Set(res, "AccentFg", "#CFC4FF");
+                // Same roles WinUI uses for accent fills in dark mode.
+                Set(res, "Accent", a[Light2]);
+                Set(res, "AccentHover", a[Light3]);
+                Set(res, "AccentText", Colors.Black);
+                Set(res, "AccentSoft", Blend(a[Light2], Rgb("#2B2B2B"), 0.18));
+                Set(res, "AccentFg", a[Light3]);
                 Set(res, "Danger", "#FF99A4");
                 Set(res, "DangerSoft", "#442726");
                 Set(res, "Focus", "#FFFFFF");
@@ -82,11 +84,11 @@ namespace Shutdown.Ui
                 Set(res, "ControlHover", "#F0F0F0");
                 Set(res, "ControlPressed", "#E6E6E6");
                 Set(res, "ControlBorder", "#D3D3D3");
-                Set(res, "Accent", "#6A45E8");
-                Set(res, "AccentHover", "#5A36D6");
-                Set(res, "AccentText", "#FFFFFF");
-                Set(res, "AccentSoft", "#EFEBFF");
-                Set(res, "AccentFg", "#4B2BB8");
+                Set(res, "Accent", a[Dark1]);
+                Set(res, "AccentHover", a[Dark2]);
+                Set(res, "AccentText", Colors.White);
+                Set(res, "AccentSoft", Blend(a[Accent], Colors.White, 0.12));
+                Set(res, "AccentFg", a[Dark2]);
                 Set(res, "Danger", "#B3261E");
                 Set(res, "DangerSoft", "#FDE7E9");
                 Set(res, "Focus", "#1B1B1B");
@@ -94,8 +96,39 @@ namespace Shutdown.Ui
             }
         }
 
-        static void Set(ResourceDictionary res, string key, string hex) =>
-            Set(res, key, (Color)ColorConverter.ConvertFromString(hex));
+        static void Set(ResourceDictionary res, string key, string hex) => Set(res, key, Rgb(hex));
+
+        static Color Rgb(string hex) => (Color)ColorConverter.ConvertFromString(hex);
+
+        static Color Blend(Color fg, Color bg, double amount) => Color.FromRgb(
+            (byte)(fg.R * amount + bg.R * (1 - amount)),
+            (byte)(fg.G * amount + bg.G * (1 - amount)),
+            (byte)(fg.B * amount + bg.B * (1 - amount)));
+
+        // Index into the Windows accent palette: three lighter shades, the accent, three darker shades.
+        const int Light3 = 0, Light2 = 1, Light1 = 2, Accent = 3, Dark1 = 4, Dark2 = 5, Dark3 = 6;
+
+        // Windows default blue, used when the palette cannot be read.
+        static readonly string[] DefaultPalette = { "#99EBFF", "#4CC2FF", "#0091F8", "#0078D4", "#005FB8", "#004275", "#002642" };
+
+        /// <summary>The user's accent colour in the seven shades Windows itself derives from it.</summary>
+        public static Color[] AccentPalette()
+        {
+            try
+            {
+                using (var k = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Explorer\Accent"))
+                    if (k?.GetValue("AccentPalette") is byte[] b && b.Length >= 28)
+                    {
+                        var p = new Color[7];
+                        for (int i = 0; i < 7; i++) p[i] = Color.FromRgb(b[i * 4], b[i * 4 + 1], b[i * 4 + 2]);
+                        return p;
+                    }
+            }
+            catch (Exception) { }
+            var d = new Color[7];
+            for (int i = 0; i < 7; i++) d[i] = Rgb(DefaultPalette[i]);
+            return d;
+        }
 
         static void Set(ResourceDictionary res, string key, Color c)
         {
@@ -133,6 +166,7 @@ namespace Shutdown.Ui
             SystemEvents.UserPreferenceChanged += (s, e) =>
             {
                 if (e.Category == UserPreferenceCategory.General || e.Category == UserPreferenceCategory.Color ||
+                    e.Category == UserPreferenceCategory.VisualStyle ||
                     e.Category == UserPreferenceCategory.Accessibility)
                     Application.Current?.Dispatcher.BeginInvoke(onChange);
             };

@@ -88,10 +88,6 @@ namespace Shutdown
                 settings.PendingTarget = null;
             }
 
-            foreach (ComboBoxItem item in LangBox.Items)
-                if ((string)item.Tag == settings.Language) LangBox.SelectedItem = item;
-            if (LangBox.SelectedItem == null) LangBox.SelectedIndex = 0;
-
             if (settings.Left.HasValue && settings.Top.HasValue && OnScreen(settings.Left.Value, settings.Top.Value))
             {
                 WindowStartupLocation = WindowStartupLocation.Manual;
@@ -245,6 +241,8 @@ namespace Shutdown
         void UpdatePending(DateTime now)
         {
             var L = Loc.I;
+            // Only something this app scheduled can be cancelled here.
+            AbortButton.IsEnabled = _pending != null;
             if (_pending == null)
             {
                 PendingCard.Visibility = Visibility.Collapsed;
@@ -427,14 +425,6 @@ namespace Shutdown
         void OnNextDay(object sender, RoutedEventArgs e) { _date = _date.AddDays(1); UpdateUi(); }
         void OnToday(object sender, RoutedEventArgs e) { _date = Now().Date; UpdateUi(); }
         void OnTomorrow(object sender, RoutedEventArgs e) { _date = Now().Date.AddDays(1); UpdateUi(); }
-
-        void OnLanguageChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (!(LangBox.SelectedItem is ComboBoxItem item)) return;
-            _settings.Language = (string)item.Tag;
-            Loc.I.Apply(_settings.Language);
-            if (!_loading) Persist();
-        }
 
         void Persist()
         {

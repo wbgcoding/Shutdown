@@ -3,14 +3,14 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:ui="clr-namespace:Shutdown.Ui"
              x:Name="Root" Focusable="False">
-  <StackPanel MinWidth="84">
+  <StackPanel MinWidth="70">
     <Border Background="{DynamicResource Control}" BorderBrush="{DynamicResource ControlBorder}"
             BorderThickness="1" CornerRadius="8" Padding="2">
       <StackPanel>
-        <Button x:Name="UpButton" Style="{StaticResource GhostButton}" Click="OnUp" IsTabStop="False">
-          <ui:Glyph Style="{StaticResource Icon}" Text="&#xE70E;" FontSize="12"/>
+        <Button x:Name="UpButton" Style="{StaticResource GhostButton}" Click="OnUp" IsTabStop="False" MinHeight="20" Padding="6,0">
+          <ui:Glyph Style="{StaticResource Icon}" Text="&#xE70E;" FontSize="10"/>
         </Button>
-        <TextBox x:Name="Box" FontFamily="{StaticResource DisplayFont}" FontSize="30" FontWeight="SemiBold"
+        <TextBox x:Name="Box" FontFamily="{StaticResource DisplayFont}" FontSize="24" FontWeight="SemiBold"
                  HorizontalContentAlignment="Center" Background="Transparent" BorderThickness="0"
                  Foreground="{DynamicResource Text}" CaretBrush="{DynamicResource Text}"
                  SelectionBrush="{DynamicResource Accent}" MaxLength="3" Padding="0"
@@ -30,12 +30,12 @@
             </ControlTemplate>
           </TextBox.Template>
         </TextBox>
-        <Button x:Name="DownButton" Style="{StaticResource GhostButton}" Click="OnDown" IsTabStop="False">
-          <ui:Glyph Style="{StaticResource Icon}" Text="&#xE70D;" FontSize="12"/>
+        <Button x:Name="DownButton" Style="{StaticResource GhostButton}" Click="OnDown" IsTabStop="False" MinHeight="20" Padding="6,0">
+          <ui:Glyph Style="{StaticResource Icon}" Text="&#xE70D;" FontSize="10"/>
         </Button>
       </StackPanel>
     </Border>
-    <TextBlock x:Name="CaptionText" HorizontalAlignment="Center" Margin="0,6,0,0" FontSize="12"
+    <TextBlock x:Name="CaptionText" HorizontalAlignment="Center" Margin="0,3,0,0" FontSize="11"
                Foreground="{DynamicResource TextSub}"/>
   </StackPanel>
 </UserControl>

@@ -4,24 +4,16 @@
   <resheader name="version"><value>2.0</value></resheader>
   <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
-  <data name="AppTitle" xml:space="preserve"><value>Shutdown</value></data>
-  <data name="Language" xml:space="preserve"><value>Language</value></data>
-  <data name="LangSystem" xml:space="preserve"><value>System</value></data>
-  <data name="LangEnglish" xml:space="preserve"><value>English</value></data>
-  <data name="LangGerman" xml:space="preserve"><value>Deutsch</value></data>
-  <data name="SecAction" xml:space="preserve"><value>Action</value></data>
   <data name="ActShutdown" xml:space="preserve"><value>Shut down</value></data>
   <data name="ActRestart" xml:space="preserve"><value>Restart</value></data>
   <data name="ActHibernate" xml:space="preserve"><value>Hibernate</value></data>
   <data name="HibernateUnavailable" xml:space="preserve"><value>Hibernate is turned off on this PC.</value></data>
-  <data name="SecWhen" xml:space="preserve"><value>When</value></data>
   <data name="ModeCountdown" xml:space="preserve"><value>Countdown</value></data>
   <data name="ModeAt" xml:space="preserve"><value>Date and time</value></data>
   <data name="Hours" xml:space="preserve"><value>Hours</value></data>
   <data name="Minutes" xml:space="preserve"><value>Minutes</value></data>
   <data name="Hour" xml:space="preserve"><value>Hour</value></data>
   <data name="Minute" xml:space="preserve"><value>Minute</value></data>
-  <data name="Date" xml:space="preserve"><value>Date</value></data>
   <data name="Today" xml:space="preserve"><value>Today</value></data>
   <data name="Tomorrow" xml:space="preserve"><value>Tomorrow</value></data>
   <data name="PrevDay" xml:space="preserve"><value>Previous day</value></data>

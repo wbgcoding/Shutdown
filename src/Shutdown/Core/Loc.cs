@@ -53,7 +53,7 @@ namespace Shutdown.Core
             }
         }
 
-        /// <summary>Sets the language from a setting value: system, en or de.</summary>
+        /// <summary>Sets the language: system (the app's normal mode) or an explicit en/de for tests.</summary>
         public void Apply(string setting)
         {
             string lang = setting == "system" || !Languages.Contains(setting) ? Resolve(CultureInfo.CurrentUICulture) : setting;

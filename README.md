@@ -4,8 +4,8 @@ A tiny portable Windows tool that schedules a shutdown, restart or hibernate wit
 
 - Pick a countdown (hours and minutes, quick picks from 15 minutes to 4 hours) or an exact date and time.
 - Shows when the PC turns off, the time left and the exact `shutdown.exe` command it runs.
-- Cancel a scheduled shutdown with one click, also one started outside the app.
-- English and German, light and dark mode following Windows.
+- Cancel what it scheduled with one click.
+- English or German from the Windows language; light or dark mode and the accent colour from Windows.
 - One small `.exe`, no install. Runs on Windows 10 and 11 (uses the .NET Framework 4.8 that ships with Windows).
 
 ## How it works

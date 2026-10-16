@@ -7,4 +7,4 @@ All notable changes to this project are documented here. The format follows Keep
 ### Added
 - First version: schedule shutdown, restart or hibernate by countdown or by date and time, cancel a scheduled shutdown.
 - Force switch; without it, and for hibernate, the app runs the countdown itself and asks before closing.
-- English and German, light and dark mode, portable settings next to the exe.
+- English or German picked from the Windows language; light/dark mode and accent colour follow Windows; portable settings next to the exe.

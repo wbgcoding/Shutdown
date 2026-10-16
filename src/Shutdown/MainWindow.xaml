@@ -3,273 +3,243 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:core="clr-namespace:Shutdown.Core"
         xmlns:ui="clr-namespace:Shutdown.Ui"
-        Title="Shutdown" Width="460" SizeToContent="Height" ResizeMode="CanMinimize"
+        Title="Shutdown" Width="450" SizeToContent="Height" ResizeMode="CanMinimize"
         WindowStartupLocation="CenterScreen" Icon="Assets/Shutdown.ico"
         Background="{DynamicResource Bg}" Foreground="{DynamicResource Text}"
-        FontFamily="{StaticResource UiFont}" FontSize="14"
+        FontFamily="{StaticResource UiFont}" FontSize="13"
         UseLayoutRounding="True" TextOptions.TextFormattingMode="Display"
         AutomationProperties.AutomationId="MainWindow">
-  <Grid Margin="20,16,20,16">
-    <StackPanel>
+  <StackPanel Margin="12,10,12,8">
 
-      <!-- Header -->
-      <Grid Margin="0,0,0,14">
+    <!-- Action and time -->
+    <Border Style="{StaticResource CardStyle}" Margin="0,0,0,8">
+      <StackPanel>
+        <Border Style="{StaticResource SegmentHost}" Margin="0,0,0,8">
+          <UniformGrid Rows="1">
+            <RadioButton x:Name="ActShutdown" GroupName="Action" Style="{StaticResource Segment}" Checked="OnInputChanged"
+                         AutomationProperties.AutomationId="ActShutdown"
+                         AutomationProperties.Name="{Binding [ActShutdown], Source={x:Static core:Loc.I}}">
+              <StackPanel Orientation="Horizontal">
+                <ui:Glyph Style="{StaticResource Icon}" Text="&#xE7E8;" FontSize="13" Margin="0,0,5,0"/>
+                <TextBlock Text="{Binding [ActShutdown], Source={x:Static core:Loc.I}}"/>
+              </StackPanel>
+            </RadioButton>
+            <RadioButton x:Name="ActRestart" GroupName="Action" Style="{StaticResource Segment}" Checked="OnInputChanged"
+                         AutomationProperties.AutomationId="ActRestart"
+                         AutomationProperties.Name="{Binding [ActRestart], Source={x:Static core:Loc.I}}">
+              <StackPanel Orientation="Horizontal">
+                <ui:Glyph Style="{StaticResource Icon}" Text="&#xE777;" FontSize="13" Margin="0,0,5,0"/>
+                <TextBlock Text="{Binding [ActRestart], Source={x:Static core:Loc.I}}"/>
+              </StackPanel>
+            </RadioButton>
+            <RadioButton x:Name="ActHibernate" GroupName="Action" Style="{StaticResource Segment}" Checked="OnInputChanged"
+                         AutomationProperties.AutomationId="ActHibernate"
+                         AutomationProperties.Name="{Binding [ActHibernate], Source={x:Static core:Loc.I}}">
+              <StackPanel Orientation="Horizontal">
+                <ui:Glyph Style="{StaticResource Icon}" Text="&#xE708;" FontSize="13" Margin="0,0,5,0"/>
+                <TextBlock Text="{Binding [ActHibernate], Source={x:Static core:Loc.I}}"/>
+              </StackPanel>
+            </RadioButton>
+          </UniformGrid>
+        </Border>
+
+        <Border Style="{StaticResource SegmentHost}" Margin="0,0,0,10">
+          <UniformGrid Rows="1">
+            <RadioButton x:Name="ModeCountdown" GroupName="Mode" Style="{StaticResource Segment}" Checked="OnModeChanged"
+                         AutomationProperties.AutomationId="ModeCountdown"
+                         AutomationProperties.Name="{Binding [ModeCountdown], Source={x:Static core:Loc.I}}">
+              <StackPanel Orientation="Horizontal">
+                <ui:Glyph Style="{StaticResource Icon}" Text="&#xE916;" FontSize="13" Margin="0,0,5,0"/>
+                <TextBlock Text="{Binding [ModeCountdown], Source={x:Static core:Loc.I}}"/>
+              </StackPanel>
+            </RadioButton>
+            <RadioButton x:Name="ModeAt" GroupName="Mode" Style="{StaticResource Segment}" Checked="OnModeChanged"
+                         AutomationProperties.AutomationId="ModeAt"
+                         AutomationProperties.Name="{Binding [ModeAt], Source={x:Static core:Loc.I}}">
+              <StackPanel Orientation="Horizontal">
+                <ui:Glyph Style="{StaticResource Icon}" Text="&#xE787;" FontSize="13" Margin="0,0,5,0"/>
+                <TextBlock Text="{Binding [ModeAt], Source={x:Static core:Loc.I}}"/>
+              </StackPanel>
+            </RadioButton>
+          </UniformGrid>
+        </Border>
+
+        <!-- Countdown -->
+        <StackPanel x:Name="CountdownPanel">
+          <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+            <ui:NumberSpinner x:Name="DurHours" Maximum="999" Digits="1" AutomationKey="DurHours"/>
+            <TextBlock Text=":" FontSize="22" FontWeight="SemiBold" Foreground="{DynamicResource TextSub}"
+                       VerticalAlignment="Top" Margin="8,30,8,0"/>
+            <ui:NumberSpinner x:Name="DurMinutes" Maximum="59" Digits="2" AutomationKey="DurMinutes"/>
+          </StackPanel>
+          <WrapPanel x:Name="Chips" HorizontalAlignment="Center" Margin="0,8,0,-6"/>
+        </StackPanel>
+
+        <!-- Date and time -->
+        <StackPanel x:Name="AtPanel" Visibility="Collapsed">
+          <Grid Margin="0,0,0,8">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="Auto"/>
+              <ColumnDefinition Width="*"/>
+              <ColumnDefinition Width="Auto"/>
+              <ColumnDefinition Width="Auto"/>
+              <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Button x:Name="PrevDay" Style="{StaticResource GhostButton}" Click="OnPrevDay" MinWidth="32" MinHeight="32"
+                    AutomationProperties.AutomationId="PrevDay"
+                    AutomationProperties.Name="{Binding [PrevDay], Source={x:Static core:Loc.I}}"
+                    ToolTip="{Binding [PrevDay], Source={x:Static core:Loc.I}}">
+              <ui:Glyph Style="{StaticResource Icon}" Text="&#xE76B;" FontSize="12"/>
+            </Button>
+            <TextBlock x:Name="DateLabel" Grid.Column="1" FontSize="14" FontWeight="SemiBold"
+                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                       AutomationProperties.AutomationId="DateLabel"/>
+            <Button x:Name="NextDay" Grid.Column="2" Style="{StaticResource GhostButton}" Click="OnNextDay" MinWidth="32" MinHeight="32"
+                    AutomationProperties.AutomationId="NextDay"
+                    AutomationProperties.Name="{Binding [NextDay], Source={x:Static core:Loc.I}}"
+                    ToolTip="{Binding [NextDay], Source={x:Static core:Loc.I}}">
+              <ui:Glyph Style="{StaticResource Icon}" Text="&#xE76C;" FontSize="12"/>
+            </Button>
+            <Button Grid.Column="3" Style="{StaticResource ChipButton}" Click="OnToday" AutomationProperties.AutomationId="Today"
+                    Content="{Binding [Today], Source={x:Static core:Loc.I}}" Margin="8,0,6,0"/>
+            <Button Grid.Column="4" Style="{StaticResource ChipButton}" Click="OnTomorrow" AutomationProperties.AutomationId="Tomorrow"
+                    Content="{Binding [Tomorrow], Source={x:Static core:Loc.I}}" Margin="0"/>
+          </Grid>
+          <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+            <ui:NumberSpinner x:Name="AtHour" Maximum="23" Wrap="True" Digits="2" AutomationKey="AtHour"/>
+            <TextBlock Text=":" FontSize="22" FontWeight="SemiBold" Foreground="{DynamicResource TextSub}"
+                       VerticalAlignment="Top" Margin="8,30,8,0"/>
+            <ui:NumberSpinner x:Name="AtMinute" Maximum="59" Wrap="True" Digits="2" AutomationKey="AtMinute"/>
+          </StackPanel>
+        </StackPanel>
+      </StackPanel>
+    </Border>
+
+    <!-- Summary -->
+    <Border x:Name="SummaryCard" Background="{DynamicResource AccentSoft}" CornerRadius="8" Padding="12,8" Margin="0,0,0,8">
+      <Grid>
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="Auto"/>
           <ColumnDefinition Width="*"/>
-          <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
-        <Border Width="36" Height="36" CornerRadius="18" Background="{DynamicResource Accent}">
-          <ui:Glyph Style="{StaticResource Icon}" Text="&#xE7E8;" FontSize="17" Foreground="{DynamicResource AccentText}"/>
-        </Border>
-        <TextBlock Grid.Column="1" Text="Shutdown" FontFamily="{StaticResource DisplayFont}" FontSize="22"
-                   FontWeight="SemiBold" VerticalAlignment="Center" Margin="12,0,0,2"/>
-        <ComboBox x:Name="LangBox" Grid.Column="2" MinWidth="120" VerticalAlignment="Center"
-                  SelectionChanged="OnLanguageChanged" AutomationProperties.AutomationId="Language"
-                  AutomationProperties.Name="{Binding [Language], Source={x:Static core:Loc.I}}"
-                  ToolTip="{Binding [Language], Source={x:Static core:Loc.I}}">
-          <ComboBoxItem Tag="system" AutomationProperties.AutomationId="LangSystem"
-                        Content="{Binding [LangSystem], Source={x:Static core:Loc.I}}"/>
-          <ComboBoxItem Tag="en" AutomationProperties.AutomationId="LangEnglish"
-                        Content="{Binding [LangEnglish], Source={x:Static core:Loc.I}}"/>
-          <ComboBoxItem Tag="de" AutomationProperties.AutomationId="LangGerman"
-                        Content="{Binding [LangGerman], Source={x:Static core:Loc.I}}"/>
-        </ComboBox>
+        <ui:Glyph x:Name="SummaryIcon" Style="{StaticResource Icon}" Text="&#xE823;" FontSize="16"
+                  Foreground="{DynamicResource AccentFg}" Margin="0,0,10,0"/>
+        <StackPanel Grid.Column="1">
+          <TextBlock x:Name="SummaryMain" FontSize="14" FontWeight="SemiBold" TextWrapping="Wrap"
+                     Foreground="{DynamicResource AccentFg}" AutomationProperties.AutomationId="SummaryMain"/>
+          <TextBlock x:Name="SummarySub" FontSize="12" TextWrapping="Wrap"
+                     Foreground="{DynamicResource AccentFg}" AutomationProperties.AutomationId="SummarySub"/>
+        </StackPanel>
       </Grid>
+    </Border>
 
-      <!-- Action -->
-      <Border Style="{StaticResource CardStyle}" Margin="0,0,0,10">
-        <StackPanel>
-          <TextBlock Style="{StaticResource Caption}" Text="{Binding [SecAction], Source={x:Static core:Loc.I}}"/>
-          <Border Style="{StaticResource SegmentHost}">
-            <UniformGrid Rows="1">
-              <RadioButton x:Name="ActShutdown" GroupName="Action" Style="{StaticResource Segment}" Checked="OnInputChanged"
-                           AutomationProperties.AutomationId="ActShutdown"
-                           AutomationProperties.Name="{Binding [ActShutdown], Source={x:Static core:Loc.I}}">
-                <StackPanel>
-                  <ui:Glyph Style="{StaticResource Icon}" Text="&#xE7E8;" FontSize="18" Margin="0,2,0,4"/>
-                  <TextBlock Text="{Binding [ActShutdown], Source={x:Static core:Loc.I}}" HorizontalAlignment="Center"/>
-                </StackPanel>
-              </RadioButton>
-              <RadioButton x:Name="ActRestart" GroupName="Action" Style="{StaticResource Segment}" Checked="OnInputChanged"
-                           AutomationProperties.AutomationId="ActRestart"
-                           AutomationProperties.Name="{Binding [ActRestart], Source={x:Static core:Loc.I}}">
-                <StackPanel>
-                  <ui:Glyph Style="{StaticResource Icon}" Text="&#xE777;" FontSize="18" Margin="0,2,0,4"/>
-                  <TextBlock Text="{Binding [ActRestart], Source={x:Static core:Loc.I}}" HorizontalAlignment="Center"/>
-                </StackPanel>
-              </RadioButton>
-              <RadioButton x:Name="ActHibernate" GroupName="Action" Style="{StaticResource Segment}" Checked="OnInputChanged"
-                           AutomationProperties.AutomationId="ActHibernate"
-                           AutomationProperties.Name="{Binding [ActHibernate], Source={x:Static core:Loc.I}}">
-                <StackPanel>
-                  <ui:Glyph Style="{StaticResource Icon}" Text="&#xE708;" FontSize="18" Margin="0,2,0,4"/>
-                  <TextBlock Text="{Binding [ActHibernate], Source={x:Static core:Loc.I}}" HorizontalAlignment="Center"/>
-                </StackPanel>
-              </RadioButton>
-            </UniformGrid>
-          </Border>
-        </StackPanel>
-      </Border>
-
-      <!-- When -->
-      <Border Style="{StaticResource CardStyle}" Margin="0,0,0,10">
-        <StackPanel>
-          <TextBlock Style="{StaticResource Caption}" Text="{Binding [SecWhen], Source={x:Static core:Loc.I}}"/>
-          <Border Style="{StaticResource SegmentHost}" Margin="0,0,0,14">
-            <UniformGrid Rows="1">
-              <RadioButton x:Name="ModeCountdown" GroupName="Mode" Style="{StaticResource Segment}" Checked="OnModeChanged"
-                           AutomationProperties.AutomationId="ModeCountdown"
-                           AutomationProperties.Name="{Binding [ModeCountdown], Source={x:Static core:Loc.I}}">
-                <StackPanel Orientation="Horizontal">
-                  <ui:Glyph Style="{StaticResource Icon}" Text="&#xE916;" FontSize="14" Margin="0,0,8,0"/>
-                  <TextBlock Text="{Binding [ModeCountdown], Source={x:Static core:Loc.I}}"/>
-                </StackPanel>
-              </RadioButton>
-              <RadioButton x:Name="ModeAt" GroupName="Mode" Style="{StaticResource Segment}" Checked="OnModeChanged"
-                           AutomationProperties.AutomationId="ModeAt"
-                           AutomationProperties.Name="{Binding [ModeAt], Source={x:Static core:Loc.I}}">
-                <StackPanel Orientation="Horizontal">
-                  <ui:Glyph Style="{StaticResource Icon}" Text="&#xE787;" FontSize="14" Margin="0,0,8,0"/>
-                  <TextBlock Text="{Binding [ModeAt], Source={x:Static core:Loc.I}}"/>
-                </StackPanel>
-              </RadioButton>
-            </UniformGrid>
-          </Border>
-
-          <!-- Countdown -->
-          <StackPanel x:Name="CountdownPanel">
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-              <ui:NumberSpinner x:Name="DurHours" Maximum="999" Digits="1" AutomationKey="DurHours"/>
-              <TextBlock Text=":" FontSize="28" FontWeight="SemiBold" Foreground="{DynamicResource TextSub}"
-                         VerticalAlignment="Top" Margin="10,40,10,0"/>
-              <ui:NumberSpinner x:Name="DurMinutes" Maximum="59" Digits="2" AutomationKey="DurMinutes"/>
-            </StackPanel>
-            <WrapPanel x:Name="Chips" HorizontalAlignment="Center" Margin="0,14,0,0"/>
-          </StackPanel>
-
-          <!-- Date and time -->
-          <StackPanel x:Name="AtPanel" Visibility="Collapsed">
-            <Grid Margin="0,0,0,10">
-              <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-              </Grid.ColumnDefinitions>
-              <Button x:Name="PrevDay" Style="{StaticResource GhostButton}" Click="OnPrevDay" MinWidth="40" MinHeight="40"
-                      AutomationProperties.AutomationId="PrevDay"
-                      AutomationProperties.Name="{Binding [PrevDay], Source={x:Static core:Loc.I}}"
-                      ToolTip="{Binding [PrevDay], Source={x:Static core:Loc.I}}">
-                <ui:Glyph Style="{StaticResource Icon}" Text="&#xE76B;" FontSize="14"/>
-              </Button>
-              <TextBlock x:Name="DateLabel" Grid.Column="1" FontFamily="{StaticResource DisplayFont}" FontSize="18"
-                         FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center"
-                         AutomationProperties.AutomationId="DateLabel"/>
-              <Button x:Name="NextDay" Grid.Column="2" Style="{StaticResource GhostButton}" Click="OnNextDay" MinWidth="40" MinHeight="40"
-                      AutomationProperties.AutomationId="NextDay"
-                      AutomationProperties.Name="{Binding [NextDay], Source={x:Static core:Loc.I}}"
-                      ToolTip="{Binding [NextDay], Source={x:Static core:Loc.I}}">
-                <ui:Glyph Style="{StaticResource Icon}" Text="&#xE76C;" FontSize="14"/>
-              </Button>
-            </Grid>
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,8">
-              <Button Style="{StaticResource ChipButton}" Click="OnToday" AutomationProperties.AutomationId="Today"
-                      Content="{Binding [Today], Source={x:Static core:Loc.I}}"/>
-              <Button Style="{StaticResource ChipButton}" Click="OnTomorrow" AutomationProperties.AutomationId="Tomorrow"
-                      Content="{Binding [Tomorrow], Source={x:Static core:Loc.I}}" Margin="0,0,0,6"/>
-            </StackPanel>
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-              <ui:NumberSpinner x:Name="AtHour" Maximum="23" Wrap="True" Digits="2" AutomationKey="AtHour"/>
-              <TextBlock Text=":" FontSize="28" FontWeight="SemiBold" Foreground="{DynamicResource TextSub}"
-                         VerticalAlignment="Top" Margin="10,40,10,0"/>
-              <ui:NumberSpinner x:Name="AtMinute" Maximum="59" Wrap="True" Digits="2" AutomationKey="AtMinute"/>
-            </StackPanel>
-          </StackPanel>
-        </StackPanel>
-      </Border>
-
-      <!-- Summary -->
-      <Border x:Name="SummaryCard" Background="{DynamicResource AccentSoft}" CornerRadius="8" Padding="16,12" Margin="0,0,0,10">
-        <Grid>
-          <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="*"/>
-          </Grid.ColumnDefinitions>
-          <ui:Glyph x:Name="SummaryIcon" Style="{StaticResource Icon}" Text="&#xE823;" FontSize="20"
-                     Foreground="{DynamicResource AccentFg}" Margin="0,0,14,0"/>
-          <StackPanel Grid.Column="1">
-            <TextBlock x:Name="SummaryMain" FontSize="16" FontWeight="SemiBold" TextWrapping="Wrap"
-                       Foreground="{DynamicResource AccentFg}" AutomationProperties.AutomationId="SummaryMain"/>
-            <TextBlock x:Name="SummarySub" FontSize="13" TextWrapping="Wrap" Margin="0,2,0,0"
-                       Foreground="{DynamicResource AccentFg}" AutomationProperties.AutomationId="SummarySub"/>
-          </StackPanel>
-        </Grid>
-      </Border>
-
-      <!-- Options -->
-      <Border Style="{StaticResource CardStyle}" Margin="0,0,0,10">
-        <StackPanel>
-          <CheckBox x:Name="ForceBox" Style="{StaticResource Switch}" Checked="OnInputChanged" Unchecked="OnInputChanged"
-                    AutomationProperties.AutomationId="Force"
-                    AutomationProperties.Name="{Binding [Force], Source={x:Static core:Loc.I}}"
-                    Content="{Binding [Force], Source={x:Static core:Loc.I}}"/>
-          <TextBlock x:Name="ForceHint" FontSize="12" Foreground="{DynamicResource TextSub}" TextWrapping="Wrap"
-                     Margin="50,4,0,0" Text="{Binding [ForceHint], Source={x:Static core:Loc.I}}"/>
-          <Border x:Name="AppTimedNote" Background="{DynamicResource AccentSoft}" CornerRadius="6" Padding="10,7" Margin="0,10,0,0">
-            <StackPanel Orientation="Horizontal">
-              <ui:Glyph Style="{StaticResource Icon}" Text="&#xE946;" FontSize="13" Foreground="{DynamicResource AccentFg}"
-                         VerticalAlignment="Top" Margin="0,2,8,0"/>
-              <TextBlock x:Name="AppTimedText" FontSize="12" Foreground="{DynamicResource AccentFg}" TextWrapping="Wrap"
-                         MaxWidth="340" AutomationProperties.AutomationId="AppTimedNote"/>
-            </StackPanel>
-          </Border>
-          <Grid Margin="0,12,0,0">
+    <!-- Options -->
+    <Border Style="{StaticResource CardStyle}" Margin="0,0,0,8">
+      <StackPanel>
+        <CheckBox x:Name="ForceBox" Style="{StaticResource Switch}" Checked="OnInputChanged" Unchecked="OnInputChanged"
+                  AutomationProperties.AutomationId="Force"
+                  AutomationProperties.Name="{Binding [Force], Source={x:Static core:Loc.I}}"
+                  Content="{Binding [Force], Source={x:Static core:Loc.I}}"/>
+        <TextBlock x:Name="ForceHint" FontSize="12" Foreground="{DynamicResource TextSub}" TextWrapping="Wrap"
+                   Margin="50,2,0,0" Text="{Binding [ForceHint], Source={x:Static core:Loc.I}}"/>
+        <Border x:Name="AppTimedNote" Background="{DynamicResource AccentSoft}" CornerRadius="6" Padding="8,6" Margin="0,8,0,0">
+          <Grid>
             <Grid.ColumnDefinitions>
               <ColumnDefinition Width="Auto"/>
               <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <TextBlock Text="{Binding [Command], Source={x:Static core:Loc.I}}" FontSize="12"
-                       Foreground="{DynamicResource TextSub}" VerticalAlignment="Center" Margin="0,0,10,0"/>
-            <TextBox x:Name="CommandText" Grid.Column="1" Style="{StaticResource ReadOnlyText}"
-                     FontFamily="{StaticResource MonoFont}" FontSize="12" Foreground="{DynamicResource TextSub}"
-                     AutomationProperties.AutomationId="CommandText"
-                     AutomationProperties.Name="{Binding [Command], Source={x:Static core:Loc.I}}"/>
+            <ui:Glyph Style="{StaticResource Icon}" Text="&#xE946;" FontSize="12" Foreground="{DynamicResource AccentFg}"
+                      VerticalAlignment="Top" Margin="0,2,8,0"/>
+            <TextBlock x:Name="AppTimedText" Grid.Column="1" FontSize="12" Foreground="{DynamicResource AccentFg}"
+                       TextWrapping="Wrap" AutomationProperties.AutomationId="AppTimedNote"/>
           </Grid>
-        </StackPanel>
-      </Border>
-
-      <!-- Pending -->
-      <Border x:Name="PendingCard" Visibility="Collapsed" Background="{DynamicResource Card}" BorderBrush="{DynamicResource Accent}"
-              BorderThickness="1" CornerRadius="8" Padding="16,12" Margin="0,0,0,10"
-              AutomationProperties.AutomationId="PendingCard">
-        <Grid>
+        </Border>
+        <Grid Margin="0,8,0,0">
           <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
           </Grid.ColumnDefinitions>
-          <StackPanel>
-            <TextBlock x:Name="PendingTitle" FontWeight="SemiBold" AutomationProperties.AutomationId="PendingTitle"/>
-            <TextBlock x:Name="PendingWhen" FontSize="13" Foreground="{DynamicResource TextSub}" Margin="0,2,0,0"
-                       AutomationProperties.AutomationId="PendingWhen"/>
-            <TextBlock x:Name="PendingKeepOpen" FontSize="12" Foreground="{DynamicResource TextSub}" Margin="0,4,0,0"
-                       Text="{Binding [PendingKeepOpen], Source={x:Static core:Loc.I}}"/>
-          </StackPanel>
-          <TextBlock x:Name="PendingClock" Grid.Column="1" FontFamily="{StaticResource DisplayFont}" FontSize="24"
-                     FontWeight="SemiBold" Foreground="{DynamicResource AccentFg}" VerticalAlignment="Center"
-                     Margin="12,0,0,0" AutomationProperties.AutomationId="PendingClock"/>
+          <TextBlock Text="{Binding [Command], Source={x:Static core:Loc.I}}" FontSize="12"
+                     Foreground="{DynamicResource TextSub}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+          <TextBox x:Name="CommandText" Grid.Column="1" Style="{StaticResource ReadOnlyText}"
+                   FontFamily="{StaticResource MonoFont}" FontSize="12" Foreground="{DynamicResource TextSub}"
+                   AutomationProperties.AutomationId="CommandText"
+                   AutomationProperties.Name="{Binding [Command], Source={x:Static core:Loc.I}}"/>
         </Grid>
-      </Border>
+      </StackPanel>
+    </Border>
 
-      <!-- Message -->
-      <Border x:Name="MessageCard" Visibility="Collapsed" CornerRadius="8" Padding="14,10" Margin="0,0,0,10"
-              AutomationProperties.AutomationId="MessageCard">
-        <StackPanel>
-          <TextBox x:Name="MessageText" Style="{StaticResource ReadOnlyText}" FontSize="13"
-                   AutomationProperties.AutomationId="MessageText"/>
-          <TextBox x:Name="MessageDetail" Style="{StaticResource ReadOnlyText}" FontSize="12" Margin="0,4,0,0"
-                   FontFamily="{StaticResource MonoFont}" Foreground="{DynamicResource TextSub}"
-                   AutomationProperties.AutomationId="MessageDetail"/>
-          <WrapPanel x:Name="MessageActions" Margin="0,8,0,0">
-            <Button x:Name="CopyButton" Style="{StaticResource ChipButton}" Click="OnCopyMessage"
-                    AutomationProperties.AutomationId="CopyMessage"
-                    Content="{Binding [Copy], Source={x:Static core:Loc.I}}"/>
-            <Button x:Name="OpenLogButton" Style="{StaticResource ChipButton}" Click="OnOpenLog"
-                    AutomationProperties.AutomationId="OpenLog"
-                    Content="{Binding [OpenLog], Source={x:Static core:Loc.I}}"/>
-            <Button x:Name="CloseAnywayButton" Style="{StaticResource ChipButton}" Click="OnCloseAnyway"
-                    AutomationProperties.AutomationId="CloseAnyway"
-                    Content="{Binding [CloseAnyway], Source={x:Static core:Loc.I}}"/>
-            <Button x:Name="DismissButton" Style="{StaticResource ChipButton}" Click="OnDismissMessage"
-                    AutomationProperties.AutomationId="DismissMessage"/>
-          </WrapPanel>
-        </StackPanel>
-      </Border>
-
-      <!-- Buttons -->
-      <Grid Margin="0,4,0,0">
+    <!-- Pending -->
+    <Border x:Name="PendingCard" Visibility="Collapsed" Background="{DynamicResource Card}" BorderBrush="{DynamicResource Accent}"
+            BorderThickness="1" CornerRadius="8" Padding="12,8" Margin="0,0,0,8"
+            AutomationProperties.AutomationId="PendingCard">
+      <Grid>
         <Grid.ColumnDefinitions>
           <ColumnDefinition Width="*"/>
-          <ColumnDefinition Width="10"/>
-          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
-        <Button x:Name="AbortButton" Click="OnAbort" MinHeight="40" AutomationProperties.AutomationId="Abort"
-                AutomationProperties.Name="{Binding [Abort], Source={x:Static core:Loc.I}}">
-          <StackPanel Orientation="Horizontal">
-            <ui:Glyph Style="{StaticResource Icon}" Text="&#xE711;" FontSize="12" Margin="0,0,8,0"/>
-            <TextBlock Text="{Binding [Abort], Source={x:Static core:Loc.I}}" TextTrimming="None" TextWrapping="Wrap"/>
-          </StackPanel>
-        </Button>
-        <Button x:Name="StartButton" Grid.Column="2" Style="{StaticResource AccentButton}" Click="OnStart" MinHeight="40"
-                AutomationProperties.AutomationId="Start">
-          <StackPanel Orientation="Horizontal">
-            <ui:Glyph x:Name="StartIcon" Style="{StaticResource Icon}" Text="&#xE7E8;" FontSize="13" Margin="0,0,8,0"/>
-            <TextBlock x:Name="StartText" TextWrapping="Wrap"/>
-          </StackPanel>
-        </Button>
+        <StackPanel>
+          <TextBlock x:Name="PendingTitle" FontWeight="SemiBold" AutomationProperties.AutomationId="PendingTitle"/>
+          <TextBlock x:Name="PendingWhen" FontSize="12" Foreground="{DynamicResource TextSub}"
+                     AutomationProperties.AutomationId="PendingWhen"/>
+          <TextBlock x:Name="PendingKeepOpen" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AccentFg}"
+                     Margin="0,2,0,0" Text="{Binding [PendingKeepOpen], Source={x:Static core:Loc.I}}"/>
+        </StackPanel>
+        <TextBlock x:Name="PendingClock" Grid.Column="1" FontFamily="{StaticResource DisplayFont}" FontSize="22"
+                   FontWeight="SemiBold" Foreground="{DynamicResource AccentFg}" VerticalAlignment="Center"
+                   Margin="10,0,0,0" AutomationProperties.AutomationId="PendingClock"/>
       </Grid>
+    </Border>
 
-      <TextBlock x:Name="VersionText" FontSize="11" Foreground="{DynamicResource TextSub}" Margin="0,12,0,0"
-                 HorizontalAlignment="Center" AutomationProperties.AutomationId="Version"/>
-    </StackPanel>
-  </Grid>
+    <!-- Message -->
+    <Border x:Name="MessageCard" Visibility="Collapsed" CornerRadius="8" Padding="12,8" Margin="0,0,0,8"
+            AutomationProperties.AutomationId="MessageCard">
+      <StackPanel>
+        <TextBox x:Name="MessageText" Style="{StaticResource ReadOnlyText}" FontSize="13"
+                 AutomationProperties.AutomationId="MessageText"/>
+        <TextBox x:Name="MessageDetail" Style="{StaticResource ReadOnlyText}" FontSize="12" Margin="0,2,0,0"
+                 FontFamily="{StaticResource MonoFont}" Foreground="{DynamicResource TextSub}"
+                 AutomationProperties.AutomationId="MessageDetail"/>
+        <WrapPanel x:Name="MessageActions" Margin="0,6,0,-6">
+          <Button x:Name="CopyButton" Style="{StaticResource ChipButton}" Click="OnCopyMessage"
+                  AutomationProperties.AutomationId="CopyMessage"
+                  Content="{Binding [Copy], Source={x:Static core:Loc.I}}"/>
+          <Button x:Name="OpenLogButton" Style="{StaticResource ChipButton}" Click="OnOpenLog"
+                  AutomationProperties.AutomationId="OpenLog"
+                  Content="{Binding [OpenLog], Source={x:Static core:Loc.I}}"/>
+          <Button x:Name="CloseAnywayButton" Style="{StaticResource ChipButton}" Click="OnCloseAnyway"
+                  AutomationProperties.AutomationId="CloseAnyway"
+                  Content="{Binding [CloseAnyway], Source={x:Static core:Loc.I}}"/>
+          <Button x:Name="DismissButton" Style="{StaticResource ChipButton}" Click="OnDismissMessage"
+                  AutomationProperties.AutomationId="DismissMessage"/>
+        </WrapPanel>
+      </StackPanel>
+    </Border>
+
+    <!-- Buttons -->
+    <Grid>
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*"/>
+        <ColumnDefinition Width="8"/>
+        <ColumnDefinition Width="*"/>
+      </Grid.ColumnDefinitions>
+      <Button x:Name="AbortButton" Click="OnAbort" MinHeight="36" AutomationProperties.AutomationId="Abort"
+              AutomationProperties.Name="{Binding [Abort], Source={x:Static core:Loc.I}}">
+        <StackPanel Orientation="Horizontal">
+          <ui:Glyph Style="{StaticResource Icon}" Text="&#xE711;" FontSize="11" Margin="0,0,8,0"/>
+          <TextBlock Text="{Binding [Abort], Source={x:Static core:Loc.I}}" TextWrapping="Wrap"/>
+        </StackPanel>
+      </Button>
+      <Button x:Name="StartButton" Grid.Column="2" Style="{StaticResource AccentButton}" Click="OnStart" MinHeight="36"
+              AutomationProperties.AutomationId="Start">
+        <StackPanel Orientation="Horizontal">
+          <ui:Glyph x:Name="StartIcon" Style="{StaticResource Icon}" Text="&#xE7E8;" FontSize="12" Margin="0,0,8,0"/>
+          <TextBlock x:Name="StartText" TextWrapping="Wrap"/>
+        </StackPanel>
+      </Button>
+    </Grid>
+
+    <TextBlock x:Name="VersionText" FontSize="10" Foreground="{DynamicResource TextSub}" Margin="0,6,0,0"
+               HorizontalAlignment="Center" AutomationProperties.AutomationId="Version"/>
+  </StackPanel>
 </Window>

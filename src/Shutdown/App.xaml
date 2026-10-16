@@ -18,11 +18,11 @@
     <SolidColorBrush x:Key="ControlHover" Color="#F0F0F0"/>
     <SolidColorBrush x:Key="ControlPressed" Color="#E6E6E6"/>
     <SolidColorBrush x:Key="ControlBorder" Color="#D3D3D3"/>
-    <SolidColorBrush x:Key="Accent" Color="#6A45E8"/>
-    <SolidColorBrush x:Key="AccentHover" Color="#5A36D6"/>
+    <SolidColorBrush x:Key="Accent" Color="#005FB8"/>
+    <SolidColorBrush x:Key="AccentHover" Color="#004275"/>
     <SolidColorBrush x:Key="AccentText" Color="#FFFFFF"/>
-    <SolidColorBrush x:Key="AccentSoft" Color="#EFEBFF"/>
-    <SolidColorBrush x:Key="AccentFg" Color="#4B2BB8"/>
+    <SolidColorBrush x:Key="AccentSoft" Color="#E0EEF9"/>
+    <SolidColorBrush x:Key="AccentFg" Color="#004275"/>
     <SolidColorBrush x:Key="Danger" Color="#B3261E"/>
     <SolidColorBrush x:Key="DangerSoft" Color="#FDE7E9"/>
     <SolidColorBrush x:Key="Focus" Color="#1B1B1B"/>
@@ -66,14 +66,7 @@
       <Setter Property="BorderBrush" Value="{DynamicResource CardBorder}"/>
       <Setter Property="BorderThickness" Value="1"/>
       <Setter Property="CornerRadius" Value="8"/>
-      <Setter Property="Padding" Value="16,14"/>
-    </Style>
-
-    <Style x:Key="Caption" TargetType="TextBlock">
-      <Setter Property="FontSize" Value="12"/>
-      <Setter Property="FontWeight" Value="SemiBold"/>
-      <Setter Property="Foreground" Value="{DynamicResource TextSub}"/>
-      <Setter Property="Margin" Value="0,0,0,8"/>
+      <Setter Property="Padding" Value="12,10"/>
     </Style>
 
     <Style x:Key="Icon" TargetType="TextBlock">
@@ -88,10 +81,10 @@
       <Setter Property="Foreground" Value="{DynamicResource Text}"/>
       <Setter Property="BorderBrush" Value="{DynamicResource ControlBorder}"/>
       <Setter Property="BorderThickness" Value="1"/>
-      <Setter Property="Padding" Value="14,7"/>
-      <Setter Property="MinHeight" Value="34"/>
+      <Setter Property="Padding" Value="12,6"/>
+      <Setter Property="MinHeight" Value="32"/>
       <Setter Property="FontFamily" Value="{StaticResource UiFont}"/>
-      <Setter Property="FontSize" Value="14"/>
+      <Setter Property="FontSize" Value="13"/>
       <Setter Property="Cursor" Value="Hand"/>
       <Setter Property="HorizontalContentAlignment" Value="Center"/>
       <Setter Property="VerticalContentAlignment" Value="Center"/>
@@ -163,9 +156,9 @@
     </Style>
 
     <Style x:Key="ChipButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-      <Setter Property="Padding" Value="12,4"/>
-      <Setter Property="MinHeight" Value="30"/>
-      <Setter Property="FontSize" Value="13"/>
+      <Setter Property="Padding" Value="10,3"/>
+      <Setter Property="MinHeight" Value="28"/>
+      <Setter Property="FontSize" Value="12"/>
       <Setter Property="Margin" Value="0,0,6,6"/>
     </Style>
 
@@ -176,8 +169,8 @@
       <Setter Property="FontFamily" Value="{StaticResource UiFont}"/>
       <Setter Property="FontSize" Value="13"/>
       <Setter Property="Cursor" Value="Hand"/>
-      <Setter Property="MinHeight" Value="34"/>
-      <Setter Property="Padding" Value="8,6"/>
+      <Setter Property="MinHeight" Value="30"/>
+      <Setter Property="Padding" Value="4,4"/>
       <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}"/>
       <Setter Property="ToolTipService.ShowOnDisabled" Value="True"/>
       <Setter Property="Template">
@@ -217,7 +210,7 @@
     <Style x:Key="Switch" TargetType="CheckBox">
       <Setter Property="Foreground" Value="{DynamicResource Text}"/>
       <Setter Property="FontFamily" Value="{StaticResource UiFont}"/>
-      <Setter Property="FontSize" Value="14"/>
+      <Setter Property="FontSize" Value="13"/>
       <Setter Property="Cursor" Value="Hand"/>
       <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}"/>
       <Setter Property="Template">
@@ -244,79 +237,6 @@
                 <Setter TargetName="Knob" Property="Margin" Value="0,0,4,0"/>
               </Trigger>
             </ControlTemplate.Triggers>
-          </ControlTemplate>
-        </Setter.Value>
-      </Setter>
-    </Style>
-
-    <!-- Language picker -->
-    <Style x:Key="ComboToggle" TargetType="ToggleButton">
-      <Setter Property="Template">
-        <Setter.Value>
-          <ControlTemplate TargetType="ToggleButton">
-            <Border x:Name="Bd" Background="{DynamicResource Control}" BorderBrush="{DynamicResource ControlBorder}"
-                    BorderThickness="1" CornerRadius="6">
-              <TextBlock Style="{StaticResource Icon}" Text="&#xE70D;" FontSize="10" HorizontalAlignment="Right"
-                         Margin="0,0,10,0" Foreground="{DynamicResource TextSub}"/>
-            </Border>
-            <ControlTemplate.Triggers>
-              <Trigger Property="IsMouseOver" Value="True">
-                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource ControlHover}"/>
-              </Trigger>
-            </ControlTemplate.Triggers>
-          </ControlTemplate>
-        </Setter.Value>
-      </Setter>
-    </Style>
-
-    <Style TargetType="ComboBoxItem">
-      <Setter Property="Foreground" Value="{DynamicResource Text}"/>
-      <Setter Property="Cursor" Value="Hand"/>
-      <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
-      <Setter Property="Template">
-        <Setter.Value>
-          <ControlTemplate TargetType="ComboBoxItem">
-            <Border x:Name="Bd" Background="Transparent" CornerRadius="4" Padding="10,6" Margin="2,1">
-              <ContentPresenter/>
-            </Border>
-            <ControlTemplate.Triggers>
-              <Trigger Property="IsHighlighted" Value="True">
-                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource ControlHover}"/>
-              </Trigger>
-              <Trigger Property="IsSelected" Value="True">
-                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource AccentSoft}"/>
-                <Setter Property="Foreground" Value="{DynamicResource AccentFg}"/>
-              </Trigger>
-            </ControlTemplate.Triggers>
-          </ControlTemplate>
-        </Setter.Value>
-      </Setter>
-    </Style>
-
-    <Style TargetType="ComboBox">
-      <Setter Property="Foreground" Value="{DynamicResource Text}"/>
-      <Setter Property="FontFamily" Value="{StaticResource UiFont}"/>
-      <Setter Property="FontSize" Value="13"/>
-      <Setter Property="MinHeight" Value="32"/>
-      <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}"/>
-      <Setter Property="Template">
-        <Setter.Value>
-          <ControlTemplate TargetType="ComboBox">
-            <Grid>
-              <ToggleButton Style="{StaticResource ComboToggle}" Focusable="False"
-                            IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"/>
-              <ContentPresenter IsHitTestVisible="False" Margin="10,0,30,0" VerticalAlignment="Center"
-                                Content="{TemplateBinding SelectionBoxItem}"
-                                ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"/>
-              <Popup IsOpen="{TemplateBinding IsDropDownOpen}" Placement="Bottom" AllowsTransparency="True"
-                     Focusable="False" PopupAnimation="Fade">
-                <Border Background="{DynamicResource Card}" BorderBrush="{DynamicResource ControlBorder}" BorderThickness="1"
-                        CornerRadius="6" Padding="2" Margin="0,4,0,0"
-                        MinWidth="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}">
-                  <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Contained"/>
-                </Border>
-              </Popup>
-            </Grid>
           </ControlTemplate>
         </Setter.Value>
       </Setter>
