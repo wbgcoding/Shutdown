@@ -323,6 +323,10 @@ namespace Shutdown
             }
             ClearPending();
 
+            // The abort call took time; the target must count from now, not from the click.
+            r = Compute(Now());
+            if (!r.Ok) { UpdateUi(); return; }
+
             if (appTimed)
             {
                 _pending = new Pending { Action = action, TargetUtc = r.TargetUtc, AppTimed = true, Force = Force };

@@ -96,6 +96,16 @@ namespace Shutdown.Tests
         });
 
         [Fact]
+        public void Start_counts_the_time_the_abort_call_took() => Sta.Run(() =>
+        {
+            var w = Make();
+            w.ModeAt.IsChecked = true;
+            _runner.Result = a => { if (a == "/a") _now = _now.AddSeconds(10); return 0; };
+            Click(w.StartButton);
+            Assert.Equal(new[] { "/a", "/s /f /t 3590" }, _runner.Calls);
+        });
+
+        [Fact]
         public void Pending_from_an_earlier_run_is_restored() => Sta.Run(() =>
         {
             var w = Make(new Settings { PendingAction = "Restart", PendingTarget = _now.AddMinutes(30).ToString("o"), PendingBoot = BootText });
