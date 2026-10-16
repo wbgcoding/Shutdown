@@ -21,6 +21,17 @@ namespace Shutdown.Tests
         public int Run(string args) { Calls.Add(args); return Result(args); }
     }
 
+    static class TestEnvironment
+    {
+        /// <summary>Runs before any test: nothing a test does may reach the real log or shut the PC down.</summary>
+        [System.Runtime.CompilerServices.ModuleInitializer]
+        internal static void Init()
+        {
+            ShutdownRunner.BlockedForTests = true;
+            Log.Dir = Path.Combine(Path.GetTempPath(), "ShutdownTestLog");
+        }
+    }
+
     /// <summary>One STA thread with one Application for all window tests.</summary>
     static class Sta
     {
@@ -49,6 +60,34 @@ namespace Shutdown.Tests
         }
 
         public static void Run(Action a) => D.Invoke(a);
+    }
+
+    // Same collection as the window tests: both write the process-wide log folder.
+    [Collection("window")]
+    public class LogTests : IDisposable
+    {
+        readonly string _dir = Path.Combine(Path.GetTempPath(), "ShutdownTests-" + Guid.NewGuid().ToString("N"));
+        readonly string _before = Log.Dir;
+
+        public LogTests() { Directory.CreateDirectory(_dir); }
+
+        public void Dispose()
+        {
+            Log.Dir = _before;
+            try { Directory.Delete(_dir, true); } catch { }
+        }
+
+        [Fact]
+        public void Log_rotates_and_keeps_one_old_file()
+        {
+            Log.Dir = _dir;
+            string line = new string('x', 1000);
+            for (int i = 0; i < 1600; i++) Log.Write(line);
+            Assert.True(File.Exists(Log.FilePath + ".1"));
+            Assert.Equal(2, Directory.GetFiles(_dir, "shutdown.log*").Length);
+            Assert.True(new FileInfo(Log.FilePath).Length <= 512 * 1024 + 2048);
+            Assert.True(new FileInfo(Log.FilePath + ".1").Length <= 512 * 1024 + 2048);
+        }
     }
 
     [Collection("window")]
@@ -584,4 +623,11 @@ namespace Shutdown.Tests
             Assert.Throws<InvalidOperationException>(() => new ShutdownRunner().Run("/a"));
         }
     }
+}
+
+namespace System.Runtime.CompilerServices
+{
+    // Not part of .NET Framework; the compiler only needs the type to exist.
+    [AttributeUsage(AttributeTargets.Method, Inherited = false)]
+    sealed class ModuleInitializerAttribute : Attribute { }
 }

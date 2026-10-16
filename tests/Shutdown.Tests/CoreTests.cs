@@ -224,21 +224,5 @@ namespace Shutdown.Tests
             File.WriteAllText(File_, "{\"Version\":99,\"Theme\":\"dark\"}");
             Assert.Equal("system", new SettingsStore(File_).Load().Theme);
         }
-
-        [Fact]
-        public void Log_rotates_and_keeps_one_old_file()
-        {
-            Log.Dir = _dir;
-            try
-            {
-                string line = new string('x', 1000);
-                for (int i = 0; i < 1600; i++) Log.Write(line);
-                Assert.True(File.Exists(Log.FilePath + ".1"));
-                Assert.Equal(2, Directory.GetFiles(_dir, "shutdown.log*").Length);
-                Assert.True(new FileInfo(Log.FilePath).Length <= 512 * 1024 + 2048);
-                Assert.True(new FileInfo(Log.FilePath + ".1").Length <= 512 * 1024 + 2048);
-            }
-            finally { Log.Dir = null; }
-        }
     }
 }
