@@ -57,6 +57,8 @@ namespace Shutdown.Tests
         DateTime _now = new DateTime(2026, 10, 16, 12, 0, 0, DateTimeKind.Local);
         readonly FakeRunner _runner = new FakeRunner();
         SettingsStore _store;
+        static readonly DateTime Boot = new DateTime(2026, 10, 16, 5, 0, 0, DateTimeKind.Utc);
+        static string BootText => Boot.ToString("o");
 
         public WindowTests() { Directory.CreateDirectory(_dir); }
         public void Dispose() { try { Directory.Delete(_dir, true); } catch { } }
@@ -66,6 +68,7 @@ namespace Shutdown.Tests
             // Fixed language: "system" would follow the machine running the tests.
             s = s ?? new Settings();
             Loc.I.Apply("en");
+            MainWindow.BootUtc = () => Boot;
             _store = new SettingsStore(Path.Combine(_dir, SettingsStore.FileName));
             return new MainWindow(_store, s, _runner, () => _now);
         }
@@ -93,16 +96,50 @@ namespace Shutdown.Tests
         [Fact]
         public void Pending_from_an_earlier_run_is_restored() => Sta.Run(() =>
         {
-            var w = Make(new Settings { PendingAction = "Restart", PendingTarget = _now.AddMinutes(30).ToString("o") });
+            var w = Make(new Settings { PendingAction = "Restart", PendingTarget = _now.AddMinutes(30).ToString("o"), PendingBoot = BootText });
             Assert.Equal(Visibility.Visible, w.PendingCard.Visibility);
             Assert.Equal("Restart scheduled", w.PendingTitle.Text);
             Assert.Equal("0:30:00", w.PendingClock.Text);
         });
 
         [Fact]
+        public void Pending_from_the_same_boot_is_restored_within_the_tolerance() => Sta.Run(() =>
+        {
+            var w = Make(new Settings { PendingAction = "Restart", PendingTarget = _now.AddMinutes(30).ToString("o"), PendingBoot = Boot.AddSeconds(90).ToString("o") });
+            Assert.Equal(Visibility.Visible, w.PendingCard.Visibility);
+        });
+
+        [Fact]
+        public void Pending_from_another_boot_is_dropped() => Sta.Run(() =>
+        {
+            var s = new Settings { PendingAction = "Restart", PendingTarget = _now.AddMinutes(30).ToString("o"), PendingBoot = Boot.AddHours(-3).ToString("o") };
+            var w = Make(s);
+            Assert.Equal(Visibility.Collapsed, w.PendingCard.Visibility);
+            Assert.False(w.AbortButton.IsEnabled);
+            Assert.Null(s.PendingAction);
+            Assert.Null(s.PendingTarget);
+            Assert.Null(s.PendingBoot);
+        });
+
+        [Fact]
+        public void Pending_without_a_boot_instant_is_dropped() => Sta.Run(() =>
+        {
+            var w = Make(new Settings { PendingAction = "Restart", PendingTarget = _now.AddMinutes(30).ToString("o") });
+            Assert.Equal(Visibility.Collapsed, w.PendingCard.Visibility);
+        });
+
+        [Fact]
+        public void Started_schedule_stores_the_boot_instant() => Sta.Run(() =>
+        {
+            var w = Make();
+            Click(w.StartButton);
+            Assert.Equal(BootText, _store.Load().PendingBoot);
+        });
+
+        [Fact]
         public void Expired_pending_is_not_restored() => Sta.Run(() =>
         {
-            var w = Make(new Settings { PendingAction = "Restart", PendingTarget = _now.AddMinutes(-1).ToString("o") });
+            var w = Make(new Settings { PendingAction = "Restart", PendingTarget = _now.AddMinutes(-1).ToString("o"), PendingBoot = BootText });
             Assert.Equal(Visibility.Collapsed, w.PendingCard.Visibility);
         });
 
@@ -122,7 +159,7 @@ namespace Shutdown.Tests
         [Fact]
         public void Expired_pending_is_removed_from_settings() => Sta.Run(() =>
         {
-            var s = new Settings { PendingAction = "Shutdown", PendingTarget = _now.AddMinutes(-5).ToUniversalTime().ToString("o") };
+            var s = new Settings { PendingAction = "Shutdown", PendingTarget = _now.AddMinutes(-5).ToUniversalTime().ToString("o"), PendingBoot = BootText };
             Make(s);
             Assert.Null(s.PendingAction);
             Assert.Null(s.PendingTarget);
@@ -204,7 +241,7 @@ namespace Shutdown.Tests
         [Fact]
         public void Abort_of_a_schedule_cancelled_elsewhere_just_clears_it() => Sta.Run(() =>
         {
-            var w = Make(new Settings { PendingAction = "Shutdown", PendingTarget = _now.AddMinutes(30).ToString("o") });
+            var w = Make(new Settings { PendingAction = "Shutdown", PendingTarget = _now.AddMinutes(30).ToString("o"), PendingBoot = BootText });
             Assert.True(w.AbortButton.IsEnabled);
             _runner.Result = a => ShutdownRunner.ErrorNoShutdownInProgress;
             Click(w.AbortButton);

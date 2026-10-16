@@ -24,6 +24,8 @@ namespace Shutdown.Core
         /// <summary>A schedule handed to Windows, so the countdown survives closing the app.</summary>
         [DataMember(Order = 10)] public string PendingAction { get; set; }
         [DataMember(Order = 11)] public string PendingTarget { get; set; }
+        /// <summary>Boot instant (UTC, "o") of the PC when the schedule was made; a reboot drops the schedule.</summary>
+        [DataMember(Order = 12)] public string PendingBoot { get; set; }
 
         [OnDeserializing]
         void OnDeserializing(StreamingContext c)

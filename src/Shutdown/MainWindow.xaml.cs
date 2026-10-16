@@ -46,6 +46,15 @@ namespace Shutdown
         [return: MarshalAs(UnmanagedType.U1)]
         static extern bool IsPwrHibernateAllowed();
 
+        [DllImport("kernel32.dll")]
+        static extern ulong GetTickCount64();
+
+        /// <summary>When Windows last booted; a pending schedule from an earlier boot is gone.</summary>
+        internal static Func<DateTime> BootUtc = () => DateTime.UtcNow - TimeSpan.FromMilliseconds(GetTickCount64());
+
+        // Uptime and the wall clock drift a little against each other.
+        static readonly TimeSpan BootTolerance = TimeSpan.FromMinutes(2);
+
         readonly Func<DateTime> _clock;
         DateTime Now() => _clock();
         DateTime NowUtc() => _clock().ToUniversalTime();
@@ -84,13 +93,14 @@ namespace Shutdown
             if (Enum.TryParse(settings.PendingAction, out PowerAction pa) &&
                 DateTimeOffset.TryParse(settings.PendingTarget, System.Globalization.CultureInfo.InvariantCulture,
                     System.Globalization.DateTimeStyles.RoundtripKind, out var pt) &&
-                pt.UtcDateTime > NowUtc())
+                pt.UtcDateTime > NowUtc() && SameBoot(settings.PendingBoot))
                 _pending = new Pending { Action = pa, TargetUtc = pt.UtcDateTime, AppTimed = false };
             else
             {
-                // Expired or unreadable: forget it so it never shows up again.
+                // Expired, unreadable or from before a reboot (Windows dropped it): forget it so it never shows up again.
                 settings.PendingAction = null;
                 settings.PendingTarget = null;
+                settings.PendingBoot = null;
             }
 
             if (settings.Left.HasValue && settings.Top.HasValue && OnScreen(settings.Left.Value, settings.Top.Value))
@@ -112,6 +122,11 @@ namespace Shutdown
             _loading = false;
             RefreshTexts();
         }
+
+        static bool SameBoot(string stored) =>
+            DateTimeOffset.TryParse(stored, System.Globalization.CultureInfo.InvariantCulture,
+                System.Globalization.DateTimeStyles.RoundtripKind, out var b) &&
+            (b.UtcDateTime - BootUtc()).Duration() <= BootTolerance;
 
         void OnLanguageChanged(object sender, EventArgs e) => RefreshTexts();
 
@@ -308,6 +323,7 @@ namespace Shutdown
                 _pending = new Pending { Action = action, TargetUtc = r.TargetUtc, AppTimed = false, Force = Force };
                 _settings.PendingAction = action.ToString();
                 _settings.PendingTarget = r.TargetUtc.ToString("o", System.Globalization.CultureInfo.InvariantCulture);
+                _settings.PendingBoot = BootUtc().ToString("o", System.Globalization.CultureInfo.InvariantCulture);
             }
             Persist();
             UpdateUi();
@@ -330,10 +346,11 @@ namespace Shutdown
         void ClearPending()
         {
             _pending = null;
-            if (_settings.PendingAction != null || _settings.PendingTarget != null)
+            if (_settings.PendingAction != null || _settings.PendingTarget != null || _settings.PendingBoot != null)
             {
                 _settings.PendingAction = null;
                 _settings.PendingTarget = null;
+                _settings.PendingBoot = null;
                 Persist();
             }
         }
