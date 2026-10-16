@@ -482,6 +482,16 @@ namespace Shutdown.Tests
         });
 
         [Fact]
+        public void Time_change_refreshes_the_ui_on_the_dispatcher() => Sta.Run(() =>
+        {
+            var w = Make();
+            w.ResultText.Text = "stale";
+            w.OnTimeChanged(null, EventArgs.Empty);
+            Dispatcher.CurrentDispatcher.Invoke(DispatcherPriority.Background, new Action(() => { }));
+            Assert.NotEqual("stale", w.ResultText.Text);
+        });
+
+        [Fact]
         public void Language_change_rerenders_live() => Sta.Run(() =>
         {
             var w = Make();

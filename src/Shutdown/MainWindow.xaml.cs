@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
+using Microsoft.Win32;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Windows;
@@ -121,6 +122,7 @@ namespace Shutdown
 
             Loc.I.Changed += OnLanguageChanged;
             _unwatchTheme = Theme.Watch(() => { Theme.Apply(Application.Current.Resources); Theme.ApplyTitleBar(this); });
+            SystemEvents.TimeChanged += OnTimeChanged;
             SourceInitialized += (s, e) => Theme.ApplyTitleBar(this);
             SizeChanged += (s, e) => KeepOnScreen();
 
@@ -139,6 +141,14 @@ namespace Shutdown
 
         void OnLanguageChanged(object sender, EventArgs e) => RefreshTexts();
 
+        // .NET caches the local zone; after a zone or clock change the shown times would use the old one.
+        // Raised on a system thread.
+        internal void OnTimeChanged(object sender, EventArgs e)
+        {
+            TimeZoneInfo.ClearCachedData();
+            Dispatcher.BeginInvoke(new Action(UpdateUi));
+        }
+
         // Loc and the system theme events are process-wide and would keep a closed window alive.
         protected override void OnClosed(EventArgs e)
         {
@@ -147,6 +157,7 @@ namespace Shutdown
             SyncKeepAwake();
             Loc.I.Changed -= OnLanguageChanged;
             _unwatchTheme();
+            SystemEvents.TimeChanged -= OnTimeChanged;
             base.OnClosed(e);
         }
 
