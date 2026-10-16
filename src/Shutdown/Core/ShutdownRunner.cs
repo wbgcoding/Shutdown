@@ -37,7 +37,12 @@ namespace Shutdown.Core
             {
                 using (var p = Process.Start(psi))
                 {
-                    if (!p.WaitForExit(15000)) return -1;
+                    if (!p.WaitForExit(15000))
+                    {
+                        // A hung shutdown.exe must not linger and act later.
+                        try { p.Kill(); } catch (Exception) { }
+                        return -1;
+                    }
                     return p.ExitCode;
                 }
             }
