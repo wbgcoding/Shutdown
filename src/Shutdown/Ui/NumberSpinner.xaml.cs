@@ -15,7 +15,7 @@ namespace Shutdown.Ui
         int _value;
         public int Minimum { get; set; }
         public int Maximum { get; set; } = 99;
-        /// <summary>Past the maximum the value restarts at the minimum (clock fields).</summary>
+        /// <summary>Stepping past an end continues at the other end (clock fields); typed values are clamped.</summary>
         public bool Wrap { get; set; }
         public int Digits { get; set; } = 2;
         public int WheelStep { get; set; } = 1;
@@ -66,15 +66,7 @@ namespace Shutdown.Ui
             }
         }
 
-        int Clamp(int v)
-        {
-            if (Wrap)
-            {
-                int span = Maximum - Minimum + 1;
-                return ((v - Minimum) % span + span) % span + Minimum;
-            }
-            return Math.Max(Minimum, Math.Min(Maximum, v));
-        }
+        int Clamp(int v) => Math.Max(Minimum, Math.Min(Maximum, v));
 
         void Render()
         {
@@ -82,7 +74,16 @@ namespace Shutdown.Ui
             if (Box.Text != text) Box.Text = text;
         }
 
-        void Step(int delta) => Value = _value + delta;
+        void Step(int delta)
+        {
+            int v = _value + delta;
+            if (Wrap)
+            {
+                int span = Maximum - Minimum + 1;
+                v = ((v - Minimum) % span + span) % span + Minimum;
+            }
+            Value = v;
+        }
 
         void Commit()
         {

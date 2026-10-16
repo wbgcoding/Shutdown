@@ -358,8 +358,19 @@ namespace Shutdown.Tests
             w.DurMinutes.Value = 75;
             Assert.Equal(59, w.DurMinutes.Value);
             w.AtHour.Value = 24;
-            Assert.Equal(0, w.AtHour.Value);
+            Assert.Equal(23, w.AtHour.Value);
             w.AtMinute.Value = -1;
+            Assert.Equal(0, w.AtMinute.Value);
+        });
+
+        [Fact]
+        public void Spinner_wraps_only_when_stepping() => Sta.Run(() =>
+        {
+            var w = Make();
+            w.AtMinute.Value = 59;
+            Click(w.AtMinute.UpButton);
+            Assert.Equal(0, w.AtMinute.Value);
+            Click(w.AtMinute.DownButton);
             Assert.Equal(59, w.AtMinute.Value);
         });
 
