@@ -2,16 +2,19 @@
 
 All notable changes to this project are documented here. The format follows Keep a Changelog; versions follow semantic versioning.
 
-## [Unreleased]
+## [0.2.0] - 2026-10-16
 
 ### Changed
 - Cancelling no longer shows a confirmation message; the countdown card simply disappears.
-- An app-run countdown (Force off, or Hibernate) keeps the PC from going to sleep, so it can no longer miss its time.
+- An app-run countdown (Force off, or Hibernate) keeps the PC from going to sleep on its own, so it no longer misses its time while unattended. Sleep started by hand still pauses it.
 - A date and time must be at least 1 minute ahead.
 - The "in ..." summary rounds up to the next minute.
 - Always one window: a second start brings the running one to the front.
+- Clearer English and German texts; keyboard focus is visible on the command line and messages, and screen readers announce why scheduling is not possible.
 
 ### Fixed
+- A settings file from a newer version is no longer overwritten.
+- A normal start while a copy runs as administrator exits quietly instead of showing an error.
 - Starting the app again right after closing it no longer fails silently while the old copy is still exiting.
 - A schedule from before a restart no longer shows up as still pending.
 - If `shutdown.exe` hangs while scheduling, it is stopped and the schedule is cancelled, so no hidden forced shutdown remains.
