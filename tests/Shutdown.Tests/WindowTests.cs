@@ -63,7 +63,22 @@ namespace Shutdown.Tests
         static string BootText => Boot.ToString("o");
 
         public WindowTests() { Directory.CreateDirectory(_dir); }
-        public void Dispose() { try { Directory.Delete(_dir, true); } catch { } }
+        readonly List<MainWindow> _windows = new List<MainWindow>();
+
+        public void Dispose()
+        {
+            // Windows left open keep their process-wide event subscriptions and stall the test host at exit.
+            var allowClose = typeof(MainWindow).GetField("_allowClose", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            Sta.Run(() =>
+            {
+                foreach (var w in _windows)
+                {
+                    allowClose.SetValue(w, true);
+                    w.Close();
+                }
+            });
+            try { Directory.Delete(_dir, true); } catch { }
+        }
 
         MainWindow Make(Settings s = null)
         {
@@ -73,7 +88,9 @@ namespace Shutdown.Tests
             MainWindow.BootUtc = () => Boot;
             MainWindow.KeepAwake = on => _awake.Add(on);
             _store = new SettingsStore(Path.Combine(_dir, SettingsStore.FileName));
-            return new MainWindow(_store, s, _runner, () => _now);
+            var w = new MainWindow(_store, s, _runner, () => _now);
+            _windows.Add(w);
+            return w;
         }
 
         static void Click(Button b) => b.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent, b));
@@ -489,6 +506,16 @@ namespace Shutdown.Tests
             w.OnTimeChanged(null, EventArgs.Empty);
             Dispatcher.CurrentDispatcher.Invoke(DispatcherPriority.Background, new Action(() => { }));
             Assert.NotEqual("stale", w.ResultText.Text);
+        });
+
+        [Fact]
+        public void Messages_are_an_assertive_live_region() => Sta.Run(() =>
+        {
+            var w = Make();
+            Assert.Equal(System.Windows.Automation.AutomationLiveSetting.Assertive,
+                System.Windows.Automation.AutomationProperties.GetLiveSetting(w.MessageText));
+            w.ShowError("ErrStart", "x", false);
+            Assert.Equal("x", w.MessageDetail.Text);
         });
 
         [Fact]

@@ -5,6 +5,7 @@ using Microsoft.Win32;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Windows;
+using System.Windows.Automation.Peers;
 using System.Windows.Controls;
 using System.Windows.Threading;
 using Shutdown.Core;
@@ -450,6 +451,9 @@ namespace Shutdown
         {
             _msgKind = kind; _msgKey = key; _msgDetail = detail; _msgShowLog = showLog;
             RenderMessage();
+            // Without a listener (no screen reader) there is nothing to raise, and no peer to create.
+            if (kind != MessageKind.None && AutomationPeer.ListenerExists(AutomationEvents.LiveRegionChanged))
+                UIElementAutomationPeer.FromElement(MessageText)?.RaiseAutomationEvent(AutomationEvents.LiveRegionChanged);
         }
 
         void RenderMessage()

@@ -181,7 +181,7 @@
             AutomationProperties.AutomationId="MessageCard">
       <StackPanel>
         <TextBox x:Name="MessageText" Style="{StaticResource ReadOnlyText}" FontSize="13"
-                 AutomationProperties.AutomationId="MessageText"/>
+                 AutomationProperties.AutomationId="MessageText" AutomationProperties.LiveSetting="Assertive"/>
         <TextBox x:Name="MessageDetail" Style="{StaticResource ReadOnlyText}" FontSize="12" Margin="0,2,0,0"
                  FontFamily="{StaticResource MonoFont}" Foreground="{DynamicResource TextSub}"
                  AutomationProperties.AutomationId="MessageDetail"/>
