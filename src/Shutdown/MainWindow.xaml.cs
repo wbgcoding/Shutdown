@@ -259,15 +259,21 @@ namespace Shutdown
                     ? L.F("SummaryAt", L.DateText(r.Target), L.TimeText(r.Target))
                     : L.F("SummaryIn", L.Span(WholeMinutesUp(r.TargetUtc - now.ToUniversalTime())));
                 string cmd = "shutdown " + Schedule.ArgsFor(action, Force, r.Seconds);
-                CommandText.Text = appTimed ? L.F("CommandAt", cmd, L.TimeText(r.Target)) : cmd;
+                SetCommandText(appTimed ? L.F("CommandAt", cmd, L.TimeText(r.Target)) : cmd);
             }
             else
             {
                 ResultText.SetResourceReference(TextBlock.ForegroundProperty, "Danger");
                 ResultText.Text = L[r.ErrorKey];
-                CommandText.Text = "";
+                SetCommandText("");
             }
             UpdatePending(now);
+        }
+
+        // The text changes every second in date mode; rewriting it would drop the selection someone is about to copy.
+        void SetCommandText(string text)
+        {
+            if (!CommandText.IsKeyboardFocusWithin) CommandText.Text = text;
         }
 
         // 59:59.6 left reads "in 1 h", not "in 59 min".

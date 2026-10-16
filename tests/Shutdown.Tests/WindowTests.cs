@@ -6,6 +6,7 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Input;
 using System.Windows.Threading;
 using Shutdown.Core;
 using Shutdown.Ui;
@@ -457,6 +458,27 @@ namespace Shutdown.Tests
             _now = _now.AddMinutes(30);
             w.OnTick();
             Assert.Equal("in 30 min", w.ResultText.Text);
+        });
+
+        [Fact]
+        public void Command_text_keeps_its_selection_while_focused() => Sta.Run(() =>
+        {
+            var w = Make();
+            w.ModeAt.IsChecked = true;
+            w.Show();
+            try
+            {
+                Assert.Equal("shutdown /s /f /t 3600", w.CommandText.Text);
+                w.CommandText.Focus();
+                Assert.True(w.CommandText.IsKeyboardFocusWithin);
+                _now = _now.AddSeconds(5);
+                w.OnTick();
+                Assert.Equal("shutdown /s /f /t 3600", w.CommandText.Text);
+                Keyboard.ClearFocus();
+                w.OnTick();
+                Assert.Equal("shutdown /s /f /t 3595", w.CommandText.Text);
+            }
+            finally { w.Close(); }
         });
 
         [Fact]
