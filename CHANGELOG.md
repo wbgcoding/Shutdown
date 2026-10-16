@@ -12,6 +12,7 @@ All notable changes to this project are documented here. The format follows Keep
 - Always one window: a second start brings the running one to the front.
 
 ### Fixed
+- Starting the app again right after closing it no longer fails silently while the old copy is still exiting.
 - A schedule from before a restart no longer shows up as still pending.
 - If `shutdown.exe` hangs while scheduling, it is stopped and the schedule is cancelled, so no hidden forced shutdown remains.
 - A shutdown handed to Windows stays cancellable after its time, in case Windows runs it late (for example after sleep).
