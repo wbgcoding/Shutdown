@@ -32,7 +32,6 @@
     <!-- Both languages live in the main assembly so the exe stays a single file. -->
     <EmbeddedResource Update="Lang\en.resx" WithCulture="false" LogicalName="Shutdown.Lang.en.resources" />
     <EmbeddedResource Update="Lang\de.resx" WithCulture="false" LogicalName="Shutdown.Lang.de.resources" />
-    <Resource Include="Assets\Shutdown.ico" />
   </ItemGroup>
 
   <ItemGroup>

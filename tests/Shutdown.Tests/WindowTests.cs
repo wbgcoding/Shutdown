@@ -77,6 +77,8 @@ namespace Shutdown.Tests
             var w = Make();
             Assert.True(w.StartButton.IsEnabled);
             Assert.Equal("shutdown /s /f /t 3600", w.CommandText.Text);
+            // Countdown mode shows the end time.
+            Assert.Equal(Loc.I.F("SummaryAt", Loc.I.DateText(_now.AddHours(1)), Loc.I.TimeText(_now.AddHours(1))), w.ResultText.Text);
             Click(w.StartButton);
             Assert.Equal(new[] { "/a", "/s /f /t 3600" }, _runner.Calls);
             Assert.Equal(Visibility.Visible, w.PendingCard.Visibility);
@@ -235,7 +237,6 @@ namespace Shutdown.Tests
         {
             var w = Make();
             w.ForceBox.IsChecked = false;
-            Assert.Equal(Visibility.Collapsed, w.ForceHint.Visibility);
             Click(w.StartButton);
             _now = _now.AddHours(1);
             w.OnTick();
@@ -264,7 +265,7 @@ namespace Shutdown.Tests
             w.DurHours.Value = 0;
             w.DurMinutes.Value = 0;
             Assert.False(w.StartButton.IsEnabled);
-            Assert.Equal(Loc.I["ErrTooShort"], w.SummaryMain.Text);
+            Assert.Equal(Loc.I["ErrTooShort"], w.ResultText.Text);
             Assert.Equal("", w.CommandText.Text);
         });
 
@@ -292,11 +293,14 @@ namespace Shutdown.Tests
 
             w.AtHour.Value = 11;
             Assert.False(w.StartButton.IsEnabled);
-            Assert.Equal(Loc.I["ErrPast"], w.SummaryMain.Text);
+            Assert.Equal(Loc.I["ErrPast"], w.ResultText.Text);
 
             Click(w.NextDay);
             Assert.True(w.StartButton.IsEnabled);
             Assert.Equal("shutdown /s /f /t " + (23 * 3600), w.CommandText.Text);
+            // Date mode shows the time left; the countdown chips are hidden.
+            Assert.Equal("in 23 h", w.ResultText.Text);
+            Assert.Equal(Visibility.Collapsed, w.Chips.Visibility);
             Assert.True(w.PrevDay.IsEnabled);
             Click(w.PrevDay);
             Assert.False(w.StartButton.IsEnabled);

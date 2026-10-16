@@ -4,7 +4,7 @@
         xmlns:core="clr-namespace:Shutdown.Core"
         xmlns:ui="clr-namespace:Shutdown.Ui"
         Title="Shutdown" Width="450" SizeToContent="Height" ResizeMode="CanMinimize"
-        WindowStartupLocation="CenterScreen" Icon="Assets/Shutdown.ico"
+        WindowStartupLocation="CenterScreen"
         Background="{DynamicResource Bg}" Foreground="{DynamicResource Text}"
         FontFamily="{StaticResource UiFont}" FontSize="13"
         UseLayoutRounding="True" TextOptions.TextFormattingMode="Display"
@@ -72,7 +72,6 @@
                        VerticalAlignment="Top" Margin="8,30,8,0"/>
             <ui:NumberSpinner x:Name="DurMinutes" Maximum="59" Digits="2" AutomationKey="DurMinutes"/>
           </StackPanel>
-          <WrapPanel x:Name="Chips" HorizontalAlignment="Center" Margin="0,8,0,-6"/>
         </StackPanel>
 
         <!-- Date and time -->
@@ -112,25 +111,13 @@
             <ui:NumberSpinner x:Name="AtMinute" Maximum="59" Wrap="True" Digits="2" AutomationKey="AtMinute"/>
           </StackPanel>
         </StackPanel>
-      </StackPanel>
-    </Border>
 
-    <!-- Summary -->
-    <Border x:Name="SummaryCard" Background="{DynamicResource AccentSoft}" CornerRadius="8" Padding="12,8" Margin="0,0,0,8">
-      <Grid>
-        <Grid.ColumnDefinitions>
-          <ColumnDefinition Width="Auto"/>
-          <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
-        <ui:Glyph x:Name="SummaryIcon" Style="{StaticResource Icon}" Text="&#xE823;" FontSize="16"
-                  Foreground="{DynamicResource AccentFg}" Margin="0,0,10,0"/>
-        <StackPanel Grid.Column="1">
-          <TextBlock x:Name="SummaryMain" FontSize="14" FontWeight="SemiBold" TextWrapping="Wrap"
-                     Foreground="{DynamicResource AccentFg}" AutomationProperties.AutomationId="SummaryMain"/>
-          <TextBlock x:Name="SummarySub" FontSize="12" TextWrapping="Wrap"
-                     Foreground="{DynamicResource AccentFg}" AutomationProperties.AutomationId="SummarySub"/>
-        </StackPanel>
-      </Grid>
+        <!-- The value the other mode would show: end time for a countdown, time left for a date -->
+        <TextBlock x:Name="ResultText" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"
+                   FontSize="13" FontWeight="SemiBold" Margin="0,8,0,0" Foreground="{DynamicResource AccentFg}"
+                   AutomationProperties.AutomationId="ResultText"/>
+        <WrapPanel x:Name="Chips" HorizontalAlignment="Center" Margin="0,8,0,-6"/>
+      </StackPanel>
     </Border>
 
     <!-- Options -->
@@ -140,8 +127,6 @@
                   AutomationProperties.AutomationId="Force"
                   AutomationProperties.Name="{Binding [Force], Source={x:Static core:Loc.I}}"
                   Content="{Binding [Force], Source={x:Static core:Loc.I}}"/>
-        <TextBlock x:Name="ForceHint" FontSize="12" Foreground="{DynamicResource TextSub}" TextWrapping="Wrap"
-                   Margin="50,2,0,0" Text="{Binding [ForceHint], Source={x:Static core:Loc.I}}"/>
         <Border x:Name="AppTimedNote" Background="{DynamicResource AccentSoft}" CornerRadius="6" Padding="8,6" Margin="0,8,0,0">
           <Grid>
             <Grid.ColumnDefinitions>
@@ -161,7 +146,7 @@
           </Grid.ColumnDefinitions>
           <TextBlock Text="{Binding [Command], Source={x:Static core:Loc.I}}" FontSize="12"
                      Foreground="{DynamicResource TextSub}" VerticalAlignment="Center" Margin="0,0,8,0"/>
-          <TextBox x:Name="CommandText" Grid.Column="1" Style="{StaticResource ReadOnlyText}"
+          <TextBox x:Name="CommandText" Grid.Column="1" Style="{StaticResource ReadOnlyText}" VerticalAlignment="Center"
                    FontFamily="{StaticResource MonoFont}" FontSize="12" Foreground="{DynamicResource TextSub}"
                    AutomationProperties.AutomationId="CommandText"
                    AutomationProperties.Name="{Binding [Command], Source={x:Static core:Loc.I}}"/>

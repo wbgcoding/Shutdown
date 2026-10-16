@@ -207,32 +207,26 @@ namespace Shutdown
             System.Windows.Automation.AutomationProperties.SetName(StartButton, StartText.Text);
             StartIcon.Text = action == PowerAction.Restart ? "" : action == PowerAction.Hibernate ? "" : "";
 
-            ForceHint.Visibility = Force ? Visibility.Visible : Visibility.Collapsed;
             AppTimedNote.Visibility = appTimed ? Visibility.Visible : Visibility.Collapsed;
             AppTimedText.Text = L[action == PowerAction.Hibernate ? "AppTimedHibernate" : "AppTimedForceOff"];
+            Chips.Visibility = SelectedMode == TimeMode.Countdown ? Visibility.Visible : Visibility.Collapsed;
 
             var r = Compute(now);
             StartButton.IsEnabled = r.Ok;
             if (r.Ok)
             {
-                SummaryCard.SetResourceReference(Border.BackgroundProperty, "AccentSoft");
-                SummaryMain.SetResourceReference(TextBlock.ForegroundProperty, "AccentFg");
-                SummaryIcon.SetResourceReference(TextBlock.ForegroundProperty, "AccentFg");
-                SummaryIcon.Text = "";
-                SummaryMain.Text = L.F("SummaryAt", L.DateText(r.Target), L.TimeText(r.Target));
-                SummarySub.Text = L.F("SummaryIn", L.Span(r.TargetUtc - now.ToUniversalTime()));
-                SummarySub.Visibility = Visibility.Visible;
+                // Show what the inputs do not: the end time for a countdown, the time left for a date.
+                ResultText.SetResourceReference(TextBlock.ForegroundProperty, "AccentFg");
+                ResultText.Text = SelectedMode == TimeMode.Countdown
+                    ? L.F("SummaryAt", L.DateText(r.Target), L.TimeText(r.Target))
+                    : L.F("SummaryIn", L.Span(r.TargetUtc - now.ToUniversalTime()));
                 string cmd = "shutdown " + Schedule.ArgsFor(action, Force, r.Seconds);
                 CommandText.Text = appTimed ? L.F("CommandAt", cmd, L.TimeText(r.Target)) : cmd;
             }
             else
             {
-                SummaryCard.SetResourceReference(Border.BackgroundProperty, "DangerSoft");
-                SummaryMain.SetResourceReference(TextBlock.ForegroundProperty, "Danger");
-                SummaryIcon.SetResourceReference(TextBlock.ForegroundProperty, "Danger");
-                SummaryIcon.Text = "";
-                SummaryMain.Text = L[r.ErrorKey];
-                SummarySub.Visibility = Visibility.Collapsed;
+                ResultText.SetResourceReference(TextBlock.ForegroundProperty, "Danger");
+                ResultText.Text = L[r.ErrorKey];
                 CommandText.Text = "";
             }
             UpdatePending(now);
