@@ -21,8 +21,12 @@ namespace Shutdown.Core
         static string ExePath =>
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "shutdown.exe");
 
+        /// <summary>Set by the test suite so no test can ever shut the machine down.</summary>
+        public static bool BlockedForTests { get; set; }
+
         public int Run(string args)
         {
+            if (BlockedForTests) throw new InvalidOperationException("shutdown.exe is blocked in tests: " + args);
             var psi = new ProcessStartInfo(ExePath, args)
             {
                 UseShellExecute = false,

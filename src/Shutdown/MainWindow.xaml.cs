@@ -41,8 +41,12 @@ namespace Shutdown
         [DllImport("powrprof.dll")]
         static extern bool IsPwrHibernateAllowed();
 
-        public MainWindow(SettingsStore store, Settings settings, IShutdownRunner runner)
+        readonly Func<DateTime> _clock;
+        DateTime Now() => _clock();
+
+        public MainWindow(SettingsStore store, Settings settings, IShutdownRunner runner, Func<DateTime> clock = null)
         {
+            _clock = clock ?? (() => DateTime.Now);
             _store = store;
             _settings = settings;
             _runner = runner;
@@ -62,7 +66,7 @@ namespace Shutdown
             DurHours.Value = settings.Hours;
             DurMinutes.Value = settings.Minutes;
 
-            var start = DateTime.Now.AddHours(1);
+            var start = Now().AddHours(1);
             start = start.AddMinutes((5 - start.Minute % 5) % 5);
             _date = start.Date;
             AtHour.Value = start.Hour;
@@ -72,7 +76,7 @@ namespace Shutdown
 
             if (Enum.TryParse(settings.PendingAction, out PowerAction pa) &&
                 DateTime.TryParse(settings.PendingTarget, null, System.Globalization.DateTimeStyles.RoundtripKind, out var pt) &&
-                pt > DateTime.Now)
+                pt > Now())
                 _pending = new Pending { Action = pa, Target = pt, AppTimed = false };
 
             foreach (ComboBoxItem item in LangBox.Items)
@@ -172,7 +176,7 @@ namespace Shutdown
         {
             if (_loading) return;
             var L = Loc.I;
-            var now = DateTime.Now;
+            var now = Now();
             var action = SelectedAction;
             bool appTimed = Schedule.IsAppTimed(action, Force);
 
@@ -233,9 +237,9 @@ namespace Shutdown
             PendingKeepOpen.Visibility = _pending.AppTimed ? Visibility.Visible : Visibility.Collapsed;
         }
 
-        void OnTick()
+        internal void OnTick()
         {
-            var now = DateTime.Now;
+            var now = Now();
             if (_pending != null && now >= _pending.Target)
             {
                 var p = _pending;
@@ -251,7 +255,7 @@ namespace Shutdown
 
         void OnStart(object sender, RoutedEventArgs e)
         {
-            var now = DateTime.Now;
+            var now = Now();
             var r = Compute(now);
             if (!r.Ok) { UpdateUi(); return; }
             var action = SelectedAction;
@@ -383,13 +387,13 @@ namespace Shutdown
 
         void OnPrevDay(object sender, RoutedEventArgs e)
         {
-            if (_date > DateTime.Today) _date = _date.AddDays(-1);
+            if (_date > Now().Date) _date = _date.AddDays(-1);
             UpdateUi();
         }
 
         void OnNextDay(object sender, RoutedEventArgs e) { _date = _date.AddDays(1); UpdateUi(); }
-        void OnToday(object sender, RoutedEventArgs e) { _date = DateTime.Today; UpdateUi(); }
-        void OnTomorrow(object sender, RoutedEventArgs e) { _date = DateTime.Today.AddDays(1); UpdateUi(); }
+        void OnToday(object sender, RoutedEventArgs e) { _date = Now().Date; UpdateUi(); }
+        void OnTomorrow(object sender, RoutedEventArgs e) { _date = Now().Date.AddDays(1); UpdateUi(); }
 
         void OnLanguageChanged(object sender, SelectionChangedEventArgs e)
         {

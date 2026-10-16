@@ -12,8 +12,9 @@ namespace Shutdown.Core
     /// <summary>UI strings for the active language; bindings to the indexer update live on a switch.</summary>
     public sealed class Loc : INotifyPropertyChanged
     {
-        public static readonly Loc I = new Loc();
+        // Languages must be initialised before I, the constructor reads it.
         public static readonly string[] Languages = { "en", "de" };
+        public static readonly Loc I = new Loc();
 
         readonly Dictionary<string, Dictionary<string, string>> _tables = new Dictionary<string, Dictionary<string, string>>();
         string _lang = "en";

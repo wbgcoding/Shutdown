@@ -38,7 +38,7 @@
       </Grid>
 
       <!-- Action -->
-      <Border Style="{StaticResource CardBorder}" Margin="0,0,0,10">
+      <Border Style="{StaticResource CardStyle}" Margin="0,0,0,10">
         <StackPanel>
           <TextBlock Style="{StaticResource Caption}" Text="{Binding [SecAction], Source={x:Static core:Loc.I}}"/>
           <Border Style="{StaticResource SegmentHost}">
@@ -73,7 +73,7 @@
       </Border>
 
       <!-- When -->
-      <Border Style="{StaticResource CardBorder}" Margin="0,0,0,10">
+      <Border Style="{StaticResource CardStyle}" Margin="0,0,0,10">
         <StackPanel>
           <TextBlock Style="{StaticResource Caption}" Text="{Binding [SecWhen], Source={x:Static core:Loc.I}}"/>
           <Border Style="{StaticResource SegmentHost}" Margin="0,0,0,14">
@@ -167,7 +167,7 @@
       </Border>
 
       <!-- Options -->
-      <Border Style="{StaticResource CardBorder}" Margin="0,0,0,10">
+      <Border Style="{StaticResource CardStyle}" Margin="0,0,0,10">
         <StackPanel>
           <CheckBox x:Name="ForceBox" Style="{StaticResource Switch}" Checked="OnInputChanged" Unchecked="OnInputChanged"
                     AutomationProperties.AutomationId="Force"

@@ -61,7 +61,7 @@
       </Setter>
     </Style>
 
-    <Style x:Key="CardBorder" TargetType="Border">
+    <Style x:Key="CardStyle" TargetType="Border">
       <Setter Property="Background" Value="{DynamicResource Card}"/>
       <Setter Property="BorderBrush" Value="{DynamicResource CardBorder}"/>
       <Setter Property="BorderThickness" Value="1"/>
