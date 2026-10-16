@@ -57,6 +57,7 @@ namespace Shutdown.Tests
         DateTime _now = new DateTime(2026, 10, 16, 12, 0, 0, DateTimeKind.Local);
         readonly FakeRunner _runner = new FakeRunner();
         SettingsStore _store;
+        readonly List<bool> _awake = new List<bool>();
         static readonly DateTime Boot = new DateTime(2026, 10, 16, 5, 0, 0, DateTimeKind.Utc);
         static string BootText => Boot.ToString("o");
 
@@ -69,6 +70,7 @@ namespace Shutdown.Tests
             s = s ?? new Settings();
             Loc.I.Apply("en");
             MainWindow.BootUtc = () => Boot;
+            MainWindow.KeepAwake = on => _awake.Add(on);
             _store = new SettingsStore(Path.Combine(_dir, SettingsStore.FileName));
             return new MainWindow(_store, s, _runner, () => _now);
         }
@@ -303,6 +305,35 @@ namespace Shutdown.Tests
             w.OnTick();
             Assert.Equal(new[] { "/a" }, _runner.Calls);
             Assert.Equal(Loc.I["MsgMissed"], w.MessageText.Text);
+        });
+
+        [Fact]
+        public void App_timed_pending_keeps_the_system_awake_until_it_ends() => Sta.Run(() =>
+        {
+            var w = Make();
+            Click(w.StartButton);
+            Assert.Empty(_awake);
+
+            w.ActHibernate.IsChecked = true;
+            Click(w.StartButton);
+            Assert.Equal(new[] { true }, _awake);
+            Click(w.AbortButton);
+            Assert.Equal(new[] { true, false }, _awake);
+
+            Click(w.StartButton);
+            _now = _now.AddHours(1);
+            w.OnTick();
+            Assert.Equal(new[] { true, false, true, false }, _awake);
+        });
+
+        [Fact]
+        public void Closing_releases_the_awake_request() => Sta.Run(() =>
+        {
+            var w = Make();
+            w.ActHibernate.IsChecked = true;
+            Click(w.StartButton);
+            Click(w.CloseAnywayButton);
+            Assert.Equal(new[] { true, false }, _awake);
         });
 
         [Fact]

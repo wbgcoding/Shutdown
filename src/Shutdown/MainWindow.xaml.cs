@@ -36,6 +36,7 @@ namespace Shutdown
         Pending _pending;
         bool _loading = true;
         bool _allowClose;
+        bool _keepingAwake;
 
         MessageKind _msgKind;
         string _msgKey, _msgDetail;
@@ -51,6 +52,14 @@ namespace Shutdown
 
         /// <summary>When Windows last booted; a pending schedule from an earlier boot is gone.</summary>
         internal static Func<DateTime> BootUtc = () => DateTime.UtcNow - TimeSpan.FromMilliseconds(GetTickCount64());
+
+        [DllImport("kernel32.dll")]
+        static extern uint SetThreadExecutionState(uint flags);
+
+        const uint EsContinuous = 0x80000000, EsSystemRequired = 0x00000001;
+
+        /// <summary>Holds or releases the system-awake request; tests replace it so no power state changes.</summary>
+        internal static Action<bool> KeepAwake = on => SetThreadExecutionState(on ? EsContinuous | EsSystemRequired : EsContinuous);
 
         // Uptime and the wall clock drift a little against each other.
         static readonly TimeSpan BootTolerance = TimeSpan.FromMinutes(2);
@@ -134,6 +143,8 @@ namespace Shutdown
         protected override void OnClosed(EventArgs e)
         {
             _tick.Stop();
+            _pending = null;
+            SyncKeepAwake();
             Loc.I.Changed -= OnLanguageChanged;
             _unwatchTheme();
             base.OnClosed(e);
@@ -315,6 +326,7 @@ namespace Shutdown
             if (appTimed)
             {
                 _pending = new Pending { Action = action, TargetUtc = r.TargetUtc, AppTimed = true, Force = Force };
+                SyncKeepAwake();
             }
             else if (Execute(Schedule.ArgsFor(action, Force, r.Seconds), true))
             {
@@ -341,9 +353,19 @@ namespace Shutdown
             UpdateUi();
         }
 
+        // Idle sleep would swallow an app-timed run, so the PC stays awake while one is pending.
+        void SyncKeepAwake()
+        {
+            bool need = _pending?.AppTimed == true;
+            if (need == _keepingAwake) return;
+            _keepingAwake = need;
+            KeepAwake(need);
+        }
+
         void ClearPending()
         {
             _pending = null;
+            SyncKeepAwake();
             if (_settings.PendingAction != null || _settings.PendingTarget != null || _settings.PendingBoot != null)
             {
                 _settings.PendingAction = null;
