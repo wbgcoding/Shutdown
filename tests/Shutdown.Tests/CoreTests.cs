@@ -40,10 +40,17 @@ namespace Shutdown.Tests
         public void Target_seconds_round_up()
         {
             var now = Now.AddSeconds(0.4);
-            var r = Schedule.FromTarget(Now.Date, 12, 1, now);
+            var r = Schedule.FromTarget(Now.Date, 12, 2, now);
             Assert.True(r.Ok);
-            Assert.Equal(60, r.Seconds);
-            Assert.Equal(new DateTime(2026, 10, 16, 12, 1, 0), r.Target);
+            Assert.Equal(120, r.Seconds);
+            Assert.Equal(new DateTime(2026, 10, 16, 12, 2, 0), r.Target);
+        }
+
+        [Fact]
+        public void Target_needs_a_minute_of_lead_time()
+        {
+            Assert.Equal("ErrTooSoon", Schedule.FromTarget(Now.Date, 12, 1, Now.AddSeconds(1)).ErrorKey);
+            Assert.True(Schedule.FromTarget(Now.Date, 12, 1, Now).Ok);
         }
 
         [Fact]

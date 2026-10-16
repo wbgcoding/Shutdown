@@ -47,6 +47,7 @@
   <data name="ErrTooShort" xml:space="preserve"><value>Wähle mindestens 1 Minute.</value></data>
   <data name="ErrTooLong" xml:space="preserve"><value>Wähle höchstens 10 Jahre.</value></data>
   <data name="ErrPast" xml:space="preserve"><value>Dieser Zeitpunkt liegt in der Vergangenheit.</value></data>
+  <data name="ErrTooSoon" xml:space="preserve"><value>Wähle einen Zeitpunkt mindestens 1 Minute ab jetzt.</value></data>
   <data name="ErrRunFailed" xml:space="preserve"><value>Windows hat den Befehl abgelehnt.</value></data>
   <data name="ErrAccessDenied" xml:space="preserve"><value>Dieses Konto darf den PC nicht herunterfahren. Frag einen Administrator nach dem Recht.</value></data>
   <data name="ErrTimeout" xml:space="preserve"><value>shutdown.exe hat nicht geantwortet.</value></data>

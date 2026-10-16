@@ -47,6 +47,7 @@
   <data name="ErrTooShort" xml:space="preserve"><value>Choose at least 1 minute.</value></data>
   <data name="ErrTooLong" xml:space="preserve"><value>Choose at most 10 years.</value></data>
   <data name="ErrPast" xml:space="preserve"><value>This time is in the past.</value></data>
+  <data name="ErrTooSoon" xml:space="preserve"><value>Pick a time at least 1 minute from now.</value></data>
   <data name="ErrRunFailed" xml:space="preserve"><value>Windows refused the command.</value></data>
   <data name="ErrAccessDenied" xml:space="preserve"><value>This account may not shut down the PC. Ask an administrator for the right.</value></data>
   <data name="ErrTimeout" xml:space="preserve"><value>shutdown.exe did not answer.</value></data>

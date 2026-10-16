@@ -52,6 +52,8 @@ namespace Shutdown.Core
             var targetUtc = DateTime.SpecifyKind(local - offset, DateTimeKind.Utc);
             double diff = (targetUtc - now.ToUniversalTime()).TotalSeconds;
             if (diff <= 0) return ScheduleResult.Invalid("ErrPast");
+            // Same lead time as a countdown: a forced shutdown seconds after the click leaves no chance to cancel.
+            if (diff < MinCountdownSeconds) return ScheduleResult.Invalid("ErrTooSoon");
             if (diff > MaxSeconds) return ScheduleResult.Invalid("ErrTooLong");
             return ScheduleResult.Valid(targetUtc, (int)Math.Ceiling(diff));
         }
