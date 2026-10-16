@@ -57,9 +57,18 @@ namespace Shutdown
         // each activation; without an acknowledgement the new start keeps trying to take the lock.
         bool ClaimSingleInstance()
         {
-            _mutex = new Mutex(false, MutexName);
-            _activate = new EventWaitHandle(false, EventResetMode.AutoReset, ActivateName);
-            _ack = new EventWaitHandle(false, EventResetMode.AutoReset, AckName);
+            try
+            {
+                _mutex = new Mutex(false, MutexName);
+                _activate = new EventWaitHandle(false, EventResetMode.AutoReset, ActivateName);
+                _ack = new EventWaitHandle(false, EventResetMode.AutoReset, AckName);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                // The running copy was started as administrator; a normal start may not even signal it.
+                Log.Write("another instance runs elevated");
+                return false;
+            }
             var deadline = DateTime.UtcNow + ClaimTimeout;
             while (!TryOwnMutex(TimeSpan.Zero))
             {
@@ -69,7 +78,7 @@ namespace Shutdown
                 if (TryOwnMutex(RetryWait)) break;
                 if (DateTime.UtcNow > deadline)
                 {
-                    Log.Write("instance lock not released by the other instance");
+                    Log.Write("running instance did not answer");
                     return false;
                 }
             }
