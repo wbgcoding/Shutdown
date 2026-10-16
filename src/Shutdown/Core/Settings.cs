@@ -54,7 +54,7 @@ namespace Shutdown.Core
         {
             try
             {
-                string probe = Path.Combine(dir, ".shutdown-write-test");
+                string probe = Path.Combine(dir, ".shutdown-" + Guid.NewGuid().ToString("N") + ".tmp");
                 File.WriteAllText(probe, "");
                 File.Delete(probe);
                 return true;
@@ -95,8 +95,17 @@ namespace Shutdown.Core
                         new DataContractJsonSerializer(typeof(Settings)).WriteObject(w, s);
                     File.WriteAllBytes(tmp, ms.ToArray());
                 }
-                if (File.Exists(FilePath)) File.Replace(tmp, FilePath, null);
-                else File.Move(tmp, FilePath);
+                if (!File.Exists(FilePath)) File.Move(tmp, FilePath);
+                else
+                {
+                    try { File.Replace(tmp, FilePath, null); }
+                    catch (IOException)
+                    {
+                        // Some file systems (FAT32 sticks, network shares) lack ReplaceFile.
+                        File.Delete(FilePath);
+                        File.Move(tmp, FilePath);
+                    }
+                }
             }
             catch (Exception ex)
             {

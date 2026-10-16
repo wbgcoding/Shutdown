@@ -119,6 +119,53 @@ namespace Shutdown.Tests
         });
 
         [Fact]
+        public void Expired_pending_is_removed_from_settings() => Sta.Run(() =>
+        {
+            var s = new Settings { PendingAction = "Shutdown", PendingTarget = _now.AddMinutes(-5).ToUniversalTime().ToString("o") };
+            Make(s);
+            Assert.Null(s.PendingAction);
+            Assert.Null(s.PendingTarget);
+        });
+
+        [Fact]
+        public void Failed_abort_keeps_the_windows_schedule_visible() => Sta.Run(() =>
+        {
+            var w = Make();
+            Click(w.StartButton);
+            _runner.Result = a => ShutdownRunner.ErrorAccessDenied;
+            Click(w.AbortButton);
+            Assert.Equal(Visibility.Visible, w.PendingCard.Visibility);
+            Assert.Equal(Loc.I["ErrAccessDenied"], w.MessageText.Text);
+            Assert.Equal("Shutdown", _store.Load().PendingAction);
+        });
+
+        [Fact]
+        public void Start_stops_when_the_old_schedule_cannot_be_cancelled() => Sta.Run(() =>
+        {
+            var w = Make();
+            _runner.Result = a => ShutdownRunner.ErrorAccessDenied;
+            Click(w.StartButton);
+            Assert.Equal(new[] { "/a" }, _runner.Calls);
+            Assert.Equal(Visibility.Collapsed, w.PendingCard.Visibility);
+            Assert.Equal("shutdown /a: exit code 5", w.MessageDetail.Text);
+        });
+
+        [Fact]
+        public void Abort_of_app_countdown_reports_cancelled() => Sta.Run(() =>
+        {
+            var w = Make();
+            w.ActHibernate.IsChecked = true;
+            Click(w.StartButton);
+            _runner.Result = a => ShutdownRunner.ErrorNoShutdownInProgress;
+            Click(w.AbortButton);
+            Assert.Equal(Visibility.Collapsed, w.PendingCard.Visibility);
+            Assert.Equal(Loc.I["MsgAborted"], w.MessageText.Text);
+            _now = _now.AddHours(2);
+            w.OnTick();
+            Assert.DoesNotContain("/h /f", _runner.Calls);
+        });
+
+        [Fact]
         public void Abort_with_nothing_pending_says_so() => Sta.Run(() =>
         {
             var w = Make();

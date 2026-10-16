@@ -1,13 +1,14 @@
 <UserControl x:Class="Shutdown.Ui.NumberSpinner"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="clr-namespace:Shutdown.Ui"
              x:Name="Root" Focusable="False">
   <StackPanel MinWidth="84">
     <Border Background="{DynamicResource Control}" BorderBrush="{DynamicResource ControlBorder}"
             BorderThickness="1" CornerRadius="8" Padding="2">
       <StackPanel>
         <Button x:Name="UpButton" Style="{StaticResource GhostButton}" Click="OnUp" IsTabStop="False">
-          <TextBlock Style="{StaticResource Icon}" Text="&#xE70E;" FontSize="12"/>
+          <ui:Glyph Style="{StaticResource Icon}" Text="&#xE70E;" FontSize="12"/>
         </Button>
         <TextBox x:Name="Box" FontFamily="{StaticResource DisplayFont}" FontSize="30" FontWeight="SemiBold"
                  HorizontalContentAlignment="Center" Background="Transparent" BorderThickness="0"
@@ -30,7 +31,7 @@
           </TextBox.Template>
         </TextBox>
         <Button x:Name="DownButton" Style="{StaticResource GhostButton}" Click="OnDown" IsTabStop="False">
-          <TextBlock Style="{StaticResource Icon}" Text="&#xE70D;" FontSize="12"/>
+          <ui:Glyph Style="{StaticResource Icon}" Text="&#xE70D;" FontSize="12"/>
         </Button>
       </StackPanel>
     </Border>

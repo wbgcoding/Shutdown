@@ -15,7 +15,8 @@ namespace Shutdown
         sealed class Pending
         {
             public PowerAction Action;
-            public DateTime Target;
+            public DateTime TargetUtc;
+            public DateTime Target => TargetUtc.ToLocalTime();
             public bool AppTimed;
             public bool Force;
         }
@@ -43,6 +44,7 @@ namespace Shutdown
 
         readonly Func<DateTime> _clock;
         DateTime Now() => _clock();
+        DateTime NowUtc() => _clock().ToUniversalTime();
 
         public MainWindow(SettingsStore store, Settings settings, IShutdownRunner runner, Func<DateTime> clock = null)
         {
@@ -75,9 +77,16 @@ namespace Shutdown
             foreach (var sp in new[] { DurHours, DurMinutes, AtHour, AtMinute }) sp.ValueChanged += (s, e) => OnInputChanged(s, null);
 
             if (Enum.TryParse(settings.PendingAction, out PowerAction pa) &&
-                DateTime.TryParse(settings.PendingTarget, null, System.Globalization.DateTimeStyles.RoundtripKind, out var pt) &&
-                pt > Now())
-                _pending = new Pending { Action = pa, Target = pt, AppTimed = false };
+                DateTimeOffset.TryParse(settings.PendingTarget, System.Globalization.CultureInfo.InvariantCulture,
+                    System.Globalization.DateTimeStyles.RoundtripKind, out var pt) &&
+                pt.UtcDateTime > NowUtc())
+                _pending = new Pending { Action = pa, TargetUtc = pt.UtcDateTime, AppTimed = false };
+            else
+            {
+                // Expired or unreadable: forget it so it never shows up again.
+                settings.PendingAction = null;
+                settings.PendingTarget = null;
+            }
 
             foreach (ComboBoxItem item in LangBox.Items)
                 if ((string)item.Tag == settings.Language) LangBox.SelectedItem = item;
@@ -93,6 +102,7 @@ namespace Shutdown
             Loc.I.Changed += (s, e) => RefreshTexts();
             Theme.Watch(() => { Theme.Apply(Application.Current.Resources); Theme.ApplyTitleBar(this); });
             SourceInitialized += (s, e) => Theme.ApplyTitleBar(this);
+            SizeChanged += (s, e) => KeepOnScreen();
 
             _tick = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
             _tick.Tick += (s, e) => OnTick();
@@ -112,6 +122,17 @@ namespace Shutdown
             top >= SystemParameters.VirtualScreenTop - 10 &&
             left < SystemParameters.VirtualScreenLeft + SystemParameters.VirtualScreenWidth - 100 &&
             top < SystemParameters.VirtualScreenTop + SystemParameters.VirtualScreenHeight - 100;
+
+        // The window grows when a status or message card appears; keep its bottom inside the work area.
+        void KeepOnScreen()
+        {
+            if (WindowState != WindowState.Normal || !IsLoaded) return;
+            var area = SystemParameters.WorkArea;
+            // WorkArea is the primary monitor; leave windows on other monitors alone.
+            if (Left < area.Left || Left > area.Right) return;
+            double overflow = Top + ActualHeight - area.Bottom;
+            if (overflow > 0) Top = Math.Max(area.Top, Top - overflow);
+        }
 
         public void BringToFront()
         {
@@ -187,6 +208,7 @@ namespace Shutdown
             PrevDay.IsEnabled = _date > now.Date;
 
             StartText.Text = L[action == PowerAction.Restart ? "StartRestart" : action == PowerAction.Hibernate ? "StartHibernate" : "StartShutdown"];
+            System.Windows.Automation.AutomationProperties.SetName(StartButton, StartText.Text);
             StartIcon.Text = action == PowerAction.Restart ? "" : action == PowerAction.Hibernate ? "" : "";
 
             ForceHint.Visibility = Force ? Visibility.Visible : Visibility.Collapsed;
@@ -202,7 +224,7 @@ namespace Shutdown
                 SummaryIcon.SetResourceReference(TextBlock.ForegroundProperty, "AccentFg");
                 SummaryIcon.Text = "";
                 SummaryMain.Text = L.F("SummaryAt", L.DateText(r.Target), L.TimeText(r.Target));
-                SummarySub.Text = L.F("SummaryIn", L.Span(r.Target - now));
+                SummarySub.Text = L.F("SummaryIn", L.Span(r.TargetUtc - now.ToUniversalTime()));
                 SummarySub.Visibility = Visibility.Visible;
                 string cmd = "shutdown " + Schedule.ArgsFor(action, Force, r.Seconds);
                 CommandText.Text = appTimed ? L.F("CommandAt", cmd, L.TimeText(r.Target)) : cmd;
@@ -232,21 +254,22 @@ namespace Shutdown
             PendingTitle.Text = L[_pending.Action == PowerAction.Restart ? "PendingRestart" :
                                   _pending.Action == PowerAction.Hibernate ? "PendingHibernate" : "PendingShutdown"];
             PendingWhen.Text = L.F("SummaryAt", L.DateText(_pending.Target), L.TimeText(_pending.Target));
-            PendingClock.Text = L.Clock(_pending.Target - now);
-            System.Windows.Automation.AutomationProperties.SetName(PendingClock, L.F("PendingRemaining", L.Clock(_pending.Target - now)));
+            var left = _pending.TargetUtc - now.ToUniversalTime();
+            PendingClock.Text = L.Clock(left);
+            System.Windows.Automation.AutomationProperties.SetName(PendingClock, L.F("PendingRemaining", L.Clock(left)));
             PendingKeepOpen.Visibility = _pending.AppTimed ? Visibility.Visible : Visibility.Collapsed;
         }
 
         internal void OnTick()
         {
             var now = Now();
-            if (_pending != null && now >= _pending.Target)
+            if (_pending != null && now.ToUniversalTime() >= _pending.TargetUtc)
             {
                 var p = _pending;
                 ClearPending();
                 if (p.AppTimed)
                 {
-                    if (now - p.Target > MissedGrace) ShowInfo("MsgMissed");
+                    if (now.ToUniversalTime() - p.TargetUtc > MissedGrace) ShowInfo("MsgMissed");
                     else Execute(Schedule.ArgsFor(p.Action, p.Force, 0));
                 }
             }
@@ -261,20 +284,26 @@ namespace Shutdown
             var action = SelectedAction;
             bool appTimed = Schedule.IsAppTimed(action, Force);
 
-            // Replace whatever is scheduled; "nothing pending" is the normal answer here.
-            TryRun(Schedule.AbortArgs, out _);
-            ClearPending();
             HideMessage();
+            // Replace whatever is scheduled; "nothing pending" is the normal answer here.
+            // Any other answer means an old schedule may still run, so stop instead.
+            if (!TryRun(Schedule.AbortArgs, out int abortCode)) return;
+            if (abortCode != 0 && abortCode != ShutdownRunner.ErrorNoShutdownInProgress)
+            {
+                ShowRunError(Schedule.AbortArgs, abortCode);
+                return;
+            }
+            ClearPending();
 
             if (appTimed)
             {
-                _pending = new Pending { Action = action, Target = r.Target, AppTimed = true, Force = Force };
+                _pending = new Pending { Action = action, TargetUtc = r.TargetUtc, AppTimed = true, Force = Force };
             }
             else if (Execute(Schedule.ArgsFor(action, Force, r.Seconds)))
             {
-                _pending = new Pending { Action = action, Target = r.Target, AppTimed = false, Force = Force };
+                _pending = new Pending { Action = action, TargetUtc = r.TargetUtc, AppTimed = false, Force = Force };
                 _settings.PendingAction = action.ToString();
-                _settings.PendingTarget = r.Target.ToString("o");
+                _settings.PendingTarget = r.TargetUtc.ToString("o", System.Globalization.CultureInfo.InvariantCulture);
             }
             Persist();
             UpdateUi();
@@ -282,13 +311,17 @@ namespace Shutdown
 
         void OnAbort(object sender, RoutedEventArgs e)
         {
-            bool hadAppTimed = _pending?.AppTimed == true;
             HideMessage();
-            if (!TryRun(Schedule.AbortArgs, out int code)) { ClearPending(); UpdateUi(); return; }
-            ClearPending();
-            if (code == 0 || hadAppTimed) ShowInfo("MsgAborted");
-            else if (code == ShutdownRunner.ErrorNoShutdownInProgress) ShowInfo("MsgNothingPending");
-            else ShowRunError(Schedule.AbortArgs, code);
+            // The app's own countdown stops in any case; a Windows schedule only counts as gone when /a says so.
+            bool hadAppTimed = _pending?.AppTimed == true;
+            if (hadAppTimed) ClearPending();
+            if (TryRun(Schedule.AbortArgs, out int code))
+            {
+                if (code == 0 || code == ShutdownRunner.ErrorNoShutdownInProgress) ClearPending();
+                if (code == 0 || (hadAppTimed && code == ShutdownRunner.ErrorNoShutdownInProgress)) ShowInfo("MsgAborted");
+                else if (code == ShutdownRunner.ErrorNoShutdownInProgress) ShowInfo("MsgNothingPending");
+                else ShowRunError(Schedule.AbortArgs, code);
+            }
             UpdateUi();
         }
 

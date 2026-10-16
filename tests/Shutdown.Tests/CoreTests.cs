@@ -25,7 +25,7 @@ namespace Shutdown.Tests
             if (r.Ok)
             {
                 Assert.Equal(h * 3600 + m * 60, r.Seconds);
-                Assert.Equal(Now.AddSeconds(r.Seconds), r.Target);
+                Assert.Equal(Now.ToUniversalTime().AddSeconds(r.Seconds), r.TargetUtc);
             }
         }
 
@@ -67,6 +67,35 @@ namespace Shutdown.Tests
             var now = new DateTime(2026, 10, 25, 1, 0, 0, DateTimeKind.Local);
             var r = Schedule.FromTarget(now.Date, 4, 0, now);
             Assert.Equal(4 * 3600, r.Seconds);
+        }
+
+        static readonly TimeZoneInfo Berlin = TimeZoneInfo.FindSystemTimeZoneById("W. Europe Standard Time");
+
+        [Fact]
+        public void Time_skipped_by_spring_clock_change_is_rejected()
+        {
+            var now = new DateTime(2027, 3, 27, 12, 0, 0, DateTimeKind.Utc);
+            Assert.Equal("ErrInvalidTime", Schedule.FromTarget(new DateTime(2027, 3, 28), 2, 30, now, Berlin).ErrorKey);
+            Assert.True(Schedule.FromTarget(new DateTime(2027, 3, 28), 3, 0, now, Berlin).Ok);
+        }
+
+        [Fact]
+        public void Repeated_autumn_hour_uses_its_first_occurrence()
+        {
+            // 00:00 summer time = 22:00 UTC; 02:30 summer time = 00:30 UTC.
+            var now = new DateTime(2026, 10, 24, 22, 0, 0, DateTimeKind.Utc);
+            var r = Schedule.FromTarget(new DateTime(2026, 10, 25), 2, 30, now, Berlin);
+            Assert.Equal(9000, r.Seconds);
+            Assert.Equal(new DateTime(2026, 10, 25, 0, 30, 0, DateTimeKind.Utc), r.TargetUtc);
+        }
+
+        [Fact]
+        public void Countdown_across_dst_end_shows_real_end_time()
+        {
+            if (TimeZoneInfo.Local.Id != "W. Europe Standard Time") return;
+            var now = new DateTime(2026, 10, 25, 1, 0, 0, DateTimeKind.Local);
+            var r = Schedule.FromCountdown(4, 0, now);
+            Assert.Equal(new DateTime(2026, 10, 25, 4, 0, 0), r.Target);
         }
 
         [Theory]
