@@ -415,8 +415,10 @@ namespace Shutdown
 
         void ShowRunError(string args, int code)
         {
-            string key = code == ShutdownRunner.ErrorAccessDenied ? "ErrAccessDenied" : code == ShutdownRunner.TimeoutCode ? "ErrTimeout" : "ErrRunFailed";
-            ShowError(key, "shutdown " + args + ": " + Loc.I.F("ExitCodeFmt", code), false);
+            bool timeout = code == ShutdownRunner.TimeoutCode;
+            string key = code == ShutdownRunner.ErrorAccessDenied ? "ErrAccessDenied" : timeout ? "ErrTimeout" : "ErrRunFailed";
+            // The timeout marker is the app's own, not an exit code of shutdown.exe.
+            ShowError(key, "shutdown " + args + (timeout ? "" : ": " + Loc.I.F("ExitCodeFmt", code)), false);
         }
 
         public void ShowError(string key, string detail, bool showLog) => SetMessage(MessageKind.Error, key, detail, showLog);

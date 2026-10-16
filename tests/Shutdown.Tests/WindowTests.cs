@@ -209,6 +209,7 @@ namespace Shutdown.Tests
             Assert.Equal(new[] { "/a", "/s /f /t 3600", "/a" }, _runner.Calls);
             Assert.Equal(Visibility.Collapsed, w.PendingCard.Visibility);
             Assert.Equal(Loc.I["ErrTimeout"], w.MessageText.Text);
+            Assert.Equal("shutdown /s /f /t 3600", w.MessageDetail.Text);
         });
 
         [Fact]
