@@ -22,6 +22,14 @@
     <AssemblyTitle>Shutdown</AssemblyTitle>
     <Description>Shutdown timer</Description>
     <Copyright>© 2026 BGCoding</Copyright>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+  </PropertyGroup>
+
+  <!-- The shipped exe carries no debug info, so no build machine path ends up inside it -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <DebugType>none</DebugType>
+    <Deterministic>true</Deterministic>
+    <PathMap>$(MSBuildProjectDirectory)=.</PathMap>
   </PropertyGroup>
 
   <ItemGroup>

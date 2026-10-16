@@ -22,7 +22,14 @@ set NAME=Shutdown-%VERSION%-windows.exe
 copy /y dist\Shutdown.exe %OUT%\%NAME% >nul
 if errorlevel 1 exit /b 1
 
-powershell -NoProfile -Command "$h = (Get-FileHash '%OUT%\%NAME%' -Algorithm SHA256).Hash.ToLower(); [IO.File]::WriteAllText('%OUT%\SHA256SUMS.txt', \"$h  %NAME%`n\")"
+rem The shipped exe must not carry a debug path from the build machine.
+findstr /m /i /c:".pdb" %OUT%\%NAME% >nul
+if not errorlevel 1 (
+  echo %NAME% contains a .pdb path. Check DebugType in Shutdown.csproj.
+  exit /b 1
+)
+
+powershell -NoProfile -Command "$h =(Get-FileHash '%OUT%\%NAME%' -Algorithm SHA256).Hash.ToLower(); [IO.File]::WriteAllText('%OUT%\SHA256SUMS.txt', \"$h  %NAME%`n\")"
 if errorlevel 1 exit /b 1
 
 echo Release files in %OUT%:
