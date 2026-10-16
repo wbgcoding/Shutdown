@@ -25,7 +25,8 @@ namespace Shutdown.Ui
 
         public static void Apply(ResourceDictionary res)
         {
-            IsDark = Override == "dark" || (Override != "light" && SystemPrefersDark());
+            bool Is(string v) => string.Equals(Override, v, StringComparison.OrdinalIgnoreCase);
+            IsDark = Is("dark") || (!Is("light") && SystemPrefersDark());
 
             if (SystemParameters.HighContrast)
             {

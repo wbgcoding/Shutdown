@@ -519,6 +519,22 @@ namespace Shutdown.Tests
         });
 
         [Fact]
+        public void Theme_override_ignores_case() => Sta.Run(() =>
+        {
+            var before = Theme.Override;
+            try
+            {
+                Theme.Override = "DARK";
+                Theme.Apply(new ResourceDictionary());
+                Assert.True(Theme.IsDark);
+                Theme.Override = "Light";
+                Theme.Apply(new ResourceDictionary());
+                Assert.False(Theme.IsDark);
+            }
+            finally { Theme.Override = before; Theme.Apply(Application.Current.Resources); }
+        });
+
+        [Fact]
         public void Language_change_rerenders_live() => Sta.Run(() =>
         {
             var w = Make();
