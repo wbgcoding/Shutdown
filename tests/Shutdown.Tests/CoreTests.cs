@@ -224,5 +224,26 @@ namespace Shutdown.Tests
             File.WriteAllText(File_, "{\"Version\":99,\"Theme\":\"dark\"}");
             Assert.Equal("system", new SettingsStore(File_).Load().Theme);
         }
+
+        [Fact]
+        public void Future_file_is_not_overwritten()
+        {
+            const string future = "{\"Version\":99,\"Theme\":\"dark\"}";
+            File.WriteAllText(File_, future);
+            var store = new SettingsStore(File_);
+            var s = store.Load();
+            s.Hours = 5;
+            store.Save(s);
+            Assert.Equal(future, File.ReadAllText(File_));
+        }
+
+        [Fact]
+        public void Corrupt_file_is_replaced_on_save()
+        {
+            File.WriteAllText(File_, "{ not json");
+            var store = new SettingsStore(File_);
+            store.Save(store.Load());
+            Assert.Contains("\"Version\"", File.ReadAllText(File_));
+        }
     }
 }

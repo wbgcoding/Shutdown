@@ -54,8 +54,14 @@ namespace Shutdown.Core
                 using (var fs = File.OpenRead(FilePath))
                 {
                     var s = (Settings)new DataContractJsonSerializer(typeof(Settings)).ReadObject(fs);
-                    // Unknown future format: start fresh instead of guessing.
-                    if (s == null || s.Version > Settings.CurrentVersion) return new Settings();
+                    if (s == null) return new Settings();
+                    // Unknown future format: start fresh instead of guessing, and keep the file for the newer version.
+                    if (s.Version > Settings.CurrentVersion)
+                    {
+                        Log.Write("settings file is from a newer version, not saving over it");
+                        KeepFile = true;
+                        return new Settings();
+                    }
                     return s;
                 }
             }
@@ -66,8 +72,12 @@ namespace Shutdown.Core
             }
         }
 
+        /// <summary>Set when the file on disk belongs to a newer version; saving then leaves it alone.</summary>
+        public bool KeepFile { get; private set; }
+
         public void Save(Settings s)
         {
+            if (KeepFile) return;
             try
             {
                 s.Version = Settings.CurrentVersion;
