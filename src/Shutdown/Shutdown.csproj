@@ -16,7 +16,7 @@
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
     <DebugType>portable</DebugType>
 
-    <Version>0.2.0</Version>
+    <Version>1.0.0</Version>
     <Company>BGCoding</Company>
     <Product>Shutdown</Product>
     <AssemblyTitle>Shutdown</AssemblyTitle>

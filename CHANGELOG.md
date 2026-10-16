@@ -2,7 +2,7 @@
 
 All notable changes to this project are documented here. The format follows Keep a Changelog; versions follow semantic versioning.
 
-## [0.2.0] - 2026-10-16
+## [1.0.0] - 2026-10-16
 
 ### Changed
 - Cancelling no longer shows a confirmation message; the countdown card simply disappears.
