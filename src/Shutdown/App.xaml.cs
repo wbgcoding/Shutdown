@@ -16,8 +16,13 @@ namespace Shutdown
         Mutex _mutex;
         EventWaitHandle _activate;
 
+        /// <summary>Set by the window tests: only the resources are wanted, no window, settings or instance lock.</summary>
+        internal bool HostedByTests { get; set; }
+
         protected override void OnStartup(StartupEventArgs e)
         {
+            if (HostedByTests) { base.OnStartup(e); return; }
+
             DispatcherUnhandledException += OnDispatcherError;
             AppDomain.CurrentDomain.UnhandledException += (s, a) => Log.Write("unhandled", a.ExceptionObject as Exception);
 
