@@ -22,7 +22,7 @@ copy /y src\Shutdown\bin\Release\net48\Shutdown.exe dist\Shutdown.exe >nul
 if errorlevel 1 goto :fail
 
 echo Built dist\Shutdown.exe
-if not defined NOSTART start "" "dist\Shutdown.exe" --second-instance
+if not defined NOSTART start "" "dist\Shutdown.exe"
 exit /b 0
 
 :fail
