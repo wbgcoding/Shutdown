@@ -115,7 +115,7 @@
         <!-- The value the other mode would show: end time for a countdown, time left for a date -->
         <TextBlock x:Name="ResultText" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"
                    FontSize="13" FontWeight="SemiBold" Margin="0,8,0,0" Foreground="{DynamicResource AccentFg}"
-                   AutomationProperties.AutomationId="ResultText"/>
+                   AutomationProperties.AutomationId="ResultText" AutomationProperties.LiveSetting="Polite"/>
         <WrapPanel x:Name="Chips" HorizontalAlignment="Center" Margin="0,8,0,-6"/>
       </StackPanel>
     </Border>

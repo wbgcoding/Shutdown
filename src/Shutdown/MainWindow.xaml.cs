@@ -37,6 +37,7 @@ namespace Shutdown
         DateTime _date;
         Pending _pending;
         bool _loading = true;
+        string _lastInputError;
         bool _allowClose;
         bool _keepingAwake;
 
@@ -263,6 +264,7 @@ namespace Shutdown
 
             var r = Compute(now);
             StartButton.IsEnabled = r.Ok;
+            AnnounceInputError(r.Ok ? null : r.ErrorKey);
             if (r.Ok)
             {
                 // Show what the inputs do not: the end time for a countdown, the time left for a date.
@@ -280,6 +282,16 @@ namespace Shutdown
                 SetCommandText("");
             }
             UpdatePending(now);
+        }
+
+        // Screen readers hear why Start is disabled, once per new reason rather than on every tick.
+        void AnnounceInputError(string errorKey)
+        {
+            System.Windows.Automation.AutomationProperties.SetHelpText(StartButton, errorKey == null ? "" : Loc.I[errorKey]);
+            if (errorKey == _lastInputError) return;
+            _lastInputError = errorKey;
+            if (errorKey != null && !_loading && AutomationPeer.ListenerExists(AutomationEvents.LiveRegionChanged))
+                UIElementAutomationPeer.FromElement(ResultText)?.RaiseAutomationEvent(AutomationEvents.LiveRegionChanged);
         }
 
         // The text changes every second in date mode; rewriting it would drop the selection someone is about to copy.

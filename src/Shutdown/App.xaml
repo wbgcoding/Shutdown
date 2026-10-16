@@ -254,8 +254,16 @@
       <Setter Property="Template">
         <Setter.Value>
           <ControlTemplate TargetType="TextBox">
-            <ScrollViewer x:Name="PART_ContentHost" Focusable="False" HorizontalScrollBarVisibility="Hidden"
-                          VerticalScrollBarVisibility="Hidden"/>
+            <!-- Margin, border and padding cancel out, so the focus ring does not move the text -->
+            <Border x:Name="Ring" Margin="-2" Padding="1" BorderThickness="1" BorderBrush="Transparent" CornerRadius="2">
+              <ScrollViewer x:Name="PART_ContentHost" Focusable="False" HorizontalScrollBarVisibility="Hidden"
+                            VerticalScrollBarVisibility="Hidden"/>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsKeyboardFocused" Value="True">
+                <Setter TargetName="Ring" Property="BorderBrush" Value="{DynamicResource Focus}"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
           </ControlTemplate>
         </Setter.Value>
       </Setter>
