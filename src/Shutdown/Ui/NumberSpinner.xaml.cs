@@ -46,6 +46,8 @@ namespace Shutdown.Ui
         {
             set
             {
+                // The container would otherwise inherit x:Name as a duplicate id.
+                AutomationProperties.SetAutomationId(this, value + "Spinner");
                 AutomationProperties.SetAutomationId(Box, value);
                 AutomationProperties.SetAutomationId(UpButton, value + "Up");
                 AutomationProperties.SetAutomationId(DownButton, value + "Down");
