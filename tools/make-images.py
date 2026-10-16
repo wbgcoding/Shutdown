@@ -58,7 +58,14 @@ def title_bar(render, shot):
     d, x, y = best
     if d > 2:
         sys.exit("client area not found in the window shot (difference %.1f)" % d)
-    return shot.crop((x, 0, x + render.width, y))
+    # The shot can start a few rows above the window (desktop showing through): begin at the
+    # first row that matches the title bar background just below it.
+    def row(r):
+        return ImageStat.Stat(shot.crop((x, r, x + render.width, r + 1))).median
+    top = 0
+    while top < 8 and sum(abs(a - b) for a, b in zip(row(top), row(top + 4))) > 6:
+        top += 1
+    return shot.crop((x, top, x + render.width, y))
 
 
 def main(render_path, shot_path):
