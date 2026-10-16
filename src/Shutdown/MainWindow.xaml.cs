@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
@@ -30,6 +31,7 @@ namespace Shutdown
         readonly Settings _settings;
         readonly IShutdownRunner _runner;
         readonly DispatcherTimer _tick;
+        readonly Action _unwatchTheme;
         DateTime _date;
         Pending _pending;
         bool _loading = true;
@@ -39,7 +41,9 @@ namespace Shutdown
         string _msgKey, _msgDetail;
         bool _msgShowLog;
 
+        // Returns a one-byte BOOLEAN; the default four-byte BOOL marshalling reads garbage.
         [DllImport("powrprof.dll")]
+        [return: MarshalAs(UnmanagedType.U1)]
         static extern bool IsPwrHibernateAllowed();
 
         readonly Func<DateTime> _clock;
@@ -57,6 +61,7 @@ namespace Shutdown
             if (!HibernateAllowed())
             {
                 ActHibernate.IsEnabled = false;
+                ToolTipService.SetShowOnDisabled(ActHibernate, true);
                 ActHibernate.SetBinding(ToolTipProperty, new System.Windows.Data.Binding("[HibernateUnavailable]") { Source = Loc.I });
             }
 
@@ -95,8 +100,8 @@ namespace Shutdown
                 Top = settings.Top.Value;
             }
 
-            Loc.I.Changed += (s, e) => RefreshTexts();
-            Theme.Watch(() => { Theme.Apply(Application.Current.Resources); Theme.ApplyTitleBar(this); });
+            Loc.I.Changed += OnLanguageChanged;
+            _unwatchTheme = Theme.Watch(() => { Theme.Apply(Application.Current.Resources); Theme.ApplyTitleBar(this); });
             SourceInitialized += (s, e) => Theme.ApplyTitleBar(this);
             SizeChanged += (s, e) => KeepOnScreen();
 
@@ -106,6 +111,17 @@ namespace Shutdown
 
             _loading = false;
             RefreshTexts();
+        }
+
+        void OnLanguageChanged(object sender, EventArgs e) => RefreshTexts();
+
+        // Loc and the system theme events are process-wide and would keep a closed window alive.
+        protected override void OnClosed(EventArgs e)
+        {
+            _tick.Stop();
+            Loc.I.Changed -= OnLanguageChanged;
+            _unwatchTheme();
+            base.OnClosed(e);
         }
 
         static bool HibernateAllowed()
@@ -150,6 +166,8 @@ namespace Shutdown
                 ? Schedule.FromTarget(_date, AtHour.Value, AtMinute.Value, now)
                 : Schedule.FromCountdown(DurHours.Value, DurMinutes.Value, now);
 
+        static readonly Assembly Asm = typeof(MainWindow).Assembly;
+
         void RefreshTexts()
         {
             var L = Loc.I;
@@ -157,7 +175,8 @@ namespace Shutdown
             DurMinutes.Caption = L["Minutes"];
             AtHour.Caption = L["Hour"];
             AtMinute.Caption = L["Minute"];
-            VersionText.Text = L.F("VersionFmt", typeof(MainWindow).Assembly.GetName().Version.ToString(3)) + "  ·  © 2026 BGCoding";
+            VersionText.Text = L.F("VersionFmt", Asm.GetName().Version.ToString(3)) + "  ·  " +
+                               Asm.GetCustomAttribute<AssemblyCopyrightAttribute>()?.Copyright;
 
             Chips.Children.Clear();
             foreach (var (h, m) in new[] { (0, 15), (0, 30), (1, 0), (2, 0), (4, 0) })
@@ -176,13 +195,6 @@ namespace Shutdown
         }
 
         void OnInputChanged(object sender, RoutedEventArgs e)
-        {
-            if (_loading) return;
-            UpdateUi();
-            Persist();
-        }
-
-        void OnModeChanged(object sender, RoutedEventArgs e)
         {
             if (_loading) return;
             UpdateUi();
@@ -357,7 +369,7 @@ namespace Shutdown
         void ShowRunError(string args, int code)
         {
             string key = code == ShutdownRunner.ErrorAccessDenied ? "ErrAccessDenied" : code == -1 ? "ErrTimeout" : "ErrRunFailed";
-            ShowError(key, "shutdown " + args + ": exit code " + code, false);
+            ShowError(key, "shutdown " + args + ": " + Loc.I.F("ExitCodeFmt", code), false);
         }
 
         public void ShowError(string key, string detail, bool showLog) => SetMessage(MessageKind.Error, key, detail, showLog);

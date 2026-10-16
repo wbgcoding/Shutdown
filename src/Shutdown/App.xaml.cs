@@ -62,7 +62,15 @@ namespace Shutdown
         {
             Log.Write("ui error", e.Exception);
             e.Handled = true;
-            (MainWindow as MainWindow)?.ShowError("ErrUnexpected", e.Exception.Message, true);
+            if (MainWindow is MainWindow w && w.IsLoaded)
+            {
+                w.ShowError("ErrUnexpected", e.Exception.Message, true);
+                return;
+            }
+            // No window to report into: without one the process would linger invisibly.
+            MessageBox.Show(Loc.I["ErrUnexpected"] + Environment.NewLine + Environment.NewLine + e.Exception.Message,
+                "Shutdown", MessageBoxButton.OK, MessageBoxImage.Error);
+            Shutdown(1);
         }
     }
 }

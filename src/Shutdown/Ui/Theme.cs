@@ -141,6 +141,8 @@ namespace Shutdown.Ui
         static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int value, int size);
 
         const int DwmwaUseImmersiveDarkMode = 20;
+        // Windows 10 before 20H1 knows the same attribute under this id.
+        const int DwmwaUseImmersiveDarkModeOld = 19;
         const int DwmwaCaptionColor = 35;
 
         /// <summary>Dark title bar and a caption matching the window background; skipped where Windows lacks it.</summary>
@@ -151,7 +153,8 @@ namespace Shutdown.Ui
                 var hwnd = new WindowInteropHelper(w).Handle;
                 if (hwnd == IntPtr.Zero) return;
                 int dark = IsDark && !SystemParameters.HighContrast ? 1 : 0;
-                DwmSetWindowAttribute(hwnd, DwmwaUseImmersiveDarkMode, ref dark, sizeof(int));
+                if (DwmSetWindowAttribute(hwnd, DwmwaUseImmersiveDarkMode, ref dark, sizeof(int)) != 0)
+                    DwmSetWindowAttribute(hwnd, DwmwaUseImmersiveDarkModeOld, ref dark, sizeof(int));
                 if (SystemParameters.HighContrast) return;
                 if (!(w.TryFindResource("Bg") is SolidColorBrush bg)) return;
                 var c = bg.Color;
@@ -161,15 +164,18 @@ namespace Shutdown.Ui
             catch (Exception) { }
         }
 
-        public static void Watch(Action onChange)
+        /// <summary>Calls onChange when the Windows theme, accent or contrast changes; returns the unsubscribe call.</summary>
+        public static Action Watch(Action onChange)
         {
-            SystemEvents.UserPreferenceChanged += (s, e) =>
+            UserPreferenceChangedEventHandler handler = (s, e) =>
             {
                 if (e.Category == UserPreferenceCategory.General || e.Category == UserPreferenceCategory.Color ||
                     e.Category == UserPreferenceCategory.VisualStyle ||
                     e.Category == UserPreferenceCategory.Accessibility)
                     Application.Current?.Dispatcher.BeginInvoke(onChange);
             };
+            SystemEvents.UserPreferenceChanged += handler;
+            return () => SystemEvents.UserPreferenceChanged -= handler;
         }
     }
 }
