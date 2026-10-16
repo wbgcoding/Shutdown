@@ -13,6 +13,8 @@ All notable changes to this project are documented here. The format follows Keep
 - Clearer English and German texts; keyboard focus is visible on the command line and messages, and screen readers announce why scheduling is not possible.
 
 ### Fixed
+- A schedule handed to Windows stays visible and cancellable after the clock is set, and its time left stays right.
+- After a Fast Startup boot, a schedule from before is no longer shown as still pending.
 - A settings file from a newer version is no longer overwritten.
 - A normal start while a copy runs as administrator exits quietly instead of showing an error.
 - Starting the app again right after closing it no longer fails silently while the old copy is still exiting.

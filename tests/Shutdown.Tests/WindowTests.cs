@@ -99,7 +99,13 @@ namespace Shutdown.Tests
         SettingsStore _store;
         readonly List<bool> _awake = new List<bool>();
         static readonly DateTime Boot = new DateTime(2026, 10, 16, 5, 0, 0, DateTimeKind.Utc);
-        static string BootText => Boot.ToString("o");
+        const string Marker = "boot:42";
+        string _marker = Marker;
+        // How far the wall clock was set forward after boot; uptime does not follow it.
+        TimeSpan _clockSet;
+
+        TimeSpan UptimeNow => _now.ToUniversalTime() - Boot - _clockSet;
+        long Due(double minutesFromNow) => (long)(UptimeNow + TimeSpan.FromMinutes(minutesFromNow)).TotalMilliseconds;
 
         public WindowTests() { Directory.CreateDirectory(_dir); }
         readonly List<MainWindow> _windows = new List<MainWindow>();
@@ -124,7 +130,8 @@ namespace Shutdown.Tests
             // Fixed language: "system" would follow the machine running the tests.
             s = s ?? new Settings();
             Loc.I.Apply("en");
-            MainWindow.BootUtc = () => Boot;
+            MainWindow.Uptime = () => UptimeNow;
+            MainWindow.BootMarker = () => _marker;
             MainWindow.KeepAwake = on => _awake.Add(on);
             _store = new SettingsStore(Path.Combine(_dir, SettingsStore.FileName));
             var w = new MainWindow(_store, s, _runner, () => _now);
@@ -165,50 +172,88 @@ namespace Shutdown.Tests
         [Fact]
         public void Pending_from_an_earlier_run_is_restored() => Sta.Run(() =>
         {
-            var w = Make(new Settings { PendingAction = "Restart", PendingTarget = _now.AddMinutes(30).ToString("o"), PendingBoot = BootText });
+            var w = Make(new Settings { PendingAction = "Restart", PendingDue = Due(30), PendingBoot = Marker });
             Assert.Equal(Visibility.Visible, w.PendingCard.Visibility);
             Assert.Equal("Restart scheduled", w.PendingTitle.Text);
             Assert.Equal("0:30:00", w.PendingClock.Text);
         });
 
         [Fact]
-        public void Pending_from_the_same_boot_is_restored_within_the_tolerance() => Sta.Run(() =>
+        public void Pending_survives_setting_the_clock() => Sta.Run(() =>
         {
-            var w = Make(new Settings { PendingAction = "Restart", PendingTarget = _now.AddMinutes(30).ToString("o"), PendingBoot = Boot.AddSeconds(90).ToString("o") });
+            var s = new Settings { PendingAction = "Restart", PendingDue = Due(30), PendingBoot = Marker };
+            // The clock jumps two hours ahead after scheduling; Windows' timer still has 30 minutes left.
+            _now = _now.AddHours(2);
+            _clockSet = TimeSpan.FromHours(2);
+            var w = Make(s);
             Assert.Equal(Visibility.Visible, w.PendingCard.Visibility);
+            Assert.Equal("0:30:00", w.PendingClock.Text);
+        });
+
+        [Fact]
+        public void Setting_the_clock_while_open_keeps_the_time_left() => Sta.Run(() =>
+        {
+            var w = Make();
+            Click(w.StartButton);
+            _now = _now.AddMinutes(-45);
+            _clockSet = TimeSpan.FromMinutes(-45);
+            w.OnTimeChanged(null, EventArgs.Empty);
+            Dispatcher.CurrentDispatcher.Invoke(DispatcherPriority.Background, new Action(() => { }));
+            Assert.Equal("1:00:00", w.PendingClock.Text);
+        });
+
+        [Fact]
+        public void Pending_after_a_fast_startup_is_dropped() => Sta.Run(() =>
+        {
+            // Fast Startup keeps the uptime counting, but Windows logs a new boot.
+            _marker = "boot:43";
+            var w = Make(new Settings { PendingAction = "Restart", PendingDue = Due(30), PendingBoot = Marker });
+            Assert.Equal(Visibility.Collapsed, w.PendingCard.Visibility);
+        });
+
+        [Fact]
+        public void Pending_is_kept_when_the_boot_cannot_be_told() => Sta.Run(() =>
+        {
+            _marker = null;
+            var w = Make(new Settings { PendingAction = "Restart", PendingDue = Due(30), PendingBoot = Marker });
+            Assert.Equal(Visibility.Visible, w.PendingCard.Visibility);
+            _marker = Marker;
+            var w2 = Make(new Settings { PendingAction = "Restart", PendingDue = Due(30), PendingBoot = "unknown" });
+            Assert.Equal(Visibility.Visible, w2.PendingCard.Visibility);
         });
 
         [Fact]
         public void Pending_from_another_boot_is_dropped() => Sta.Run(() =>
         {
-            var s = new Settings { PendingAction = "Restart", PendingTarget = _now.AddMinutes(30).ToString("o"), PendingBoot = Boot.AddHours(-3).ToString("o") };
+            var s = new Settings { PendingAction = "Restart", PendingDue = Due(30), PendingBoot = "boot:41" };
             var w = Make(s);
             Assert.Equal(Visibility.Collapsed, w.PendingCard.Visibility);
             Assert.False(w.AbortButton.IsEnabled);
             Assert.Null(s.PendingAction);
-            Assert.Null(s.PendingTarget);
+            Assert.Null(s.PendingDue);
             Assert.Null(s.PendingBoot);
         });
 
         [Fact]
-        public void Pending_without_a_boot_instant_is_dropped() => Sta.Run(() =>
+        public void Pending_without_a_boot_marker_is_dropped() => Sta.Run(() =>
         {
-            var w = Make(new Settings { PendingAction = "Restart", PendingTarget = _now.AddMinutes(30).ToString("o") });
+            var w = Make(new Settings { PendingAction = "Restart", PendingDue = Due(30) });
             Assert.Equal(Visibility.Collapsed, w.PendingCard.Visibility);
         });
 
         [Fact]
-        public void Started_schedule_stores_the_boot_instant() => Sta.Run(() =>
+        public void Started_schedule_stores_the_boot_marker_and_due_uptime() => Sta.Run(() =>
         {
             var w = Make();
             Click(w.StartButton);
-            Assert.Equal(BootText, _store.Load().PendingBoot);
+            Assert.Equal(Marker, _store.Load().PendingBoot);
+            Assert.Equal(Due(60), _store.Load().PendingDue);
         });
 
         [Fact]
         public void Expired_pending_is_not_restored() => Sta.Run(() =>
         {
-            var w = Make(new Settings { PendingAction = "Restart", PendingTarget = _now.AddMinutes(-1).ToString("o"), PendingBoot = BootText });
+            var w = Make(new Settings { PendingAction = "Restart", PendingDue = Due(-1), PendingBoot = Marker });
             Assert.Equal(Visibility.Collapsed, w.PendingCard.Visibility);
         });
 
@@ -228,10 +273,10 @@ namespace Shutdown.Tests
         [Fact]
         public void Expired_pending_is_removed_from_settings() => Sta.Run(() =>
         {
-            var s = new Settings { PendingAction = "Shutdown", PendingTarget = _now.AddMinutes(-5).ToUniversalTime().ToString("o"), PendingBoot = BootText };
+            var s = new Settings { PendingAction = "Shutdown", PendingDue = Due(-5), PendingBoot = Marker };
             Make(s);
             Assert.Null(s.PendingAction);
-            Assert.Null(s.PendingTarget);
+            Assert.Null(s.PendingDue);
         });
 
         [Fact]
@@ -323,7 +368,7 @@ namespace Shutdown.Tests
         [Fact]
         public void Abort_of_a_schedule_cancelled_elsewhere_just_clears_it() => Sta.Run(() =>
         {
-            var w = Make(new Settings { PendingAction = "Shutdown", PendingTarget = _now.AddMinutes(30).ToString("o"), PendingBoot = BootText });
+            var w = Make(new Settings { PendingAction = "Shutdown", PendingDue = Due(30), PendingBoot = Marker });
             Assert.True(w.AbortButton.IsEnabled);
             _runner.Result = a => ShutdownRunner.ErrorNoShutdownInProgress;
             Click(w.AbortButton);
@@ -423,10 +468,10 @@ namespace Shutdown.Tests
         [Fact]
         public void Restored_windows_timed_pending_past_its_target_is_dropped() => Sta.Run(() =>
         {
-            var s = new Settings { PendingAction = "Shutdown", PendingTarget = _now.AddMinutes(-1).ToUniversalTime().ToString("o"), PendingBoot = BootText };
+            var s = new Settings { PendingAction = "Shutdown", PendingDue = Due(-1), PendingBoot = Marker };
             var w = Make(s);
             Assert.Equal(Visibility.Collapsed, w.PendingCard.Visibility);
-            Assert.Null(s.PendingTarget);
+            Assert.Null(s.PendingDue);
         });
 
         [Fact]

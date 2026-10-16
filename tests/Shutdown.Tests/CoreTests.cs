@@ -192,7 +192,7 @@ namespace Shutdown.Tests
         {
             var store = new SettingsStore(File_);
             var s = new Settings { Theme = "dark", Force = false, Hours = 3, Minutes = 15, Action = "Restart",
-                                   PendingAction = "Shutdown", PendingTarget = "2026-10-16T20:00:00.0000000+02:00" };
+                                   PendingAction = "Shutdown", PendingDue = 7200000, PendingBoot = "boot:7" };
             store.Save(s);
             store.Save(s);
             var back = store.Load();
@@ -202,6 +202,8 @@ namespace Shutdown.Tests
             Assert.Equal(15, back.Minutes);
             Assert.Equal("Restart", back.Action);
             Assert.Equal("Shutdown", back.PendingAction);
+            Assert.Equal(7200000L, back.PendingDue);
+            Assert.Equal("boot:7", back.PendingBoot);
             Assert.False(File.Exists(File_ + ".new"));
         }
 
@@ -244,6 +246,17 @@ namespace Shutdown.Tests
             var store = new SettingsStore(File_);
             store.Save(store.Load());
             Assert.Contains("\"Version\"", File.ReadAllText(File_));
+        }
+    }
+
+    public class BootInfoTests
+    {
+        [Fact]
+        public void Marker_is_read_and_stable_within_one_boot()
+        {
+            string a = BootInfo.ReadMarker(), b = BootInfo.ReadMarker();
+            Assert.StartsWith("boot:", a);
+            Assert.Equal(a, b);
         }
     }
 }

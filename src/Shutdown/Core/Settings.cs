@@ -23,8 +23,9 @@ namespace Shutdown.Core
         [DataMember(Order = 9)] public double? Top { get; set; }
         /// <summary>A schedule handed to Windows, so the countdown survives closing the app.</summary>
         [DataMember(Order = 10)] public string PendingAction { get; set; }
-        [DataMember(Order = 11)] public string PendingTarget { get; set; }
-        /// <summary>Boot instant (UTC, "o") of the PC when the schedule was made; a reboot drops the schedule.</summary>
+        /// <summary>Windows uptime in milliseconds at the target; unlike a clock time it survives setting the clock.</summary>
+        [DataMember(Order = 11)] public long? PendingDue { get; set; }
+        /// <summary>Marker of the Windows start the schedule was made in (BootInfo); a new start drops the schedule.</summary>
         [DataMember(Order = 12)] public string PendingBoot { get; set; }
 
         [OnDeserializing]

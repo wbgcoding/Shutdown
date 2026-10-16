@@ -19,6 +19,8 @@ namespace Shutdown
         {
             public PowerAction Action;
             public DateTime TargetUtc;
+            /// <summary>Uptime at the target; it puts TargetUtc right again after the clock is set.</summary>
+            public TimeSpan Due;
             public DateTime Target => TargetUtc.ToLocalTime();
             public bool AppTimed;
             public bool Force;
@@ -53,8 +55,14 @@ namespace Shutdown
         [DllImport("kernel32.dll")]
         static extern ulong GetTickCount64();
 
-        /// <summary>When Windows last booted; a pending schedule from an earlier boot is gone.</summary>
-        internal static Func<DateTime> BootUtc = () => DateTime.UtcNow - TimeSpan.FromMilliseconds(GetTickCount64());
+        /// <summary>Time since Windows started; it keeps counting when the wall clock is set.</summary>
+        internal static Func<TimeSpan> Uptime = () => TimeSpan.FromMilliseconds(GetTickCount64());
+
+        /// <summary>Identifies the current Windows start; a pending schedule from an earlier start is gone.</summary>
+        internal static Func<string> BootMarker = BootInfo.ReadMarker;
+
+        // Stored when the event log could not be read while scheduling.
+        const string UnknownBoot = "unknown";
 
         [DllImport("kernel32.dll")]
         static extern uint SetThreadExecutionState(uint flags);
@@ -63,9 +71,6 @@ namespace Shutdown
 
         /// <summary>Holds or releases the system-awake request; tests replace it so no power state changes.</summary>
         internal static Action<bool> KeepAwake = on => SetThreadExecutionState(on ? EsContinuous | EsSystemRequired : EsContinuous);
-
-        // Uptime and the wall clock drift a little against each other.
-        static readonly TimeSpan BootTolerance = TimeSpan.FromMinutes(2);
 
         readonly Func<DateTime> _clock;
         DateTime Now() => _clock();
@@ -102,16 +107,14 @@ namespace Shutdown
 
             foreach (var sp in new[] { DurHours, DurMinutes, AtHour, AtMinute }) sp.ValueChanged += (s, e) => OnInputChanged(s, null);
 
-            if (Enum.TryParse(settings.PendingAction, out PowerAction pa) &&
-                DateTimeOffset.TryParse(settings.PendingTarget, System.Globalization.CultureInfo.InvariantCulture,
-                    System.Globalization.DateTimeStyles.RoundtripKind, out var pt) &&
-                pt.UtcDateTime > NowUtc() && SameBoot(settings.PendingBoot))
-                _pending = new Pending { Action = pa, TargetUtc = pt.UtcDateTime, AppTimed = false };
+            var restored = RestoredTargetUtc(settings);
+            if (restored.HasValue && Enum.TryParse(settings.PendingAction, out PowerAction pa))
+                _pending = new Pending { Action = pa, TargetUtc = restored.Value, Due = TimeSpan.FromMilliseconds(settings.PendingDue.Value), AppTimed = false };
             else
             {
-                // Expired, unreadable or from before a reboot (Windows dropped it): forget it so it never shows up again.
+                // Expired, unreadable or from before a restart (Windows dropped it): forget it so it never shows up again.
                 settings.PendingAction = null;
-                settings.PendingTarget = null;
+                settings.PendingDue = null;
                 settings.PendingBoot = null;
             }
 
@@ -136,10 +139,24 @@ namespace Shutdown
             RefreshTexts();
         }
 
-        static bool SameBoot(string stored) =>
-            DateTimeOffset.TryParse(stored, System.Globalization.CultureInfo.InvariantCulture,
-                System.Globalization.DateTimeStyles.RoundtripKind, out var b) &&
-            (b.UtcDateTime - BootUtc()).Duration() <= BootTolerance;
+        TimeSpan DueOf(DateTime targetUtc) => Uptime() + (targetUtc - NowUtc());
+
+        // The target is kept as uptime, so setting the clock neither hides the schedule nor shifts its time.
+        DateTime? RestoredTargetUtc(Settings s)
+        {
+            if (!s.PendingDue.HasValue || !SameBoot(s.PendingBoot)) return null;
+            var target = NowUtc() + (TimeSpan.FromMilliseconds(s.PendingDue.Value) - Uptime());
+            return target > NowUtc() ? target : (DateTime?)null;
+        }
+
+        static bool SameBoot(string stored)
+        {
+            if (string.IsNullOrEmpty(stored)) return false;
+            string current = BootMarker();
+            // Unknown on either side: rather show a card that may be stale (Abort clears it) than hide a live schedule.
+            if (stored == UnknownBoot || current == null) return true;
+            return stored == current;
+        }
 
         void OnLanguageChanged(object sender, EventArgs e) => RefreshTexts();
 
@@ -148,7 +165,12 @@ namespace Shutdown
         internal void OnTimeChanged(object sender, EventArgs e)
         {
             TimeZoneInfo.ClearCachedData();
-            Dispatcher.BeginInvoke(new Action(UpdateUi));
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                // Windows' timer and the app's countdown run on uptime: a clock change moves only the shown time.
+                if (_pending != null) _pending.TargetUtc = NowUtc() + (_pending.Due - Uptime());
+                UpdateUi();
+            }));
         }
 
         // Loc and the system theme events are process-wide and would keep a closed window alive.
@@ -366,15 +388,15 @@ namespace Shutdown
 
             if (appTimed)
             {
-                _pending = new Pending { Action = action, TargetUtc = r.TargetUtc, AppTimed = true, Force = Force };
+                _pending = new Pending { Action = action, TargetUtc = r.TargetUtc, Due = DueOf(r.TargetUtc), AppTimed = true, Force = Force };
                 SyncKeepAwake();
             }
             else if (Execute(Schedule.ArgsFor(action, Force, r.Seconds), true))
             {
-                _pending = new Pending { Action = action, TargetUtc = r.TargetUtc, AppTimed = false, Force = Force };
+                _pending = new Pending { Action = action, TargetUtc = r.TargetUtc, Due = DueOf(r.TargetUtc), AppTimed = false, Force = Force };
                 _settings.PendingAction = action.ToString();
-                _settings.PendingTarget = r.TargetUtc.ToString("o", System.Globalization.CultureInfo.InvariantCulture);
-                _settings.PendingBoot = BootUtc().ToString("o", System.Globalization.CultureInfo.InvariantCulture);
+                _settings.PendingDue = (long)_pending.Due.TotalMilliseconds;
+                _settings.PendingBoot = BootMarker() ?? UnknownBoot;
             }
             Persist();
             UpdateUi();
@@ -413,10 +435,10 @@ namespace Shutdown
         {
             _pending = null;
             SyncKeepAwake();
-            if (_settings.PendingAction != null || _settings.PendingTarget != null || _settings.PendingBoot != null)
+            if (_settings.PendingAction != null || _settings.PendingDue != null || _settings.PendingBoot != null)
             {
                 _settings.PendingAction = null;
-                _settings.PendingTarget = null;
+                _settings.PendingDue = null;
                 _settings.PendingBoot = null;
                 Persist();
             }
