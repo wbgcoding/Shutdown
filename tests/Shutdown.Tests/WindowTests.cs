@@ -447,6 +447,19 @@ namespace Shutdown.Tests
         });
 
         [Fact]
+        public void Date_mode_summary_rounds_the_time_left_up() => Sta.Run(() =>
+        {
+            var w = Make();
+            w.ModeAt.IsChecked = true;
+            _now = _now.AddMilliseconds(400);
+            w.OnTick();
+            Assert.Equal("in 1 h", w.ResultText.Text);
+            _now = _now.AddMinutes(30);
+            w.OnTick();
+            Assert.Equal("in 30 min", w.ResultText.Text);
+        });
+
+        [Fact]
         public void Language_change_rerenders_live() => Sta.Run(() =>
         {
             var w = Make();

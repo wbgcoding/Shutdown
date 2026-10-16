@@ -257,7 +257,7 @@ namespace Shutdown
                 ResultText.SetResourceReference(TextBlock.ForegroundProperty, "AccentFg");
                 ResultText.Text = SelectedMode == TimeMode.Countdown
                     ? L.F("SummaryAt", L.DateText(r.Target), L.TimeText(r.Target))
-                    : L.F("SummaryIn", L.Span(r.TargetUtc - now.ToUniversalTime()));
+                    : L.F("SummaryIn", L.Span(WholeMinutesUp(r.TargetUtc - now.ToUniversalTime())));
                 string cmd = "shutdown " + Schedule.ArgsFor(action, Force, r.Seconds);
                 CommandText.Text = appTimed ? L.F("CommandAt", cmd, L.TimeText(r.Target)) : cmd;
             }
@@ -269,6 +269,10 @@ namespace Shutdown
             }
             UpdatePending(now);
         }
+
+        // 59:59.6 left reads "in 1 h", not "in 59 min".
+        static TimeSpan WholeMinutesUp(TimeSpan t) =>
+            t >= TimeSpan.FromMinutes(1) ? TimeSpan.FromMinutes(Math.Ceiling(t.TotalMinutes)) : t;
 
         void UpdatePending(DateTime now)
         {
