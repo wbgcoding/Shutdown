@@ -34,4 +34,8 @@ build.bat
 
 Builds `dist\Shutdown.exe` and starts it. `NOSTART=1` skips the start, `NOPAUSE=1` never waits for a key on errors. Tests: `dotnet test tests\Shutdown.Tests`.
 
+## License
+
+MIT, see [LICENSE](LICENSE).
+
 © 2026 BGCoding
