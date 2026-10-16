@@ -6,7 +6,7 @@ cd /d "%~dp0"
 
 set NOSTART=1
 set NOPAUSE=1
-call build.bat
+call "%~dp0build.bat"
 if errorlevel 1 exit /b 1
 
 for /f "usebackq delims=" %%V in (`powershell -NoProfile -Command "([xml](Get-Content 'src\Shutdown\Shutdown.csproj')).Project.PropertyGroup.Version | Where-Object { $_ } | Select-Object -First 1"`) do set VERSION=%%V
