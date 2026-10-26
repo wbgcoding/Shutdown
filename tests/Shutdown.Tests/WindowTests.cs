@@ -258,6 +258,16 @@ namespace Shutdown.Tests
         });
 
         [Fact]
+        public void Invalid_pending_due_is_not_restored() => Sta.Run(() =>
+        {
+            var s = new Settings { PendingAction = "Restart", PendingDue = long.MaxValue, PendingBoot = Marker };
+            var w = Make(s);
+            Assert.Equal(Visibility.Collapsed, w.PendingCard.Visibility);
+            Assert.Null(s.PendingAction);
+            Assert.Null(s.PendingDue);
+        });
+
+        [Fact]
         public void Abort_clears_pending_without_a_message() => Sta.Run(() =>
         {
             var w = Make();

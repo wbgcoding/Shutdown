@@ -145,8 +145,9 @@ namespace Shutdown
         DateTime? RestoredTargetUtc(Settings s)
         {
             if (!s.PendingDue.HasValue || !SameBoot(s.PendingBoot)) return null;
-            var target = NowUtc() + (TimeSpan.FromMilliseconds(s.PendingDue.Value) - Uptime());
-            return target > NowUtc() ? target : (DateTime?)null;
+            double remainingMs = s.PendingDue.Value - Uptime().TotalMilliseconds;
+            if (remainingMs <= 0 || remainingMs > Schedule.MaxSeconds * 1000d) return null;
+            return NowUtc().AddMilliseconds(remainingMs);
         }
 
         static bool SameBoot(string stored)
