@@ -6,6 +6,7 @@
 </p>
 
 <p align="center">
+  <a href="../../actions/workflows/ci.yml"><img alt="CI" src="https://github.com/wbgcoding/Shutdown/actions/workflows/ci.yml/badge.svg"></a>
   <a href="../../releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/wbgcoding/Shutdown?label=release"></a>
   <img alt="Windows 10 and 11" src="https://img.shields.io/badge/Windows-10%20%7C%2011-0078D4">
   <img alt=".NET Framework 4.8" src="https://img.shields.io/badge/.NET%20Framework-4.8-512BD4">
@@ -33,7 +34,7 @@ Requires Windows 10 (version 1903 or newer) or Windows 11. The .NET Framework 4.
 
 The exe is not code signed, so Windows SmartScreen may warn before the first start. Click **More info**, then **Run anyway**. You can compare the file with `SHA256SUMS.txt` from the release:
 
-```
+```bat
 certutil -hashfile Shutdown-<version>-windows.exe SHA256
 ```
 
@@ -44,7 +45,7 @@ certutil -hashfile Shutdown-<version>-windows.exe SHA256
 | Shut down or restart, **Force** on | Windows itself: `shutdown /s /f /t <seconds>` (`/r` for restart) | Yes |
 | **Force** off, or **Hibernate** | The app counts down, then runs the command with `/t 0` | No, keep it open |
 
-Windows always forces apps closed when a timeout is set, and it has no timer for hibernate. That is why those cases are timed by the app. Closing the window then asks first, and the PC is kept from going to sleep on its own until the time is up. Putting it to sleep by hand still pauses the countdown.
+Windows always forces apps closed when a timeout is set, and it has no timer for hibernate. That is why those cases are timed by the app. Closing the window then asks first, and the PC is kept from going to sleep on its own until the time is up. If you put the PC to sleep by hand and it wakes more than two minutes after the target time, nothing runs and the app tells you so.
 
 Starting the app a second time brings the open window to the front.
 
@@ -56,7 +57,7 @@ Settings (`Shutdown.settings.json`) and a small log (rotated at 512 KB, one old 
 
 Requires the .NET SDK 8 or newer (it builds for .NET Framework 4.8 through reference assemblies).
 
-```
+```bat
 build.bat
 ```
 
@@ -66,10 +67,16 @@ This builds `dist\Shutdown.exe` and starts it. Set `NOSTART=1` to skip the start
 
 Run the tests:
 
-```
+```bat
 dotnet test tests\Shutdown.Tests
 ```
+
+## Security
+
+Please report security problems privately, as described in [SECURITY.md](SECURITY.md).
 
 ## License
 
 [MIT](LICENSE) © 2026 BGCoding
+
+Made with Claude.
