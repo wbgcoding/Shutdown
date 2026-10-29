@@ -44,7 +44,7 @@ certutil -hashfile Shutdown-<version>-windows.exe SHA256
 | Shut down or restart | Windows itself: `shutdown /s /f /t <seconds>` (`/r` for restart) | Yes |
 | Hibernate | The app counts down, then runs `shutdown /h /f` | No, keep it open |
 
-Open apps are always closed, even with unsaved work: Windows forces this whenever a timeout is set. Windows has no timer for hibernate, so the app times it itself. Closing the window then asks first, and the PC is kept from going to sleep on its own until the time is up. If you put the PC to sleep by hand and it wakes more than two minutes after the target time, nothing runs and the app tells you so.
+Shutting down or restarting always closes open apps, even with unsaved work: Windows forces this whenever a timeout is set. Windows has no timer for hibernate, so the app times it itself. Closing the window then asks first, and the PC is kept from going to sleep on its own until the time is up. If you put the PC to sleep by hand and it wakes more than two minutes after the target time, nothing runs and the app tells you so.
 
 Starting the app a second time brings the open window to the front.
 

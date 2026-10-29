@@ -2,7 +2,7 @@
 
 All notable changes to this project are documented here. The format follows Keep a Changelog; versions follow semantic versioning.
 
-## [Unreleased]
+## [1.1.0] - 2026-10-29
 
 ### Changed
 - The target date and time (or the time left, for a date) is shown larger, right above the time fields.
