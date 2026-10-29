@@ -6,7 +6,7 @@ All notable changes to this project are documented here. The format follows Keep
 
 ### Changed
 - The target date and time (or the time left, for a date) is shown larger, right above the time fields.
-- Shutdown and restart are always forced (`/f`); the Force switch is gone. Only hibernate is still timed by the app and needs the window open.
+- Shutdown and restart are always forced (`/f`); the Force switch is gone. If you used them with Force off, open apps are now closed without asking to save, so save your work before the time is up. Only hibernate is still timed by the app and needs the window open.
 - The countdown quick picks are 15 min, 30 min, 1 h, 2 h and 3 h, and the command line is gone.
 
 ### Fixed

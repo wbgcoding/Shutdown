@@ -19,7 +19,7 @@
 ## Features
 
 - **Shut down, restart or hibernate** after a countdown (hours and minutes, quick picks from 15 minutes to 3 hours) or at an exact date and time.
-- **Always know what happens:** the exact target date and time sits right above the time fields, and a live countdown runs once scheduled.
+- **Always know what happens:** right above the time fields you see the exact end time of a countdown, or the time left until a chosen date, and a live countdown runs once scheduled.
 - **Cancel with one click** whatever the app scheduled.
 - **Fits into Windows:** English or German from the Windows display language, light or dark mode and the accent colour from your Windows settings.
 - **Portable and private:** one small `.exe` (about 110 KB), no installer, no network access, no telemetry.
