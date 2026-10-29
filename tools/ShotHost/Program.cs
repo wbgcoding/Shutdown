@@ -7,7 +7,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 
-// Starts Shutdown.exe (beside this exe) with an en-US UI culture, for English screenshots on a
+// Starts Shutdown.exe (beside this exe) with an en-US UI culture (or the one in culture.txt), for English screenshots on a
 // machine whose Windows display language is not English. It also writes the window content at 200 %
 // every two seconds (to shot-render.png beside the exe, or "--render <file.png>"), independent of
 // the screen size and scale.
@@ -18,11 +18,13 @@ static class Program
     [STAThread]
     static void Main(string[] args)
     {
-        var en = CultureInfo.GetCultureInfo("en-US");
-        CultureInfo.DefaultThreadCurrentCulture = en;
-        CultureInfo.DefaultThreadCurrentUICulture = en;
-        System.Threading.Thread.CurrentThread.CurrentCulture = en;
-        System.Threading.Thread.CurrentThread.CurrentUICulture = en;
+        // A culture.txt beside the exe (e.g. "de-DE") renders another language; the VM driver passes no arguments.
+        string cultureFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "culture.txt");
+        var culture = CultureInfo.GetCultureInfo(File.Exists(cultureFile) ? File.ReadAllText(cultureFile).Trim() : "en-US");
+        CultureInfo.DefaultThreadCurrentCulture = culture;
+        CultureInfo.DefaultThreadCurrentUICulture = culture;
+        System.Threading.Thread.CurrentThread.CurrentCulture = culture;
+        System.Threading.Thread.CurrentThread.CurrentUICulture = culture;
 
         int i = Array.IndexOf(args, "--render");
         string target = i >= 0 && i + 1 < args.Length

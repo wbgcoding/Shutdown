@@ -6,7 +6,7 @@ All notable changes to this project are documented here. The format follows Keep
 
 ### Changed
 - The target date and time (or the time left, for a date) is shown larger, right above the time fields.
-- The Force switch moved into the main card, and the command line under it is gone.
+- The Force switch sits at the end of the countdown chips (the 4 h chip is gone), and the command line is gone.
 
 ### Fixed
 - A typed value above a field's maximum (such as 75 minutes) now counts as the maximum at once, so the shown target time no longer lags behind the field.

@@ -241,7 +241,7 @@ namespace Shutdown
                                Asm.GetCustomAttribute<AssemblyCopyrightAttribute>()?.Copyright;
 
             Chips.Children.Clear();
-            foreach (var (h, m) in new[] { (0, 15), (0, 30), (1, 0), (2, 0), (4, 0) })
+            foreach (var (h, m) in new[] { (0, 15), (0, 30), (1, 0), (2, 0) })
             {
                 var b = new Button
                 {

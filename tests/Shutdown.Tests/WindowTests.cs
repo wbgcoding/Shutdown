@@ -523,6 +523,8 @@ namespace Shutdown.Tests
         public void Chip_sets_the_countdown() => Sta.Run(() =>
         {
             var w = Make();
+            // 15 min, 30 min, 1 h, 2 h; Force takes the last place in the row.
+            Assert.Equal(4, w.Chips.Children.Count);
             Click((Button)w.Chips.Children[1]);
             Assert.Equal(0, w.DurHours.Value);
             Assert.Equal(30, w.DurMinutes.Value);
