@@ -23,7 +23,6 @@ namespace Shutdown
             public TimeSpan Due;
             public DateTime Target => TargetUtc.ToLocalTime();
             public bool AppTimed;
-            public bool Force;
         }
 
         enum MessageKind { None, Info, Error, CloseGuard }
@@ -95,7 +94,6 @@ namespace Shutdown
             if (action == PowerAction.Hibernate && !ActHibernate.IsEnabled) action = PowerAction.Shutdown;
             (action == PowerAction.Restart ? ActRestart : action == PowerAction.Hibernate ? ActHibernate : ActShutdown).IsChecked = true;
             (settings.Mode == nameof(TimeMode.At) ? ModeAt : ModeCountdown).IsChecked = true;
-            ForceBox.IsChecked = settings.Force;
             DurHours.Value = settings.Hours;
             DurMinutes.Value = settings.Minutes;
 
@@ -221,8 +219,6 @@ namespace Shutdown
 
         TimeMode SelectedMode => ModeAt.IsChecked == true ? TimeMode.At : TimeMode.Countdown;
 
-        bool Force => ForceBox.IsChecked == true;
-
         ScheduleResult Compute(DateTime now) =>
             SelectedMode == TimeMode.At
                 ? Schedule.FromTarget(_date, AtHour.Value, AtMinute.Value, now)
@@ -241,7 +237,7 @@ namespace Shutdown
                                Asm.GetCustomAttribute<AssemblyCopyrightAttribute>()?.Copyright;
 
             Chips.Children.Clear();
-            foreach (var (h, m) in new[] { (0, 15), (0, 30), (1, 0), (2, 0) })
+            foreach (var (h, m) in new[] { (0, 15), (0, 30), (1, 0), (2, 0), (3, 0) })
             {
                 var b = new Button
                 {
@@ -269,7 +265,7 @@ namespace Shutdown
             var L = Loc.I;
             var now = Now();
             var action = SelectedAction;
-            bool appTimed = Schedule.IsAppTimed(action, Force);
+            bool appTimed = Schedule.IsAppTimed(action);
 
             CountdownPanel.Visibility = SelectedMode == TimeMode.Countdown ? Visibility.Visible : Visibility.Collapsed;
             AtPanel.Visibility = SelectedMode == TimeMode.At ? Visibility.Visible : Visibility.Collapsed;
@@ -283,7 +279,7 @@ namespace Shutdown
             StartIcon.Text = action == PowerAction.Restart ? "" : action == PowerAction.Hibernate ? "" : "";
 
             AppTimedNote.Visibility = appTimed ? Visibility.Visible : Visibility.Collapsed;
-            AppTimedText.Text = L[action == PowerAction.Hibernate ? "AppTimedHibernate" : "AppTimedForceOff"];
+            AppTimedText.Text = L["AppTimedHibernate"];
             Chips.Visibility = SelectedMode == TimeMode.Countdown ? Visibility.Visible : Visibility.Collapsed;
 
             var r = Compute(now);
@@ -348,7 +344,7 @@ namespace Shutdown
                 var p = _pending;
                 ClearPending();
                 if (now.ToUniversalTime() - p.TargetUtc > MissedGrace) ShowInfo("MsgMissed");
-                else Execute(Schedule.ArgsFor(p.Action, p.Force, 0));
+                else Execute(Schedule.ArgsFor(p.Action, 0));
             }
             UpdateUi();
         }
@@ -359,7 +355,7 @@ namespace Shutdown
             var r = Compute(now);
             if (!r.Ok) { UpdateUi(); return; }
             var action = SelectedAction;
-            bool appTimed = Schedule.IsAppTimed(action, Force);
+            bool appTimed = Schedule.IsAppTimed(action);
 
             HideMessage();
             // Replace whatever is scheduled; "nothing pending" is the normal answer here.
@@ -378,12 +374,12 @@ namespace Shutdown
 
             if (appTimed)
             {
-                _pending = new Pending { Action = action, TargetUtc = r.TargetUtc, Due = DueOf(r.TargetUtc), AppTimed = true, Force = Force };
+                _pending = new Pending { Action = action, TargetUtc = r.TargetUtc, Due = DueOf(r.TargetUtc), AppTimed = true };
                 SyncKeepAwake();
             }
-            else if (Execute(Schedule.ArgsFor(action, Force, r.Seconds), true))
+            else if (Execute(Schedule.ArgsFor(action, r.Seconds), true))
             {
-                _pending = new Pending { Action = action, TargetUtc = r.TargetUtc, Due = DueOf(r.TargetUtc), AppTimed = false, Force = Force };
+                _pending = new Pending { Action = action, TargetUtc = r.TargetUtc, Due = DueOf(r.TargetUtc), AppTimed = false };
                 _settings.PendingAction = action.ToString();
                 _settings.PendingDue = (long)_pending.Due.TotalMilliseconds;
                 _settings.PendingBoot = BootMarker() ?? UnknownBoot;
@@ -538,7 +534,6 @@ namespace Shutdown
             if (_loading) return;
             _settings.Action = SelectedAction.ToString();
             _settings.Mode = SelectedMode.ToString();
-            _settings.Force = Force;
             _settings.Hours = DurHours.Value;
             _settings.Minutes = DurMinutes.Value;
             if (WindowState == WindowState.Normal && IsLoaded) { _settings.Left = Left; _settings.Top = Top; }

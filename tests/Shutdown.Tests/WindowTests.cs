@@ -421,8 +421,8 @@ namespace Shutdown.Tests
         public void App_timed_run_missed_during_sleep_is_skipped() => Sta.Run(() =>
         {
             var w = Make();
-            w.ForceBox.IsChecked = false;
-            Assert.Equal(Loc.I["AppTimedForceOff"], w.AppTimedText.Text);
+            w.ActHibernate.IsChecked = true;
+            Assert.Equal(Loc.I["AppTimedHibernate"], w.AppTimedText.Text);
             Click(w.StartButton);
             _now = _now.AddHours(1).AddMinutes(10);
             w.OnTick();
@@ -484,14 +484,14 @@ namespace Shutdown.Tests
         });
 
         [Fact]
-        public void Unforced_shutdown_fires_without_force_flag() => Sta.Run(() =>
+        public void Restart_is_forced_and_needs_no_open_window() => Sta.Run(() =>
         {
             var w = Make();
-            w.ForceBox.IsChecked = false;
+            w.ActRestart.IsChecked = true;
+            Assert.Equal(Visibility.Collapsed, w.AppTimedNote.Visibility);
             Click(w.StartButton);
-            _now = _now.AddHours(1);
-            w.OnTick();
-            Assert.Equal(new[] { "/a", "/s /t 0" }, _runner.Calls);
+            Assert.Equal(new[] { "/a", "/r /f /t 3600" }, _runner.Calls);
+            Assert.Equal(Visibility.Collapsed, w.PendingKeepOpen.Visibility);
         });
 
         [Fact]
@@ -523,8 +523,8 @@ namespace Shutdown.Tests
         public void Chip_sets_the_countdown() => Sta.Run(() =>
         {
             var w = Make();
-            // 15 min, 30 min, 1 h, 2 h; Force takes the last place in the row.
-            Assert.Equal(4, w.Chips.Children.Count);
+            // 15 min, 30 min, 1 h, 2 h, 3 h.
+            Assert.Equal(5, w.Chips.Children.Count);
             Click((Button)w.Chips.Children[1]);
             Assert.Equal(0, w.DurHours.Value);
             Assert.Equal(30, w.DurMinutes.Value);

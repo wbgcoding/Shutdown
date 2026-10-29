@@ -6,7 +6,8 @@ All notable changes to this project are documented here. The format follows Keep
 
 ### Changed
 - The target date and time (or the time left, for a date) is shown larger, right above the time fields.
-- The Force switch sits at the end of the countdown chips (the 4 h chip is gone), and the command line is gone.
+- Shutdown and restart are always forced (`/f`); the Force switch is gone. Only hibernate is still timed by the app and needs the window open.
+- The countdown quick picks are 15 min, 30 min, 1 h, 2 h and 3 h, and the command line is gone.
 
 ### Fixed
 - A typed value above a field's maximum (such as 75 minutes) now counts as the maximum at once, so the shown target time no longer lags behind the field.

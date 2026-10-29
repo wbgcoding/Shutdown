@@ -106,24 +106,20 @@ namespace Shutdown.Tests
         }
 
         [Theory]
-        [InlineData(PowerAction.Shutdown, true, 90, "/s /f /t 90")]
-        [InlineData(PowerAction.Restart, true, 90, "/r /f /t 90")]
-        [InlineData(PowerAction.Shutdown, false, 90, "/s /t 0")]
-        [InlineData(PowerAction.Restart, false, 90, "/r /t 0")]
-        [InlineData(PowerAction.Hibernate, true, 90, "/h /f")]
-        [InlineData(PowerAction.Hibernate, false, 90, "/h")]
-        public void Args_match_the_action(PowerAction a, bool force, int seconds, string expected)
+        [InlineData(PowerAction.Shutdown, 90, "/s /f /t 90")]
+        [InlineData(PowerAction.Restart, 90, "/r /f /t 90")]
+        [InlineData(PowerAction.Hibernate, 0, "/h /f")]
+        public void Args_match_the_action(PowerAction a, int seconds, string expected)
         {
-            Assert.Equal(expected, Schedule.ArgsFor(a, force, seconds));
+            Assert.Equal(expected, Schedule.ArgsFor(a, seconds));
         }
 
         [Fact]
-        public void Only_forced_shutdown_and_restart_use_the_windows_timer()
+        public void Only_hibernate_is_timed_by_the_app()
         {
-            Assert.False(Schedule.IsAppTimed(PowerAction.Shutdown, true));
-            Assert.False(Schedule.IsAppTimed(PowerAction.Restart, true));
-            Assert.True(Schedule.IsAppTimed(PowerAction.Shutdown, false));
-            Assert.True(Schedule.IsAppTimed(PowerAction.Hibernate, true));
+            Assert.False(Schedule.IsAppTimed(PowerAction.Shutdown));
+            Assert.False(Schedule.IsAppTimed(PowerAction.Restart));
+            Assert.True(Schedule.IsAppTimed(PowerAction.Hibernate));
         }
     }
 
@@ -191,13 +187,12 @@ namespace Shutdown.Tests
         public void Roundtrip_keeps_values()
         {
             var store = new SettingsStore(File_);
-            var s = new Settings { Theme = "dark", Force = false, Hours = 3, Minutes = 15, Action = "Restart",
+            var s = new Settings { Theme = "dark", Hours = 3, Minutes = 15, Action = "Restart",
                                    PendingAction = "Shutdown", PendingDue = 7200000, PendingBoot = "boot:7" };
             store.Save(s);
             store.Save(s);
             var back = store.Load();
             Assert.Equal("dark", back.Theme);
-            Assert.False(back.Force);
             Assert.Equal(3, back.Hours);
             Assert.Equal(15, back.Minutes);
             Assert.Equal("Restart", back.Action);
@@ -212,10 +207,18 @@ namespace Shutdown.Tests
         {
             File.WriteAllText(File_, "{\"Version\":1,\"Theme\":\"light\"}");
             var s = new SettingsStore(File_).Load();
-            Assert.True(s.Force);
             Assert.Equal(1, s.Hours);
             Assert.Equal("light", s.Theme);
             Assert.Equal("Countdown", s.Mode);
+        }
+
+        [Fact]
+        public void File_from_1_0_with_the_force_switch_still_loads()
+        {
+            File.WriteAllText(File_, "{\"Version\":1,\"Force\":false,\"Hours\":2,\"Minutes\":45}");
+            var s = new SettingsStore(File_).Load();
+            Assert.Equal(2, s.Hours);
+            Assert.Equal(45, s.Minutes);
         }
 
         [Fact]

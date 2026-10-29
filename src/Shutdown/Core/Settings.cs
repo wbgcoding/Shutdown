@@ -16,7 +16,6 @@ namespace Shutdown.Core
         [DataMember(Order = 2)] public string Theme { get; set; } = "system";
         [DataMember(Order = 3)] public string Action { get; set; } = nameof(PowerAction.Shutdown);
         [DataMember(Order = 4)] public string Mode { get; set; } = nameof(TimeMode.Countdown);
-        [DataMember(Order = 5)] public bool Force { get; set; } = true;
         [DataMember(Order = 6)] public int Hours { get; set; } = 1;
         [DataMember(Order = 7)] public int Minutes { get; set; } = 0;
         [DataMember(Order = 8)] public double? Left { get; set; }
@@ -33,7 +32,7 @@ namespace Shutdown.Core
         {
             Version = CurrentVersion; Theme = "system";
             Action = nameof(PowerAction.Shutdown); Mode = nameof(TimeMode.Countdown);
-            Force = true; Hours = 1; Minutes = 0;
+            Hours = 1; Minutes = 0;
         }
     }
 

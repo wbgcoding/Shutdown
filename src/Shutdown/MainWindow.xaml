@@ -116,15 +116,7 @@
           <ui:NumberSpinner x:Name="AtMinute" Maximum="59" Wrap="True" Digits="2" AutomationKey="AtMinute"/>
         </StackPanel>
 
-        <!-- Countdown chips with Force at the end of the row; Force stays alone in date mode -->
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,8,0,0">
-          <WrapPanel x:Name="Chips" VerticalAlignment="Center" Margin="0,0,6,-6"/>
-          <CheckBox x:Name="ForceBox" Style="{StaticResource Switch}" FontSize="12" VerticalAlignment="Center"
-                    Checked="OnInputChanged" Unchecked="OnInputChanged"
-                    AutomationProperties.AutomationId="Force"
-                    AutomationProperties.Name="{Binding [Force], Source={x:Static core:Loc.I}}"
-                    Content="{Binding [Force], Source={x:Static core:Loc.I}}"/>
-        </StackPanel>
+        <WrapPanel x:Name="Chips" HorizontalAlignment="Center" Margin="0,8,0,-6"/>
         <Border x:Name="AppTimedNote" Background="{DynamicResource AccentSoft}" CornerRadius="6" Padding="8,6" Margin="0,8,0,0">
           <Grid>
             <Grid.ColumnDefinitions>

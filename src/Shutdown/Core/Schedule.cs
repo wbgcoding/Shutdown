@@ -58,24 +58,16 @@ namespace Shutdown.Core
             return ScheduleResult.Valid(targetUtc, (int)Math.Ceiling(diff));
         }
 
+        /// <summary>Hibernate has no Windows timer, so the app counts down itself and runs it at the target.</summary>
+        public static bool IsAppTimed(PowerAction action) => action == PowerAction.Hibernate;
+
         /// <summary>
-        /// shutdown.exe implies /f for any /t above 0, so a countdown without force
-        /// has to be run by the app itself and end with /t 0. Hibernate has no timer at all.
+        /// Always forced: shutdown.exe implies /f for any /t above 0 anyway. Shutdown and restart hand
+        /// the timer to Windows; hibernate takes no /t and runs when the app's countdown ends.
         /// </summary>
-        public static bool IsAppTimed(PowerAction action, bool force) =>
-            action == PowerAction.Hibernate || !force;
-
-        public static string BuildArgs(PowerAction action, bool force, int seconds)
-        {
-            string verb = action == PowerAction.Restart ? "/r" : action == PowerAction.Hibernate ? "/h" : "/s";
-            string f = force ? " /f" : "";
-            if (action == PowerAction.Hibernate) return verb + f;
-            return verb + f + " /t " + seconds;
-        }
-
-        /// <summary>Arguments for the system-timed schedule, or for the immediate run of an app-timed one.</summary>
-        public static string ArgsFor(PowerAction action, bool force, int seconds) =>
-            IsAppTimed(action, force) ? BuildArgs(action, force, 0) : BuildArgs(action, force, seconds);
+        public static string ArgsFor(PowerAction action, int seconds) =>
+            action == PowerAction.Hibernate ? "/h /f" :
+            (action == PowerAction.Restart ? "/r" : "/s") + " /f /t " + seconds;
 
         public const string AbortArgs = "/a";
     }

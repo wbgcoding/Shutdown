@@ -18,7 +18,7 @@
 
 ## Features
 
-- **Shut down, restart or hibernate** after a countdown (hours and minutes, quick picks from 15 minutes to 4 hours) or at an exact date and time.
+- **Shut down, restart or hibernate** after a countdown (hours and minutes, quick picks from 15 minutes to 3 hours) or at an exact date and time.
 - **Always know what happens:** the exact target date and time sits right above the time fields, and a live countdown runs once scheduled.
 - **Cancel with one click** whatever the app scheduled.
 - **Fits into Windows:** English or German from the Windows display language, light or dark mode and the accent colour from your Windows settings.
@@ -41,10 +41,10 @@ certutil -hashfile Shutdown-<version>-windows.exe SHA256
 
 | Setting | What runs | Can the app be closed? |
 |---|---|---|
-| Shut down or restart, **Force** on | Windows itself: `shutdown /s /f /t <seconds>` (`/r` for restart) | Yes |
-| **Force** off, or **Hibernate** | The app counts down, then runs the command with `/t 0` | No, keep it open |
+| Shut down or restart | Windows itself: `shutdown /s /f /t <seconds>` (`/r` for restart) | Yes |
+| Hibernate | The app counts down, then runs `shutdown /h /f` | No, keep it open |
 
-Windows always forces apps closed when a timeout is set, and it has no timer for hibernate. That is why those cases are timed by the app. Closing the window then asks first, and the PC is kept from going to sleep on its own until the time is up. If you put the PC to sleep by hand and it wakes more than two minutes after the target time, nothing runs and the app tells you so.
+Open apps are always closed, even with unsaved work: Windows forces this whenever a timeout is set. Windows has no timer for hibernate, so the app times it itself. Closing the window then asks first, and the PC is kept from going to sleep on its own until the time is up. If you put the PC to sleep by hand and it wakes more than two minutes after the target time, nothing runs and the app tells you so.
 
 Starting the app a second time brings the open window to the front.
 

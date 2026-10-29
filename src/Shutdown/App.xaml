@@ -206,42 +206,6 @@
       <Setter Property="Padding" Value="1"/>
     </Style>
 
-    <!-- Toggle switch -->
-    <Style x:Key="Switch" TargetType="CheckBox">
-      <Setter Property="Foreground" Value="{DynamicResource Text}"/>
-      <Setter Property="FontFamily" Value="{StaticResource UiFont}"/>
-      <Setter Property="FontSize" Value="13"/>
-      <Setter Property="Cursor" Value="Hand"/>
-      <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}"/>
-      <Setter Property="Template">
-        <Setter.Value>
-          <ControlTemplate TargetType="CheckBox">
-            <Grid Background="Transparent">
-              <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-              </Grid.ColumnDefinitions>
-              <Border x:Name="Track" Width="40" Height="20" CornerRadius="10" BorderThickness="1"
-                      BorderBrush="{DynamicResource TextSub}" Background="Transparent" VerticalAlignment="Center">
-                <Ellipse x:Name="Knob" Width="12" Height="12" Fill="{DynamicResource TextSub}"
-                         HorizontalAlignment="Left" Margin="4,0,0,0"/>
-              </Border>
-              <ContentPresenter Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center" RecognizesAccessKey="False"/>
-            </Grid>
-            <ControlTemplate.Triggers>
-              <Trigger Property="IsChecked" Value="True">
-                <Setter TargetName="Track" Property="Background" Value="{DynamicResource Accent}"/>
-                <Setter TargetName="Track" Property="BorderBrush" Value="{DynamicResource Accent}"/>
-                <Setter TargetName="Knob" Property="Fill" Value="{DynamicResource AccentText}"/>
-                <Setter TargetName="Knob" Property="HorizontalAlignment" Value="Right"/>
-                <Setter TargetName="Knob" Property="Margin" Value="0,0,4,0"/>
-              </Trigger>
-            </ControlTemplate.Triggers>
-          </ControlTemplate>
-        </Setter.Value>
-      </Setter>
-    </Style>
-
     <Style x:Key="ReadOnlyText" TargetType="TextBox">
       <Setter Property="IsReadOnly" Value="True"/>
       <Setter Property="BorderThickness" Value="0"/>

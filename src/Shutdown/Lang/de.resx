@@ -29,8 +29,6 @@
   <data name="SpanMinutes" xml:space="preserve"><value>{0} Min.</value></data>
   <data name="SpanSeconds" xml:space="preserve"><value>{0} Sek.</value></data>
   <data name="ClockDays" xml:space="preserve"><value>{0} Tg. {1}</value></data>
-  <data name="Force" xml:space="preserve"><value>Erzwingen</value></data>
-  <data name="AppTimedForceOff" xml:space="preserve"><value>Ohne Erzwingen zählt Shutdown selbst herunter: Fenster offen lassen.</value></data>
   <data name="AppTimedHibernate" xml:space="preserve"><value>Windows hat für den Ruhezustand keinen Timer, darum zählt Shutdown selbst herunter: Fenster offen lassen.</value></data>
   <data name="StartShutdown" xml:space="preserve"><value>Herunterfahren planen</value></data>
   <data name="StartRestart" xml:space="preserve"><value>Neustart planen</value></data>
