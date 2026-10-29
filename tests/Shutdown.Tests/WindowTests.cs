@@ -146,7 +146,6 @@ namespace Shutdown.Tests
         {
             var w = Make();
             Assert.True(w.StartButton.IsEnabled);
-            Assert.Equal("shutdown /s /f /t 3600", w.CommandText.Text);
             // Countdown mode shows the end time.
             Assert.Equal(Loc.I.F("SummaryAt", Loc.I.DateText(_now.AddHours(1)), Loc.I.TimeText(_now.AddHours(1))), w.ResultText.Text);
             Click(w.StartButton);
@@ -518,7 +517,6 @@ namespace Shutdown.Tests
             w.DurMinutes.Value = 0;
             Assert.False(w.StartButton.IsEnabled);
             Assert.Equal(Loc.I["ErrTooShort"], w.ResultText.Text);
-            Assert.Equal("", w.CommandText.Text);
         });
 
         [Fact]
@@ -528,7 +526,6 @@ namespace Shutdown.Tests
             Click((Button)w.Chips.Children[1]);
             Assert.Equal(0, w.DurHours.Value);
             Assert.Equal(30, w.DurMinutes.Value);
-            Assert.Equal("shutdown /s /f /t 1800", w.CommandText.Text);
         });
 
         [Fact]
@@ -537,10 +534,11 @@ namespace Shutdown.Tests
             var w = Make();
             w.ModeAt.IsChecked = true;
             Assert.Equal(Visibility.Visible, w.AtPanel.Visibility);
+            Assert.Equal(Visibility.Visible, w.DateRow.Visibility);
+            Assert.Equal(Visibility.Collapsed, w.CountdownPanel.Visibility);
             // Default is the next full 5 minutes one hour ahead.
             Assert.Equal(13, w.AtHour.Value);
             Assert.Equal(0, w.AtMinute.Value);
-            Assert.Equal("shutdown /s /f /t 3600", w.CommandText.Text);
             Assert.False(w.PrevDay.IsEnabled);
 
             w.AtHour.Value = 11;
@@ -549,7 +547,6 @@ namespace Shutdown.Tests
 
             Click(w.NextDay);
             Assert.True(w.StartButton.IsEnabled);
-            Assert.Equal("shutdown /s /f /t " + (23 * 3600), w.CommandText.Text);
             // Date mode shows the time left; the countdown chips are hidden.
             Assert.Equal("in 23 h", w.ResultText.Text);
             Assert.Equal(Visibility.Collapsed, w.Chips.Visibility);
@@ -572,19 +569,16 @@ namespace Shutdown.Tests
         });
 
         [Fact]
-        public void Command_text_keeps_its_selection_while_focused() => Sta.Run(() =>
+        public void Typed_value_above_the_maximum_counts_as_the_maximum() => Sta.Run(() =>
         {
             var w = Make();
-            w.ModeAt.IsChecked = true;
-            Assert.Equal("shutdown /s /f /t 3600", w.CommandText.Text);
-            bool focused = true;
-            w.CommandFocused = () => focused;
-            _now = _now.AddSeconds(5);
-            w.OnTick();
-            Assert.Equal("shutdown /s /f /t 3600", w.CommandText.Text);
-            focused = false;
-            w.OnTick();
-            Assert.Equal("shutdown /s /f /t 3595", w.CommandText.Text);
+            w.DurMinutes.Box.Text = "7";
+            Assert.Equal(7, w.DurMinutes.Value);
+            // The summary must not keep showing 7 while 75 is in the field.
+            w.DurMinutes.Box.Text = "75";
+            Assert.Equal(59, w.DurMinutes.Value);
+            var end = _now.AddHours(1).AddMinutes(59);
+            Assert.Equal(Loc.I.F("SummaryAt", Loc.I.DateText(end), Loc.I.TimeText(end)), w.ResultText.Text);
         });
 
         [Fact]

@@ -273,6 +273,7 @@ namespace Shutdown
 
             CountdownPanel.Visibility = SelectedMode == TimeMode.Countdown ? Visibility.Visible : Visibility.Collapsed;
             AtPanel.Visibility = SelectedMode == TimeMode.At ? Visibility.Visible : Visibility.Collapsed;
+            DateRow.Visibility = AtPanel.Visibility;
 
             DateLabel.Text = L.DateText(_date);
             PrevDay.IsEnabled = _date > now.Date;
@@ -295,14 +296,11 @@ namespace Shutdown
                 ResultText.Text = SelectedMode == TimeMode.Countdown
                     ? L.F("SummaryAt", L.DateText(r.Target), L.TimeText(r.Target))
                     : L.F("SummaryIn", L.Span(WholeMinutesUp(r.TargetUtc - now.ToUniversalTime())));
-                string cmd = "shutdown " + Schedule.ArgsFor(action, Force, r.Seconds);
-                SetCommandText(appTimed ? L.F("CommandAt", cmd, L.TimeText(r.Target)) : cmd);
             }
             else
             {
                 ResultText.SetResourceReference(TextBlock.ForegroundProperty, "Danger");
                 ResultText.Text = L[r.ErrorKey];
-                SetCommandText("");
             }
             UpdatePending(now);
         }
@@ -316,15 +314,6 @@ namespace Shutdown
             if (errorKey != null && !_loading && AutomationPeer.ListenerExists(AutomationEvents.LiveRegionChanged))
                 UIElementAutomationPeer.FromElement(ResultText)?.RaiseAutomationEvent(AutomationEvents.LiveRegionChanged);
         }
-
-        // The text changes every second in date mode; rewriting it would drop the selection someone is about to copy.
-        void SetCommandText(string text)
-        {
-            if (!(CommandFocused?.Invoke() ?? CommandText.IsKeyboardFocusWithin)) CommandText.Text = text;
-        }
-
-        /// <summary>Tests set this instead of focusing a shown window, which leaves the test host hanging at exit.</summary>
-        internal Func<bool> CommandFocused;
 
         // 59:59.6 left reads "in 1 h", not "in 59 min".
         static TimeSpan WholeMinutesUp(TimeSpan t) =>

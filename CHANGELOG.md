@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here. The format follows Keep a Changelog; versions follow semantic versioning.
 
+## [Unreleased]
+
+### Changed
+- The target date and time (or the time left, for a date) is shown larger, right above the time fields.
+- The Force switch moved into the main card, and the command line under it is gone.
+
+### Fixed
+- A typed value above a field's maximum (such as 75 minutes) now counts as the maximum at once, so the shown target time no longer lags behind the field.
+
 ## [1.0.0] - 2026-10-16
 
 ### Changed

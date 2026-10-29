@@ -29,11 +29,9 @@
   <data name="SpanMinutes" xml:space="preserve"><value>{0} min</value></data>
   <data name="SpanSeconds" xml:space="preserve"><value>{0} s</value></data>
   <data name="ClockDays" xml:space="preserve"><value>{0} d {1}</value></data>
-  <data name="Force" xml:space="preserve"><value>Force (/f)</value></data>
+  <data name="Force" xml:space="preserve"><value>Force</value></data>
   <data name="AppTimedForceOff" xml:space="preserve"><value>Without Force, Shutdown runs the countdown itself: keep this window open.</value></data>
   <data name="AppTimedHibernate" xml:space="preserve"><value>Windows has no timer for hibernate, so Shutdown runs the countdown itself: keep this window open.</value></data>
-  <data name="Command" xml:space="preserve"><value>Command</value></data>
-  <data name="CommandAt" xml:space="preserve"><value>{0}  (at {1})</value></data>
   <data name="StartShutdown" xml:space="preserve"><value>Schedule shutdown</value></data>
   <data name="StartRestart" xml:space="preserve"><value>Schedule restart</value></data>
   <data name="StartHibernate" xml:space="preserve"><value>Schedule hibernate</value></data>
