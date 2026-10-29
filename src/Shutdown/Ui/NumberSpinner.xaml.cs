@@ -123,11 +123,12 @@ namespace Shutdown.Ui
             }
         }
 
-        // Typed digits count at once so the summary follows; clamping waits for commit.
+        // Typed digits count at once (clamped) so the summary follows; the field shows the clamped value on commit.
         void OnTextChanged(object sender, TextChangedEventArgs e)
         {
             if (!int.TryParse(Box.Text, NumberStyles.None, CultureInfo.InvariantCulture, out int v)) return;
-            if (v < Minimum || v > Maximum || v == _value) return;
+            v = Clamp(v);
+            if (v == _value) return;
             _value = v;
             ValueChanged?.Invoke(this, EventArgs.Empty);
         }
