@@ -1,9 +1,16 @@
 @echo off
+title Shutdown
 rem Builds the portable dist\Shutdown.exe (C# WPF, .NET Framework 4.8 built into Windows 10/11).
 rem Toolchain: .NET SDK 8 or newer (dotnet build targets net48 through reference assemblies).
 rem Env: NOSTART=1 skips starting the fresh build, NOPAUSE=1 never pauses on error.
 setlocal
 cd /d "%~dp0"
+
+rem Double-click run: CMDCMDLINE carries /c and NOPAUSE is unset. Only then shrink the window,
+rem keep it open on error and close it 10 s after success. Automated runs never block.
+set "DBL="
+if not defined NOPAUSE echo %CMDCMDLINE% | find /i "/c" >nul && set "DBL=1"
+if defined DBL mode con cols=100 lines=25
 
 taskkill /f /im testhost.exe >nul 2>&1
 
@@ -23,9 +30,10 @@ if errorlevel 1 goto :fail
 
 echo Built dist\Shutdown.exe
 if not defined NOSTART start "" "dist\Shutdown.exe"
+if defined DBL timeout /t 10
 exit /b 0
 
 :fail
 echo Build failed.
-if not defined NOPAUSE echo %CMDCMDLINE% | find /i "/c" >nul && pause
+if defined DBL pause
 exit /b 1
