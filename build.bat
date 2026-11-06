@@ -9,7 +9,7 @@ cd /d "%~dp0"
 rem Double-click run: CMDCMDLINE carries /c and NOPAUSE is unset. Only then shrink the window,
 rem keep it open on error and close it 10 s after success. Automated runs never block.
 set "DBL="
-if not defined NOPAUSE echo %CMDCMDLINE% | find /i "/c" >nul && set "DBL=1"
+if not defined NOPAUSE echo %CMDCMDLINE% | "%SystemRoot%\System32\find.exe" /i "/c" >nul && set "DBL=1"
 if defined DBL mode con cols=100 lines=25
 rem === build freshness: check ===
 set "BS=%~dp0tools\build-stamp.ps1"
@@ -46,7 +46,7 @@ rem === build freshness: save ===
 if exist "%BS%" powershell -NoProfile -ExecutionPolicy RemoteSigned -File "%BS%" -Save -Project "%~dp0." -Key "%BSKEY%" -Extra "%BSEXTRA%" -Artifact "%BSART%" >nul 2>&1
 echo Built dist\Shutdown.exe
 if not defined NOSTART start "" "dist\Shutdown.exe"
-if defined DBL timeout /t 10
+if defined DBL "%SystemRoot%\System32\timeout.exe" /t 10
 exit /b 0
 
 :fail
