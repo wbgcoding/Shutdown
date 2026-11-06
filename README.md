@@ -60,7 +60,7 @@ Requires the .NET SDK 8 or newer (it builds for .NET Framework 4.8 through refer
 build.bat
 ```
 
-This builds `dist\Shutdown.exe` and starts it. Set `NOSTART=1` to skip the start and `NOPAUSE=1` to never wait for a key on errors.
+This builds `dist\Shutdown.exe` and starts it. Set `NOSTART=1` to skip the start and `NOPAUSE=1` to never wait for a key on errors. A second run with nothing changed reports "up to date" and builds nothing; `build.bat --force` or `FORCE=1` rebuilds.
 
 `release.bat` builds the release files (`dist\release\Shutdown-<version>-windows.exe` and `SHA256SUMS.txt`).
 

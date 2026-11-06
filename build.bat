@@ -11,6 +11,20 @@ rem keep it open on error and close it 10 s after success. Automated runs never 
 set "DBL="
 if not defined NOPAUSE echo %CMDCMDLINE% | find /i "/c" >nul && set "DBL=1"
 if defined DBL mode con cols=100 lines=25
+rem === build freshness: check ===
+set "BS=%~dp0tools\build-stamp.ps1"
+set "BSKEY=exe"
+set "BSEXTRA="
+set "BSART=dist\Shutdown.exe"
+set "BSFRESH="
+set "BSFORCE="
+if "%FORCE%"=="1" set "BSFORCE=1"
+for %%A in (%*) do if /i "%%~A"=="--force" set "BSFORCE=1"
+if defined BSFORCE goto :bs_start
+if not exist "%BS%" goto :bs_start
+for /f "usebackq delims=" %%A in (`powershell -NoProfile -ExecutionPolicy RemoteSigned -File "%BS%" -Check -Project "%~dp0." -Key "%BSKEY%" -Extra "%BSEXTRA%"`) do set "BSFRESH=%%A"
+if defined BSFRESH goto :bs_uptodate
+:bs_start
 
 taskkill /f /im testhost.exe >nul 2>&1
 
@@ -28,6 +42,8 @@ for %%F in (dist\Shutdown.old-*.exe) do del /f /q "%%F" >nul 2>&1
 copy /y src\Shutdown\bin\Release\net48\Shutdown.exe dist\Shutdown.exe >nul
 if errorlevel 1 goto :fail
 
+rem === build freshness: save ===
+if exist "%BS%" powershell -NoProfile -ExecutionPolicy RemoteSigned -File "%BS%" -Save -Project "%~dp0." -Key "%BSKEY%" -Extra "%BSEXTRA%" -Artifact "%BSART%" >nul 2>&1
 echo Built dist\Shutdown.exe
 if not defined NOSTART start "" "dist\Shutdown.exe"
 if defined DBL timeout /t 10
@@ -37,3 +53,8 @@ exit /b 0
 echo Build failed.
 if defined DBL pause
 exit /b 1
+
+:bs_uptodate
+for %%F in ("%BSFRESH%") do echo Build is up to date (last build %%~tF), nothing to do: %%~fF
+if defined DBL "%SystemRoot%\System32\timeout.exe" /t 10
+exit /b 0
