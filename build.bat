@@ -26,7 +26,7 @@ for /f "usebackq delims=" %%A in (`powershell -NoProfile -ExecutionPolicy Remote
 if defined BSFRESH goto :bs_uptodate
 :bs_start
 
-taskkill /f /im testhost.exe >nul 2>&1
+powershell -NoProfile -Command "Get-Process testhost -ErrorAction SilentlyContinue | Where-Object { $_.Path -and $_.Path.StartsWith('%~dp0', [StringComparison]::OrdinalIgnoreCase) } | Stop-Process -Force" >nul 2>&1
 
 dotnet build src\Shutdown\Shutdown.csproj -c Release -nologo -v q
 if errorlevel 1 goto :fail
