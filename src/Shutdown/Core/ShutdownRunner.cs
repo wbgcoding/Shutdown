@@ -16,7 +16,6 @@ namespace Shutdown.Core
         // Win32 codes shutdown.exe returns.
         public const int ErrorAccessDenied = 5;
         public const int ErrorNoShutdownInProgress = 1116;
-        public const int ErrorShutdownIsScheduled = 1190;
         /// <summary>The app's own marker for a shutdown.exe that did not finish in time.</summary>
         public const int TimeoutCode = -1;
 
@@ -33,7 +32,6 @@ namespace Shutdown.Core
             {
                 UseShellExecute = false,
                 CreateNoWindow = true,
-                WindowStyle = ProcessWindowStyle.Hidden,
             };
             try
             {
