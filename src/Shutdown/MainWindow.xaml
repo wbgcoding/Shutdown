@@ -196,7 +196,7 @@
       <Button x:Name="StartButton" Grid.Column="2" Style="{StaticResource AccentButton}" Click="OnStart" MinHeight="36"
               AutomationProperties.AutomationId="Start">
         <StackPanel Orientation="Horizontal">
-          <ui:Glyph x:Name="StartIcon" Style="{StaticResource Icon}" Text="&#xE7E8;" FontSize="12" Margin="0,0,8,0"/>
+          <ui:Glyph x:Name="StartIcon" Style="{StaticResource Icon}" Text="&#xE7E8;" FontSize="13" Margin="0,0,8,0"/>
           <TextBlock x:Name="StartText" TextWrapping="Wrap"/>
         </StackPanel>
       </Button>
