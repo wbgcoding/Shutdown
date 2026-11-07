@@ -101,8 +101,9 @@ namespace Shutdown.Core
             return t.Days > 0 ? F("ClockDays", t.Days, hms) : hms;
         }
 
-        public string DateText(DateTime d) => d.ToString("ddd", Culture) + ", " + d.ToString("d", Culture);
+        // Day names follow the app language; date and time layout follow the regional format, as in Windows.
+        public string DateText(DateTime d) => d.ToString("ddd", Culture) + ", " + d.ToString("d", CultureInfo.CurrentCulture);
 
-        public string TimeText(DateTime d) => d.ToString("t", Culture);
+        public string TimeText(DateTime d) => d.ToString("t", CultureInfo.CurrentCulture);
     }
 }
