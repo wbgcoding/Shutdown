@@ -274,7 +274,7 @@ namespace Shutdown
 
             StartText.Text = L[action == PowerAction.Restart ? "StartRestart" : action == PowerAction.Hibernate ? "StartHibernate" : "StartShutdown"];
             System.Windows.Automation.AutomationProperties.SetName(StartButton, StartText.Text);
-            StartIcon.Text = action == PowerAction.Restart ? "" : action == PowerAction.Hibernate ? "" : "";
+            StartIcon.Text = action == PowerAction.Restart ? "\uE72C" : action == PowerAction.Hibernate ? "\uE708" : "\uE7E8";
 
             AppTimedNote.Visibility = appTimed ? Visibility.Visible : Visibility.Collapsed;
             AppTimedText.Text = L["AppTimedHibernate"];

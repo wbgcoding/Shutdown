@@ -7,7 +7,8 @@ All notable changes to this project are documented here. The format follows Keep
 ### Changed
 - The right-click menu of the number fields and messages matches the light and dark look and the app language instead of the grey Windows menu.
 - In dark mode, buttons and selected options use a deeper accent blue with white text.
-- The target time in the middle and the hibernate note use calm neutral colours instead of blue.
+- The target time in the middle uses a calm neutral colour instead of blue, and the hibernate note uses the same bright text colour.
+- Restart uses a cleaner circular arrow icon.
 - The version and copyright line at the bottom of the window is gone; the window is a little smaller.
 - Dates and times follow the Windows regional format, also when it differs from the display language.
 

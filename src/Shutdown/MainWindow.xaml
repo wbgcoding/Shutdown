@@ -28,7 +28,7 @@
                          AutomationProperties.AutomationId="ActRestart"
                          AutomationProperties.Name="{Binding [ActRestart], Source={x:Static core:Loc.I}}">
               <StackPanel Orientation="Horizontal">
-                <ui:Glyph Style="{StaticResource Icon}" Text="&#xE777;" FontSize="13" Margin="0,0,5,0"/>
+                <ui:Glyph Style="{StaticResource Icon}" Text="&#xE72C;" FontSize="13" Margin="0,0,5,0"/>
                 <TextBlock Text="{Binding [ActRestart], Source={x:Static core:Loc.I}}"/>
               </StackPanel>
             </RadioButton>
@@ -123,9 +123,9 @@
               <ColumnDefinition Width="Auto"/>
               <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <ui:Glyph Style="{StaticResource Icon}" Text="&#xE946;" FontSize="12" Foreground="{DynamicResource TextSub}"
+            <ui:Glyph Style="{StaticResource Icon}" Text="&#xE946;" FontSize="12" Foreground="{DynamicResource Text}"
                       VerticalAlignment="Top" Margin="0,2,8,0"/>
-            <TextBlock x:Name="AppTimedText" Grid.Column="1" FontSize="12" Foreground="{DynamicResource TextSub}"
+            <TextBlock x:Name="AppTimedText" Grid.Column="1" FontSize="12" Foreground="{DynamicResource Text}"
                        TextWrapping="Wrap" AutomationProperties.AutomationId="AppTimedNote"/>
           </Grid>
         </Border>
