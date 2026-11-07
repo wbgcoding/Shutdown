@@ -5,6 +5,9 @@ using System.Windows.Threading;
 using Shutdown.Core;
 using Shutdown.Ui;
 
+// The portable exe often sits in Downloads: native DLLs load from System32 only, never from beside the exe.
+[assembly: System.Runtime.InteropServices.DefaultDllImportSearchPaths(System.Runtime.InteropServices.DllImportSearchPath.System32)]
+
 namespace Shutdown
 {
     public partial class App : Application
@@ -131,6 +134,8 @@ namespace Shutdown
                 return;
             }
             // No window to report into: without one the process would linger invisibly.
+            // Free the lock first, so a new start is not refused while the dialog is open.
+            ReleaseInstance();
             MessageBox.Show(Loc.I["ErrUnexpected"] + Environment.NewLine + Environment.NewLine + e.Exception.Message,
                 "Shutdown", MessageBoxButton.OK, MessageBoxImage.Error);
             Shutdown(1);
