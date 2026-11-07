@@ -7,7 +7,7 @@
   <data name="ActShutdown" xml:space="preserve"><value>Shut down</value></data>
   <data name="ActRestart" xml:space="preserve"><value>Restart</value></data>
   <data name="ActHibernate" xml:space="preserve"><value>Hibernate</value></data>
-  <data name="HibernateUnavailable" xml:space="preserve"><value>Hibernate is turned off on this PC.</value></data>
+  <data name="HibernateUnavailable" xml:space="preserve"><value>Hibernation is turned off on this PC.</value></data>
   <data name="ModeCountdown" xml:space="preserve"><value>Countdown</value></data>
   <data name="ModeAt" xml:space="preserve"><value>Date and time</value></data>
   <data name="Hours" xml:space="preserve"><value>Hours</value></data>
@@ -31,14 +31,14 @@
   <data name="SpanSeconds" xml:space="preserve"><value>{0} s</value></data>
   <data name="ClockDay" xml:space="preserve"><value>{0} d {1}</value></data>
   <data name="ClockDays" xml:space="preserve"><value>{0} d {1}</value></data>
-  <data name="AppTimedHibernate" xml:space="preserve"><value>Windows has no timer for hibernate, so Shutdown runs the countdown itself: keep this window open.</value></data>
+  <data name="AppTimedHibernate" xml:space="preserve"><value>Windows has no timer for hibernation, so Shutdown runs the countdown itself: keep this window open.</value></data>
   <data name="StartShutdown" xml:space="preserve"><value>Schedule shutdown</value></data>
   <data name="StartRestart" xml:space="preserve"><value>Schedule restart</value></data>
-  <data name="StartHibernate" xml:space="preserve"><value>Schedule hibernate</value></data>
+  <data name="StartHibernate" xml:space="preserve"><value>Schedule hibernation</value></data>
   <data name="Abort" xml:space="preserve"><value>Cancel schedule</value></data>
   <data name="PendingShutdown" xml:space="preserve"><value>Shutdown scheduled</value></data>
   <data name="PendingRestart" xml:space="preserve"><value>Restart scheduled</value></data>
-  <data name="PendingHibernate" xml:space="preserve"><value>Hibernate scheduled</value></data>
+  <data name="PendingHibernate" xml:space="preserve"><value>Hibernation scheduled</value></data>
   <data name="PendingRemaining" xml:space="preserve"><value>{0} left</value></data>
   <data name="PendingKeepOpen" xml:space="preserve"><value>Keep this window open.</value></data>
   <data name="MsgMissed" xml:space="preserve"><value>The scheduled time passed while the PC was asleep or hibernating. Nothing was run.</value></data>

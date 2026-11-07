@@ -447,7 +447,7 @@ namespace Shutdown.Tests
             Assert.Equal(Loc.I["AppTimedHibernate"], w.AppTimedText.Text);
             Click(w.StartButton);
             Assert.Equal(new[] { "/a" }, _runner.Calls);
-            Assert.Equal("Hibernate scheduled", w.PendingTitle.Text);
+            Assert.Equal("Hibernation scheduled", w.PendingTitle.Text);
             Assert.Equal(Visibility.Visible, w.PendingKeepOpen.Visibility);
             Assert.Null(_store.Load().PendingAction);
 
