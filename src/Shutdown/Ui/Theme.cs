@@ -46,7 +46,6 @@ namespace Shutdown.Ui
                 Set(res, "Accent", SystemColors.HighlightColor);
                 Set(res, "AccentHover", SystemColors.HighlightColor);
                 Set(res, "AccentText", SystemColors.HighlightTextColor);
-                Set(res, "AccentSoft", SystemColors.WindowColor);
                 Set(res, "AccentFg", SystemColors.WindowTextColor);
                 Set(res, "Danger", SystemColors.WindowTextColor);
                 Set(res, "DangerSoft", SystemColors.WindowColor);
@@ -69,11 +68,10 @@ namespace Shutdown.Ui
                 Set(res, "ControlPressed", "#2F2F2F");
                 Set(res, "DisabledFill", "#2F2F2F");
                 Set(res, "ControlBorder", "#4A4A4A");
-                // Same roles WinUI uses for accent fills in dark mode.
-                Set(res, "Accent", a[Light2]);
-                Set(res, "AccentHover", a[Light3]);
-                Set(res, "AccentText", Colors.Black);
-                Set(res, "AccentSoft", Blend(a[Light2], Rgb("#2B2B2B"), 0.18));
+                // A deep accent with white text, as in light mode; it reads better than WinUI's pale fill with black text.
+                Set(res, "Accent", a[Dark1]);
+                Set(res, "AccentHover", a[Accent]);
+                Set(res, "AccentText", Colors.White);
                 Set(res, "AccentFg", a[Light3]);
                 Set(res, "Danger", "#FF99A4");
                 Set(res, "DangerSoft", "#442726");
@@ -96,7 +94,6 @@ namespace Shutdown.Ui
                 Set(res, "Accent", a[Dark1]);
                 Set(res, "AccentHover", a[Dark2]);
                 Set(res, "AccentText", Colors.White);
-                Set(res, "AccentSoft", Blend(a[Accent], Colors.White, 0.12));
                 Set(res, "AccentFg", a[Dark2]);
                 Set(res, "Danger", "#B3261E");
                 Set(res, "DangerSoft", "#FDE7E9");
@@ -108,11 +105,6 @@ namespace Shutdown.Ui
         static void Set(ResourceDictionary res, string key, string hex) => Set(res, key, Rgb(hex));
 
         static Color Rgb(string hex) => (Color)ColorConverter.ConvertFromString(hex);
-
-        static Color Blend(Color fg, Color bg, double amount) => Color.FromRgb(
-            (byte)(fg.R * amount + bg.R * (1 - amount)),
-            (byte)(fg.G * amount + bg.G * (1 - amount)),
-            (byte)(fg.B * amount + bg.B * (1 - amount)));
 
         // Index into the Windows accent palette: three lighter shades, the accent, three darker shades.
         const int Light3 = 0, Light2 = 1, Light1 = 2, Accent = 3, Dark1 = 4, Dark2 = 5, Dark3 = 6;

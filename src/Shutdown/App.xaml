@@ -25,7 +25,6 @@
     <SolidColorBrush x:Key="Accent" Color="#005FB8"/>
     <SolidColorBrush x:Key="AccentHover" Color="#004275"/>
     <SolidColorBrush x:Key="AccentText" Color="#FFFFFF"/>
-    <SolidColorBrush x:Key="AccentSoft" Color="#E0EEF9"/>
     <SolidColorBrush x:Key="AccentFg" Color="#004275"/>
     <SolidColorBrush x:Key="Danger" Color="#B3261E"/>
     <SolidColorBrush x:Key="DangerSoft" Color="#FDE7E9"/>

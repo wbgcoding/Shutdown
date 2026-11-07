@@ -2,7 +2,6 @@ using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using Microsoft.Win32;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Automation.Peers;
@@ -227,8 +226,6 @@ namespace Shutdown
                 ? Schedule.FromTarget(_date, AtHour.Value, AtMinute.Value, now)
                 : Schedule.FromCountdown(DurHours.Value, DurMinutes.Value, now);
 
-        static readonly Assembly Asm = typeof(MainWindow).Assembly;
-
         void RefreshTexts()
         {
             var L = Loc.I;
@@ -236,8 +233,6 @@ namespace Shutdown
             DurMinutes.Caption = L["Minutes"];
             AtHour.Caption = L["Hour"];
             AtMinute.Caption = L["Minute"];
-            VersionText.Text = L.F("VersionFmt", Asm.GetName().Version.ToString(3)) + "  ·  " +
-                               Asm.GetCustomAttribute<AssemblyCopyrightAttribute>()?.Copyright;
 
             Chips.Children.Clear();
             foreach (var (h, m) in new[] { (0, 15), (0, 30), (1, 0), (2, 0), (3, 0) })
@@ -291,7 +286,7 @@ namespace Shutdown
             if (r.Ok)
             {
                 // Show what the inputs do not: the end time for a countdown, the time left for a date.
-                ResultText.SetResourceReference(TextBlock.ForegroundProperty, "AccentFg");
+                ResultText.SetResourceReference(TextBlock.ForegroundProperty, "Text");
                 ResultText.Text = SelectedMode == TimeMode.Countdown
                     ? L.F("SummaryAt", L.DateText(r.Target), L.TimeText(r.Target))
                     : L.F("SummaryIn", L.Span(WholeMinutesUp(r.TargetUtc - now.ToUniversalTime())));
@@ -500,8 +495,8 @@ namespace Shutdown
             if (_msgKind == MessageKind.None) { MessageCard.Visibility = Visibility.Collapsed; return; }
             MessageCard.Visibility = Visibility.Visible;
             bool error = _msgKind == MessageKind.Error;
-            MessageCard.SetResourceReference(Border.BackgroundProperty, error ? "DangerSoft" : "AccentSoft");
-            MessageText.SetResourceReference(ForegroundProperty, error ? "Danger" : "AccentFg");
+            MessageCard.SetResourceReference(Border.BackgroundProperty, error ? "DangerSoft" : "Control");
+            MessageText.SetResourceReference(ForegroundProperty, error ? "Danger" : "Text");
             MessageText.Text = Loc.I[_msgKey];
             MessageDetail.Text = _msgDetail ?? "";
             MessageDetail.Visibility = string.IsNullOrEmpty(_msgDetail) ? Visibility.Collapsed : Visibility.Visible;

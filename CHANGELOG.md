@@ -6,7 +6,9 @@ All notable changes to this project are documented here. The format follows Keep
 
 ### Changed
 - The right-click menu of the number fields and messages matches the light and dark look and the app language instead of the grey Windows menu.
-
+- In dark mode, buttons and selected options use a deeper accent blue with white text.
+- The target time in the middle and the hibernate note use calm neutral colours instead of blue.
+- The version and copyright line at the bottom of the window is gone; the window is a little smaller.
 - Dates and times follow the Windows regional format, also when it differs from the display language.
 
 ### Fixed
@@ -17,6 +19,7 @@ All notable changes to this project are documented here. The format follows Keep
 - A schedule that could not be saved says so instead of disappearing after a restart of the app.
 - The close warning disappears once the hibernate countdown has run, and comes to the front when the window is closed from the taskbar while minimized.
 - Screen readers announce a new message also the first time it appears.
+- The colon between hours and minutes sits level with the numbers.
 - The window is no longer pulled onto the main screen when it sits on a screen below it.
 - Native Windows libraries are loaded only from the system folder.
 

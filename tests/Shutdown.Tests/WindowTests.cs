@@ -691,6 +691,31 @@ namespace Shutdown.Tests
         });
 
         [Fact]
+        public void Accent_fill_carries_white_text_in_both_themes() => Sta.Run(() =>
+        {
+            var before = Theme.Override;
+            try
+            {
+                foreach (var t in new[] { "dark", "light" })
+                {
+                    Theme.Override = t;
+                    var res = new ResourceDictionary();
+                    Theme.Apply(res);
+                    Assert.Equal(System.Windows.Media.Colors.White, ((System.Windows.Media.SolidColorBrush)res["AccentText"]).Color);
+                    Assert.Equal(Theme.AccentPalette()[4], ((System.Windows.Media.SolidColorBrush)res["Accent"]).Color);
+                }
+            }
+            finally { Theme.Override = before; Theme.Apply(Application.Current.Resources); }
+        });
+
+        [Fact]
+        public void Target_summary_is_neutral_text_not_accent() => Sta.Run(() =>
+        {
+            var w = Make();
+            Assert.Same(Application.Current.Resources["Text"], w.ResultText.Foreground);
+        });
+
+        [Fact]
         public void Language_change_rerenders_live() => Sta.Run(() =>
         {
             var w = Make();
