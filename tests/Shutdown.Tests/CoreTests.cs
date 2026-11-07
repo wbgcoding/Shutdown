@@ -97,6 +97,17 @@ namespace Shutdown.Tests
         }
 
         [Fact]
+        public void Repeated_autumn_hour_uses_its_second_occurrence_once_the_first_passed()
+        {
+            // 02:10 winter time (second pass) = 01:10 UTC; 02:40 then is 01:40 UTC, 30 minutes ahead.
+            var now = new DateTime(2026, 10, 25, 1, 10, 0, DateTimeKind.Utc);
+            var r = Schedule.FromTarget(new DateTime(2026, 10, 25), 2, 40, now, Berlin);
+            Assert.True(r.Ok);
+            Assert.Equal(new DateTime(2026, 10, 25, 1, 40, 0, DateTimeKind.Utc), r.TargetUtc);
+            Assert.Equal(1800, r.Seconds);
+        }
+
+        [Fact]
         public void Countdown_across_dst_end_shows_real_end_time()
         {
             if (TimeZoneInfo.Local.Id != "W. Europe Standard Time") return;

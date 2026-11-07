@@ -47,8 +47,15 @@ namespace Shutdown.Core
             var local = new DateTime(date.Year, date.Month, date.Day, hour, minute, 0, DateTimeKind.Unspecified);
             // Skipped by the spring clock change: this wall-clock time never happens that day.
             if (zone.IsInvalidTime(local)) return ScheduleResult.Invalid("ErrInvalidTime");
-            // A repeated autumn hour resolves to its first occurrence (still summer time).
-            var offset = zone.IsAmbiguousTime(local) ? zone.GetAmbiguousTimeOffsets(local).Max() : zone.GetUtcOffset(local);
+            // A repeated autumn hour resolves to its first occurrence (still summer time), or to the second
+            // once the first has passed, so the repeated hour stays schedulable while it runs.
+            var offset = zone.GetUtcOffset(local);
+            if (zone.IsAmbiguousTime(local))
+            {
+                var offsets = zone.GetAmbiguousTimeOffsets(local);
+                offset = offsets.Max();
+                if (local - offset <= now.ToUniversalTime()) offset = offsets.Min();
+            }
             var targetUtc = DateTime.SpecifyKind(local - offset, DateTimeKind.Utc);
             double diff = (targetUtc - now.ToUniversalTime()).TotalSeconds;
             if (diff <= 0) return ScheduleResult.Invalid("ErrPast");
