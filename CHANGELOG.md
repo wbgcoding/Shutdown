@@ -9,6 +9,7 @@ All notable changes to this project are documented here. The format follows Keep
 - In dark mode, buttons and selected options use a deeper accent blue with white text.
 - The target time in the middle uses a calm neutral colour instead of blue, and the hibernate note uses the same bright text colour.
 - Restart uses a cleaner circular arrow icon.
+- German texts write days out ("1 Tag", "2 Tage") instead of "Tg.".
 - The time left on the scheduled card is shown in the normal text colour, turns yellow in the last 5 minutes and red in the last minute.
 - The version and copyright line at the bottom of the window is gone; the window is a little smaller.
 - Dates and times follow the Windows regional format, also when it differs from the display language.

@@ -364,6 +364,20 @@ namespace Shutdown.Tests
         });
 
         [Fact]
+        public void German_days_are_written_out() => Sta.Run(() =>
+        {
+            Loc.I.Apply("de");
+            try
+            {
+                Assert.Equal("1 Tag 02:00:00", Loc.I.Clock(TimeSpan.FromHours(26)));
+                Assert.Equal("2 Tage 00:00:00", Loc.I.Clock(TimeSpan.FromDays(2)));
+                Assert.Equal("in 1 Tag 3 Std.", Loc.I.F("SummaryIn", Loc.I.Span(TimeSpan.FromHours(27))));
+                Assert.Equal("in 2 Tagen", Loc.I.F("SummaryIn", Loc.I.Span(TimeSpan.FromDays(2))));
+            }
+            finally { Loc.I.Apply("en"); }
+        });
+
+        [Fact]
         public void Closed_window_no_longer_follows_language_changes() => Sta.Run(() =>
         {
             var w = Make();

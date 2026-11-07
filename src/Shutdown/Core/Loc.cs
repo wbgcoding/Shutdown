@@ -84,7 +84,7 @@ namespace Shutdown.Core
         {
             if (t < TimeSpan.Zero) t = TimeSpan.Zero;
             var parts = new List<string>();
-            if (t.Days > 0) parts.Add(F("SpanDays", t.Days));
+            if (t.Days > 0) parts.Add(F(t.Days == 1 ? "SpanDay" : "SpanDays", t.Days));
             if (t.Hours > 0) parts.Add(F("SpanHours", t.Hours));
             if (t.Minutes > 0 && t.Days == 0) parts.Add(F("SpanMinutes", t.Minutes));
             if (parts.Count == 0) parts.Add(F("SpanSeconds", (int)t.TotalSeconds));
@@ -98,7 +98,7 @@ namespace Shutdown.Core
             string hms = t.Days > 0
                 ? string.Format(CultureInfo.InvariantCulture, "{0:00}:{1:00}:{2:00}", t.Hours, t.Minutes, t.Seconds)
                 : string.Format(CultureInfo.InvariantCulture, "{0}:{1:00}:{2:00}", t.Hours, t.Minutes, t.Seconds);
-            return t.Days > 0 ? F("ClockDays", t.Days, hms) : hms;
+            return t.Days > 0 ? F(t.Days == 1 ? "ClockDay" : "ClockDays", t.Days, hms) : hms;
         }
 
         // Day names follow the app language; date and time layout follow the regional format, as in Windows.
