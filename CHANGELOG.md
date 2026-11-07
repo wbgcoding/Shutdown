@@ -2,6 +2,14 @@
 
 All notable changes to this project are documented here. The format follows Keep a Changelog; versions follow semantic versioning.
 
+## [Unreleased]
+
+### Changed
+- The right-click menu of the number fields and messages matches the light and dark look and the app language instead of the grey Windows menu.
+
+### Fixed
+- In high contrast mode, a button under the mouse pointer keeps readable text.
+
 ## [1.1.0] - 2026-10-29
 
 ### Changed

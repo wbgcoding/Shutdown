@@ -663,6 +663,39 @@ namespace Shutdown.Tests
         });
 
         [Fact]
+        public void Text_fields_open_the_app_styled_menu() => Sta.Run(() =>
+        {
+            var w = Make();
+            var res = Application.Current.Resources;
+            Assert.IsType<Style>(res[typeof(ContextMenu)]);
+            Assert.IsType<Style>(res[typeof(MenuItem)]);
+            Assert.IsType<Style>(res[MenuItem.SeparatorStyleKey]);
+
+            var readOnly = (ContextMenu)res["ReadOnlyTextMenu"];
+            Assert.Same(readOnly, w.MessageText.ContextMenu);
+            Assert.Same(readOnly, w.MessageDetail.ContextMenu);
+            foreach (var sp in new[] { w.DurHours, w.DurMinutes, w.AtHour, w.AtMinute })
+                Assert.Same(res["EditTextMenu"], sp.Box.ContextMenu);
+
+            var copy = (MenuItem)readOnly.Items[0];
+            var selectAll = (MenuItem)readOnly.Items[1];
+            Assert.Equal("Copy", copy.Header);
+            Assert.Equal("Select all", selectAll.Header);
+            Loc.I.Apply("de");
+            Assert.Equal("Alles auswählen", selectAll.Header);
+            Loc.I.Apply("en");
+
+            // The entries act on the field that was right-clicked.
+            w.ShowError("ErrStart", "detail text", false);
+            readOnly.PlacementTarget = w.MessageDetail;
+            Dispatcher.CurrentDispatcher.Invoke(DispatcherPriority.DataBind, new Action(() => { }));
+            Assert.Same(w.MessageDetail, selectAll.CommandTarget);
+            ((RoutedCommand)selectAll.Command).Execute(null, selectAll.CommandTarget);
+            Assert.Equal("detail text", w.MessageDetail.SelectedText);
+            Assert.True(((RoutedCommand)copy.Command).CanExecute(null, copy.CommandTarget));
+        });
+
+        [Fact]
         public void Real_runner_is_blocked_in_tests()
         {
             Sta.Run(() => { });

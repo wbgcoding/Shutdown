@@ -37,6 +37,8 @@ namespace Shutdown.Ui
                 Set(res, "TextSub", SystemColors.WindowTextColor);
                 Set(res, "Control", SystemColors.ControlColor);
                 Set(res, "ControlHover", SystemColors.HighlightColor);
+                // Text on a highlight fill must use the highlight text colour, or it may vanish.
+                Set(res, "ControlHoverText", SystemColors.HighlightTextColor);
                 Set(res, "ControlPressed", SystemColors.HighlightColor);
                 Set(res, "ControlBorder", SystemColors.WindowTextColor);
                 Set(res, "Accent", SystemColors.HighlightColor);
@@ -61,6 +63,7 @@ namespace Shutdown.Ui
                 Set(res, "TextSub", "#C8C8C8");
                 Set(res, "Control", "#363636");
                 Set(res, "ControlHover", "#404040");
+                Set(res, "ControlHoverText", "#FFFFFF");
                 Set(res, "ControlPressed", "#2F2F2F");
                 Set(res, "ControlBorder", "#4A4A4A");
                 // Same roles WinUI uses for accent fills in dark mode.
@@ -83,6 +86,7 @@ namespace Shutdown.Ui
                 Set(res, "TextSub", "#5C5C5C");
                 Set(res, "Control", "#FAFAFA");
                 Set(res, "ControlHover", "#F0F0F0");
+                Set(res, "ControlHoverText", "#1B1B1B");
                 Set(res, "ControlPressed", "#E6E6E6");
                 Set(res, "ControlBorder", "#D3D3D3");
                 Set(res, "Accent", a[Dark1]);

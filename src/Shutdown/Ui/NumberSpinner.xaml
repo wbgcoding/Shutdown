@@ -14,6 +14,7 @@
                  HorizontalContentAlignment="Center" Background="Transparent" BorderThickness="0"
                  Foreground="{DynamicResource Text}" CaretBrush="{DynamicResource Text}"
                  SelectionBrush="{DynamicResource Accent}" MaxLength="3" Padding="0"
+                 ContextMenu="{DynamicResource EditTextMenu}"
                  PreviewTextInput="OnPreviewText" PreviewKeyDown="OnKey" LostKeyboardFocus="OnLostFocus"
                  GotKeyboardFocus="OnGotFocus" TextChanged="OnTextChanged" DataObject.Pasting="OnPaste">
           <TextBox.Template>
