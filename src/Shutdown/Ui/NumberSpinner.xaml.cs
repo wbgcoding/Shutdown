@@ -133,9 +133,18 @@ namespace Shutdown.Ui
             ValueChanged?.Invoke(this, EventArgs.Empty);
         }
 
-        void OnLostFocus(object sender, KeyboardFocusChangedEventArgs e) => Commit();
+        // The right-click menu takes the focus while open; reformatting then would drop the selection it acts on.
+        bool InMenu(object element) => element is DependencyObject d && Box.ContextMenu != null &&
+                                       (d == Box.ContextMenu || Box.ContextMenu.IsAncestorOf(d));
 
-        void OnGotFocus(object sender, KeyboardFocusChangedEventArgs e) =>
-            Dispatcher.BeginInvoke(new Action(Box.SelectAll));
+        void OnLostFocus(object sender, KeyboardFocusChangedEventArgs e)
+        {
+            if (!InMenu(e.NewFocus)) Commit();
+        }
+
+        void OnGotFocus(object sender, KeyboardFocusChangedEventArgs e)
+        {
+            if (!InMenu(e.OldFocus)) Dispatcher.BeginInvoke(new Action(Box.SelectAll));
+        }
     }
 }

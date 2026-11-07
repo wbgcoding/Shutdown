@@ -40,6 +40,8 @@ namespace Shutdown.Ui
                 // Text on a highlight fill must use the highlight text colour, or it may vanish.
                 Set(res, "ControlHoverText", SystemColors.HighlightTextColor);
                 Set(res, "ControlPressed", SystemColors.HighlightColor);
+                // A highlight fill would make a disabled button look selected.
+                Set(res, "DisabledFill", SystemColors.ControlColor);
                 Set(res, "ControlBorder", SystemColors.WindowTextColor);
                 Set(res, "Accent", SystemColors.HighlightColor);
                 Set(res, "AccentHover", SystemColors.HighlightColor);
@@ -65,6 +67,7 @@ namespace Shutdown.Ui
                 Set(res, "ControlHover", "#404040");
                 Set(res, "ControlHoverText", "#FFFFFF");
                 Set(res, "ControlPressed", "#2F2F2F");
+                Set(res, "DisabledFill", "#2F2F2F");
                 Set(res, "ControlBorder", "#4A4A4A");
                 // Same roles WinUI uses for accent fills in dark mode.
                 Set(res, "Accent", a[Light2]);
@@ -88,6 +91,7 @@ namespace Shutdown.Ui
                 Set(res, "ControlHover", "#F0F0F0");
                 Set(res, "ControlHoverText", "#1B1B1B");
                 Set(res, "ControlPressed", "#E6E6E6");
+                Set(res, "DisabledFill", "#E6E6E6");
                 Set(res, "ControlBorder", "#D3D3D3");
                 Set(res, "Accent", a[Dark1]);
                 Set(res, "AccentHover", a[Dark2]);

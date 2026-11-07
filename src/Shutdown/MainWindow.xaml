@@ -142,10 +142,10 @@
           <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
         <StackPanel>
-          <TextBlock x:Name="PendingTitle" FontWeight="SemiBold" AutomationProperties.AutomationId="PendingTitle"/>
-          <TextBlock x:Name="PendingWhen" FontSize="12" Foreground="{DynamicResource TextSub}"
+          <TextBlock x:Name="PendingTitle" FontWeight="SemiBold" TextWrapping="Wrap" AutomationProperties.AutomationId="PendingTitle"/>
+          <TextBlock x:Name="PendingWhen" FontSize="12" Foreground="{DynamicResource TextSub}" TextWrapping="Wrap"
                      AutomationProperties.AutomationId="PendingWhen"/>
-          <TextBlock x:Name="PendingKeepOpen" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AccentFg}"
+          <TextBlock x:Name="PendingKeepOpen" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AccentFg}" TextWrapping="Wrap"
                      Margin="0,2,0,0" Text="{Binding [PendingKeepOpen], Source={x:Static core:Loc.I}}"/>
         </StackPanel>
         <TextBlock x:Name="PendingClock" Grid.Column="1" FontFamily="{StaticResource DisplayFont}" FontSize="22"
