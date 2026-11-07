@@ -75,9 +75,10 @@ namespace Shutdown.Core
         /// <summary>Set when the file on disk belongs to a newer version; saving then leaves it alone.</summary>
         public bool KeepFile { get; private set; }
 
-        public void Save(Settings s)
+        /// <summary>False when nothing was written (file of a newer version, or a write error).</summary>
+        public bool Save(Settings s)
         {
-            if (KeepFile) return;
+            if (KeepFile) return false;
             try
             {
                 s.Version = Settings.CurrentVersion;
@@ -91,10 +92,12 @@ namespace Shutdown.Core
                 }
                 if (File.Exists(FilePath)) File.Replace(tmp, FilePath, null);
                 else File.Move(tmp, FilePath);
+                return true;
             }
             catch (Exception ex)
             {
                 Log.Write("settings save failed", ex);
+                return false;
             }
         }
     }

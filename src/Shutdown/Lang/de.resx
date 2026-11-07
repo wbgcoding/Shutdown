@@ -45,7 +45,7 @@
   <data name="ErrPast" xml:space="preserve"><value>Dieser Zeitpunkt liegt in der Vergangenheit.</value></data>
   <data name="ErrTooSoon" xml:space="preserve"><value>Wähle einen Zeitpunkt, der mindestens 1 Minute in der Zukunft liegt.</value></data>
   <data name="ErrRunFailed" xml:space="preserve"><value>Windows hat den Befehl abgelehnt.</value></data>
-  <data name="ErrAccessDenied" xml:space="preserve"><value>Dieses Konto darf den PC nicht herunterfahren. Bitte einen Administrator um die Berechtigung.</value></data>
+  <data name="ErrAccessDenied" xml:space="preserve"><value>Dieses Konto darf den PC nicht herunterfahren. Frag einen Administrator nach der Berechtigung.</value></data>
   <data name="ErrTimeout" xml:space="preserve"><value>shutdown.exe hat nicht reagiert.</value></data>
   <data name="ErrStart" xml:space="preserve"><value>shutdown.exe konnte nicht gestartet werden.</value></data>
   <data name="ErrUnexpected" xml:space="preserve"><value>Etwas ist schiefgelaufen. Details stehen im Protokoll.</value></data>
@@ -58,6 +58,7 @@
   <data name="VersionFmt" xml:space="preserve"><value>Version {0}</value></data>
   <data name="ErrInvalidTime" xml:space="preserve"><value>Diese Uhrzeit gibt es an diesem Tag wegen der Zeitumstellung nicht.</value></data>
   <data name="ExitCodeFmt" xml:space="preserve"><value>Rückgabecode {0}</value></data>
+  <data name="MsgNotSaved" xml:space="preserve"><value>Die Planung ist aktiv, konnte aber nicht gespeichert werden. Nach dem Schließen zeigt Shutdown sie nicht mehr an.</value></data>
   <data name="MenuCut" xml:space="preserve"><value>Ausschneiden</value></data>
   <data name="MenuPaste" xml:space="preserve"><value>Einfügen</value></data>
   <data name="MenuSelectAll" xml:space="preserve"><value>Alles auswählen</value></data>

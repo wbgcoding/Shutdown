@@ -7,8 +7,18 @@ All notable changes to this project are documented here. The format follows Keep
 ### Changed
 - The right-click menu of the number fields and messages matches the light and dark look and the app language instead of the grey Windows menu.
 
+- Dates and times follow the Windows regional format, also when it differs from the display language.
+
 ### Fixed
-- In high contrast mode, a button under the mouse pointer keeps readable text.
+- In high contrast mode, a button under the mouse pointer keeps readable text, and a disabled Start button no longer looks selected.
+- A hibernate countdown counts on the time since Windows started, so setting the clock can no longer start it early.
+- During the repeated hour when summer time ends, a time later in that hour can still be scheduled.
+- If shutdown.exe hangs and the schedule cannot be taken back, the card and Cancel stay available.
+- A schedule that could not be saved says so instead of disappearing after a restart of the app.
+- The close warning disappears once the hibernate countdown has run, and comes to the front when the window is closed from the taskbar while minimized.
+- Screen readers announce a new message also the first time it appears.
+- The window is no longer pulled onto the main screen when it sits on a screen below it.
+- Native Windows libraries are loaded only from the system folder.
 
 ## [1.1.0] - 2026-10-29
 

@@ -510,6 +510,77 @@ namespace Shutdown.Tests
         });
 
         [Fact]
+        public void Close_warning_goes_once_the_countdown_has_run() => Sta.Run(() =>
+        {
+            var w = Make();
+            w.ActHibernate.IsChecked = true;
+            Click(w.StartButton);
+            var e = new CancelEventArgs();
+            typeof(MainWindow).GetMethod("OnClosing", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+                .Invoke(w, new object[] { e });
+            Assert.Equal(Visibility.Visible, w.MessageCard.Visibility);
+            _now = _now.AddHours(1).AddSeconds(1);
+            w.OnTick();
+            Assert.Equal(new[] { "/a", "/h /f" }, _runner.Calls);
+            Assert.Equal(Visibility.Collapsed, w.MessageCard.Visibility);
+        });
+
+        [Fact]
+        public void App_timed_run_ignores_a_clock_jump_not_yet_reported() => Sta.Run(() =>
+        {
+            var w = Make();
+            w.ActHibernate.IsChecked = true;
+            Click(w.StartButton);
+            // The clock is set two hours ahead; the tick comes before the TimeChanged event.
+            _now = _now.AddHours(2);
+            _clockSet = TimeSpan.FromHours(2);
+            w.OnTick();
+            Assert.Equal(new[] { "/a" }, _runner.Calls);
+            Assert.Equal(Visibility.Collapsed, w.MessageCard.Visibility);
+            Assert.Equal(Visibility.Visible, w.PendingCard.Visibility);
+        });
+
+        [Fact]
+        public void Timed_out_call_that_cannot_be_taken_back_keeps_the_card() => Sta.Run(() =>
+        {
+            var w = Make();
+            int aborts = 0;
+            // The first /a (before scheduling) finds nothing; the take-back /a fails.
+            _runner.Result = a => a != "/a" ? ShutdownRunner.TimeoutCode : aborts++ == 0 ? ShutdownRunner.ErrorNoShutdownInProgress : 1;
+            Click(w.StartButton);
+            Assert.Equal(new[] { "/a", "/s /f /t 3600", "/a" }, _runner.Calls);
+            Assert.Equal(Loc.I["ErrTimeout"], w.MessageText.Text);
+            Assert.Equal(Visibility.Visible, w.PendingCard.Visibility);
+            Assert.True(w.AbortButton.IsEnabled);
+            Assert.Equal("Shutdown", _store.Load().PendingAction);
+        });
+
+        [Fact]
+        public void Schedule_that_cannot_be_saved_says_so() => Sta.Run(() =>
+        {
+            var w = Make();
+            // A settings file of a newer version is never overwritten, so nothing gets saved.
+            File.WriteAllText(_store.FilePath, "{\"Version\":99}");
+            _store.Load();
+            Click(w.StartButton);
+            Assert.Equal(Visibility.Visible, w.PendingCard.Visibility);
+            Assert.Equal(Loc.I["MsgNotSaved"], w.MessageText.Text);
+        });
+
+        [Fact]
+        public void Damaged_pending_action_is_not_restored() => Sta.Run(() =>
+        {
+            foreach (var action in new[] { "99", "Hibernate" })
+            {
+                var s = new Settings { PendingAction = action, PendingDue = Due(30), PendingBoot = Marker, Action = "7" };
+                var w = Make(s);
+                Assert.Equal(Visibility.Collapsed, w.PendingCard.Visibility);
+                Assert.Null(s.PendingAction);
+                Assert.True(w.ActShutdown.IsChecked);
+            }
+        });
+
+        [Fact]
         public void Zero_countdown_disables_start() => Sta.Run(() =>
         {
             var w = Make();

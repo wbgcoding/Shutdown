@@ -90,7 +90,8 @@ namespace Shutdown
                 ActHibernate.SetBinding(ToolTipProperty, new System.Windows.Data.Binding("[HibernateUnavailable]") { Source = Loc.I });
             }
 
-            var action = Enum.TryParse(settings.Action, out PowerAction a) ? a : PowerAction.Shutdown;
+            // TryParse also takes any number; only named actions count.
+            var action = Enum.TryParse(settings.Action, out PowerAction a) && Enum.IsDefined(typeof(PowerAction), a) ? a : PowerAction.Shutdown;
             if (action == PowerAction.Hibernate && !ActHibernate.IsEnabled) action = PowerAction.Shutdown;
             (action == PowerAction.Restart ? ActRestart : action == PowerAction.Hibernate ? ActHibernate : ActShutdown).IsChecked = true;
             (settings.Mode == nameof(TimeMode.At) ? ModeAt : ModeCountdown).IsChecked = true;
@@ -106,7 +107,9 @@ namespace Shutdown
             foreach (var sp in new[] { DurHours, DurMinutes, AtHour, AtMinute }) sp.ValueChanged += (s, e) => OnInputChanged(s, null);
 
             var restored = RestoredTargetUtc(settings);
-            if (restored.HasValue && Enum.TryParse(settings.PendingAction, out PowerAction pa))
+            // Only Windows-timed actions are ever stored; anything else is a damaged file.
+            if (restored.HasValue && Enum.TryParse(settings.PendingAction, out PowerAction pa) &&
+                Enum.IsDefined(typeof(PowerAction), pa) && !Schedule.IsAppTimed(pa))
                 _pending = new Pending { Action = pa, TargetUtc = restored.Value, Due = TimeSpan.FromMilliseconds(settings.PendingDue.Value), AppTimed = false };
             else
             {
@@ -200,8 +203,8 @@ namespace Shutdown
         {
             if (WindowState != WindowState.Normal || !IsLoaded) return;
             var area = SystemParameters.WorkArea;
-            // WorkArea is the primary monitor; leave windows on other monitors alone.
-            if (Left < area.Left || Left > area.Right) return;
+            // WorkArea is the primary monitor; leave windows on other monitors alone (beside, above or below).
+            if (Left < area.Left || Left > area.Right || Top < area.Top || Top >= area.Bottom) return;
             double overflow = Top + ActualHeight - area.Bottom;
             if (overflow > 0) Top = Math.Max(area.Top, Top - overflow);
         }
@@ -308,7 +311,7 @@ namespace Shutdown
             if (errorKey == _lastInputError) return;
             _lastInputError = errorKey;
             if (errorKey != null && !_loading && AutomationPeer.ListenerExists(AutomationEvents.LiveRegionChanged))
-                UIElementAutomationPeer.FromElement(ResultText)?.RaiseAutomationEvent(AutomationEvents.LiveRegionChanged);
+                UIElementAutomationPeer.CreatePeerForElement(ResultText)?.RaiseAutomationEvent(AutomationEvents.LiveRegionChanged);
         }
 
         // 59:59.6 left reads "in 1 h", not "in 59 min".
@@ -339,11 +342,13 @@ namespace Shutdown
         {
             var now = Now();
             // A schedule handed to Windows stays until aborted or replaced: Windows counts its own timer and may fire later than this clock.
-            if (_pending?.AppTimed == true && now.ToUniversalTime() >= _pending.TargetUtc)
+            // Uptime, not the wall clock: a clock change seen before its TimeChanged event must not fire early.
+            if (_pending?.AppTimed == true && Uptime() >= _pending.Due)
             {
                 var p = _pending;
+                var late = Uptime() - p.Due;
                 ClearPending();
-                if (now.ToUniversalTime() - p.TargetUtc > MissedGrace) ShowInfo("MsgMissed");
+                if (late > MissedGrace) ShowInfo("MsgMissed");
                 else Execute(Schedule.ArgsFor(p.Action, 0));
             }
             UpdateUi();
@@ -377,14 +382,16 @@ namespace Shutdown
                 _pending = new Pending { Action = action, TargetUtc = r.TargetUtc, Due = DueOf(r.TargetUtc), AppTimed = true };
                 SyncKeepAwake();
             }
-            else if (Execute(Schedule.ArgsFor(action, r.Seconds), true))
+            else if (Execute(Schedule.ArgsFor(action, r.Seconds), out bool maybeScheduled) || maybeScheduled)
             {
+                // Also when Windows may hold it after a failed take-back: the card keeps Abort reachable.
                 _pending = new Pending { Action = action, TargetUtc = r.TargetUtc, Due = DueOf(r.TargetUtc), AppTimed = false };
                 _settings.PendingAction = action.ToString();
                 _settings.PendingDue = (long)_pending.Due.TotalMilliseconds;
                 _settings.PendingBoot = BootMarker() ?? UnknownBoot;
             }
-            Persist();
+            bool saved = Persist();
+            if (!saved && _pending?.AppTimed == false && _msgKind == MessageKind.None) ShowInfo("MsgNotSaved");
             UpdateUi();
         }
 
@@ -421,6 +428,8 @@ namespace Shutdown
         {
             _pending = null;
             SyncKeepAwake();
+            // The close warning is about the countdown that just ended.
+            if (_msgKind == MessageKind.CloseGuard) HideMessage();
             if (_settings.PendingAction != null || _settings.PendingDue != null || _settings.PendingBoot != null)
             {
                 _settings.PendingAction = null;
@@ -431,12 +440,18 @@ namespace Shutdown
         }
 
         /// <summary>Runs shutdown.exe; false and an error message when it fails.</summary>
-        bool Execute(string args, bool scheduling = false)
+        bool Execute(string args) => Execute(args, out _);
+
+        /// <summary>maybeScheduled: the call timed out and taking it back failed too, so Windows may still run it.</summary>
+        bool Execute(string args, out bool maybeScheduled)
         {
+            maybeScheduled = false;
             if (!TryRun(args, out int code)) return false;
             if (code == 0) return true;
             // A timed-out call may still have registered the schedule; take it back so none stays hidden.
-            if (scheduling && code == ShutdownRunner.TimeoutCode) TryRun(Schedule.AbortArgs, out _);
+            if (code == ShutdownRunner.TimeoutCode)
+                maybeScheduled = !TryRun(Schedule.AbortArgs, out int undo) ||
+                                 (undo != 0 && undo != ShutdownRunner.ErrorNoShutdownInProgress);
             ShowRunError(args, code);
             return false;
         }
@@ -476,7 +491,8 @@ namespace Shutdown
             RenderMessage();
             // Without a listener (no screen reader) there is nothing to raise, and no peer to create.
             if (kind != MessageKind.None && AutomationPeer.ListenerExists(AutomationEvents.LiveRegionChanged))
-                UIElementAutomationPeer.FromElement(MessageText)?.RaiseAutomationEvent(AutomationEvents.LiveRegionChanged);
+                // FromElement is null until a client asked for the peer, as for a card that was just collapsed.
+                UIElementAutomationPeer.CreatePeerForElement(MessageText)?.RaiseAutomationEvent(AutomationEvents.LiveRegionChanged);
         }
 
         void RenderMessage()
@@ -529,15 +545,15 @@ namespace Shutdown
         void OnToday(object sender, RoutedEventArgs e) { _date = Now().Date; UpdateUi(); }
         void OnTomorrow(object sender, RoutedEventArgs e) { _date = Now().Date.AddDays(1); UpdateUi(); }
 
-        void Persist()
+        bool Persist()
         {
-            if (_loading) return;
+            if (_loading) return true;
             _settings.Action = SelectedAction.ToString();
             _settings.Mode = SelectedMode.ToString();
             _settings.Hours = DurHours.Value;
             _settings.Minutes = DurMinutes.Value;
             if (WindowState == WindowState.Normal && IsLoaded) { _settings.Left = Left; _settings.Top = Top; }
-            _store.Save(_settings);
+            return _store.Save(_settings);
         }
 
         protected override void OnClosing(CancelEventArgs e)
@@ -546,6 +562,8 @@ namespace Shutdown
             {
                 e.Cancel = true;
                 SetMessage(MessageKind.CloseGuard, "CloseGuard", null, false);
+                // Closed from the taskbar while minimized: the warning must be seen.
+                if (WindowState == WindowState.Minimized) Dispatcher.BeginInvoke(new Action(BringToFront));
                 return;
             }
             Persist();
