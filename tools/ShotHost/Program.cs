@@ -44,6 +44,10 @@ static class Program
 
     static void StartRendering(Window w, string target)
     {
+        // The app's Display text mode snaps glyphs to the 96 dpi grid and renders them unsmoothed into a
+        // bitmap; Ideal with grayscale smoothing matches how the text looks on a 200 % screen.
+        TextOptions.SetTextFormattingMode(w, TextFormattingMode.Ideal);
+        TextOptions.SetTextRenderingMode(w, TextRenderingMode.Grayscale);
         var timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
         timer.Tick += (s, e) => Render(w, target);
         timer.Start();
@@ -55,6 +59,8 @@ static class Program
         timer.Tick += (s, e) =>
         {
             if (!menu.IsOpen) { timer.Stop(); return; }
+            TextOptions.SetTextFormattingMode(menu, TextFormattingMode.Ideal);
+            TextOptions.SetTextRenderingMode(menu, TextRenderingMode.Grayscale);
             if (menu.ActualWidth > 0) Save(menu, Brushes.Transparent, target);
         };
         timer.Start();
