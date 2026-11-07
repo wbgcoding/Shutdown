@@ -46,7 +46,8 @@ namespace Shutdown.Ui
                 Set(res, "Accent", SystemColors.HighlightColor);
                 Set(res, "AccentHover", SystemColors.HighlightColor);
                 Set(res, "AccentText", SystemColors.HighlightTextColor);
-                Set(res, "AccentFg", SystemColors.WindowTextColor);
+                Set(res, "Warn", SystemColors.WindowTextColor);
+                Set(res, "Urgent", SystemColors.WindowTextColor);
                 Set(res, "Danger", SystemColors.WindowTextColor);
                 Set(res, "DangerSoft", SystemColors.WindowColor);
                 Set(res, "Focus", SystemColors.HighlightColor);
@@ -72,7 +73,8 @@ namespace Shutdown.Ui
                 Set(res, "Accent", a[Dark1]);
                 Set(res, "AccentHover", a[Accent]);
                 Set(res, "AccentText", Colors.White);
-                Set(res, "AccentFg", a[Light3]);
+                Set(res, "Warn", "#FCE100");
+                Set(res, "Urgent", "#FF6B6B");
                 Set(res, "Danger", "#FF99A4");
                 Set(res, "DangerSoft", "#442726");
                 Set(res, "Focus", "#FFFFFF");
@@ -94,7 +96,8 @@ namespace Shutdown.Ui
                 Set(res, "Accent", a[Dark1]);
                 Set(res, "AccentHover", a[Dark2]);
                 Set(res, "AccentText", Colors.White);
-                Set(res, "AccentFg", a[Dark2]);
+                Set(res, "Warn", "#9D5D00");
+                Set(res, "Urgent", "#C42B1C");
                 Set(res, "Danger", "#B3261E");
                 Set(res, "DangerSoft", "#FDE7E9");
                 Set(res, "Focus", "#1B1B1B");

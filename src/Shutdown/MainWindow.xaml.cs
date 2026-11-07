@@ -313,6 +313,10 @@ namespace Shutdown
         static TimeSpan WholeMinutesUp(TimeSpan t) =>
             t >= TimeSpan.FromMinutes(1) ? TimeSpan.FromMinutes(Math.Ceiling(t.TotalMinutes)) : t;
 
+        // The time left turns yellow in the last 5 minutes and red in the last minute.
+        internal static string ClockBrushKey(TimeSpan left) =>
+            left <= TimeSpan.FromMinutes(1) ? "Urgent" : left <= TimeSpan.FromMinutes(5) ? "Warn" : "Text";
+
         void UpdatePending(DateTime now)
         {
             var L = Loc.I;
@@ -329,6 +333,12 @@ namespace Shutdown
             PendingWhen.Text = L.F("SummaryAt", L.DateText(_pending.Target), L.TimeText(_pending.Target));
             var left = _pending.TargetUtc - now.ToUniversalTime();
             PendingClock.Text = L.Clock(left);
+            var key = ClockBrushKey(left);
+            if (!Equals(PendingClock.Tag, key))
+            {
+                PendingClock.Tag = key;
+                PendingClock.SetResourceReference(TextBlock.ForegroundProperty, key);
+            }
             System.Windows.Automation.AutomationProperties.SetName(PendingClock, L.F("PendingRemaining", L.Clock(left)));
             PendingKeepOpen.Visibility = _pending.AppTimed ? Visibility.Visible : Visibility.Collapsed;
         }

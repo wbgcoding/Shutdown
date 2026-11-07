@@ -104,7 +104,7 @@
         <StackPanel x:Name="CountdownPanel" Orientation="Horizontal" HorizontalAlignment="Center">
           <ui:NumberSpinner x:Name="DurHours" Maximum="999" Digits="1" AutomationKey="DurHours"/>
           <TextBlock Text=":" FontSize="22" FontWeight="SemiBold" Foreground="{DynamicResource TextSub}"
-                     VerticalAlignment="Top" Margin="8,24,8,0"/>
+                     VerticalAlignment="Top" Margin="8,22.5,8,0"/>
           <ui:NumberSpinner x:Name="DurMinutes" Maximum="59" Digits="2" AutomationKey="DurMinutes"/>
         </StackPanel>
 
@@ -112,7 +112,7 @@
         <StackPanel x:Name="AtPanel" Visibility="Collapsed" Orientation="Horizontal" HorizontalAlignment="Center">
           <ui:NumberSpinner x:Name="AtHour" Maximum="23" Wrap="True" Digits="2" AutomationKey="AtHour"/>
           <TextBlock Text=":" FontSize="22" FontWeight="SemiBold" Foreground="{DynamicResource TextSub}"
-                     VerticalAlignment="Top" Margin="8,24,8,0"/>
+                     VerticalAlignment="Top" Margin="8,22.5,8,0"/>
           <ui:NumberSpinner x:Name="AtMinute" Maximum="59" Wrap="True" Digits="2" AutomationKey="AtMinute"/>
         </StackPanel>
 
@@ -149,7 +149,7 @@
                      Margin="0,2,0,0" Text="{Binding [PendingKeepOpen], Source={x:Static core:Loc.I}}"/>
         </StackPanel>
         <TextBlock x:Name="PendingClock" Grid.Column="1" FontFamily="{StaticResource DisplayFont}" FontSize="22"
-                   FontWeight="SemiBold" Foreground="{DynamicResource AccentFg}" VerticalAlignment="Center"
+                   FontWeight="SemiBold" Foreground="{DynamicResource Text}" VerticalAlignment="Center"
                    Margin="10,0,0,0" AutomationProperties.AutomationId="PendingClock"/>
       </Grid>
     </Border>

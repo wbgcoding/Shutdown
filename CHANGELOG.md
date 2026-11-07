@@ -9,6 +9,7 @@ All notable changes to this project are documented here. The format follows Keep
 - In dark mode, buttons and selected options use a deeper accent blue with white text.
 - The target time in the middle uses a calm neutral colour instead of blue, and the hibernate note uses the same bright text colour.
 - Restart uses a cleaner circular arrow icon.
+- The time left on the scheduled card is shown in the normal text colour, turns yellow in the last 5 minutes and red in the last minute.
 - The version and copyright line at the bottom of the window is gone; the window is a little smaller.
 - Dates and times follow the Windows regional format, also when it differs from the display language.
 
@@ -20,7 +21,7 @@ All notable changes to this project are documented here. The format follows Keep
 - A schedule that could not be saved says so instead of disappearing after a restart of the app.
 - The close warning disappears once the hibernate countdown has run, and comes to the front when the window is closed from the taskbar while minimized.
 - Screen readers announce a new message also the first time it appears.
-- The colon between hours and minutes sits level with the numbers.
+- The numbers in the time fields sit in the middle between the arrows, and the colon sits level with them.
 - The window is no longer pulled onto the main screen when it sits on a screen below it.
 - Native Windows libraries are loaded only from the system folder.
 

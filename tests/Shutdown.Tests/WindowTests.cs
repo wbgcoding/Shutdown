@@ -159,6 +159,32 @@ namespace Shutdown.Tests
         });
 
         [Fact]
+        public void Time_left_turns_yellow_then_red_near_the_end() => Sta.Run(() =>
+        {
+            var w = Make();
+            Click(w.StartButton);
+            Assert.Equal("Text", w.PendingClock.Tag);
+            _now = _now.AddMinutes(55);
+            w.OnTick();
+            Assert.Equal("Warn", w.PendingClock.Tag);
+            Assert.Same(w.FindResource("Warn"), w.PendingClock.Foreground);
+            _now = _now.AddMinutes(4);
+            w.OnTick();
+            Assert.Equal("Urgent", w.PendingClock.Tag);
+            Assert.Same(w.FindResource("Urgent"), w.PendingClock.Foreground);
+        });
+
+        [Theory]
+        [InlineData(400, "Text")]
+        [InlineData(301, "Text")]
+        [InlineData(300, "Warn")]
+        [InlineData(61, "Warn")]
+        [InlineData(60, "Urgent")]
+        [InlineData(0, "Urgent")]
+        public void Clock_colour_thresholds(int seconds, string key) =>
+            Assert.Equal(key, MainWindow.ClockBrushKey(TimeSpan.FromSeconds(seconds)));
+
+        [Fact]
         public void Start_counts_the_time_the_abort_call_took() => Sta.Run(() =>
         {
             var w = Make();

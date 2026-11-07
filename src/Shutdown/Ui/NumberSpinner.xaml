@@ -20,7 +20,8 @@
           <TextBox.Template>
             <ControlTemplate TargetType="TextBox">
               <Border x:Name="Bd" CornerRadius="5" Background="Transparent" BorderThickness="2" BorderBrush="Transparent">
-                <ScrollViewer x:Name="PART_ContentHost" Focusable="False" HorizontalScrollBarVisibility="Hidden"
+                <!-- The font's line box sits the digits low; lift them to the middle between the arrows. -->
+                <ScrollViewer x:Name="PART_ContentHost" Focusable="False" Margin="0,-1.5,0,1.5" HorizontalScrollBarVisibility="Hidden"
                               VerticalScrollBarVisibility="Hidden"/>
               </Border>
               <ControlTemplate.Triggers>
