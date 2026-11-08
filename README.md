@@ -76,4 +76,6 @@ Please report security problems privately, as described in [SECURITY.md](SECURIT
 
 ## License
 
-[MIT](LICENSE) © 2026 BGCoding · Made with Claude
+[MIT](LICENSE) © 2026 BGCoding
+
+<p align="right">© 2026 BGCoding · Made with Claude</p>
