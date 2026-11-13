@@ -669,4 +669,507 @@ namespace Shutdown.Tests
             Assert.Equal("15:05", Loc.I.TimeText(d));
         }
     }
+
+    /// <summary>Settings store edge cases. Load and Save log failures, so this shares the log folder collection.</summary>
+    [Collection("window")]
+    public class SettingsEdgeTests : IDisposable
+    {
+        readonly string _dir = Path.Combine(Path.GetTempPath(), "ShutdownTests-" + Guid.NewGuid().ToString("N"));
+        string FilePath => Path.Combine(_dir, SettingsStore.FileName);
+
+        public SettingsEdgeTests() { Directory.CreateDirectory(_dir); }
+
+        public void Dispose()
+        {
+            try
+            {
+                foreach (var f in Directory.GetFiles(_dir, "*", SearchOption.AllDirectories))
+                    File.SetAttributes(f, FileAttributes.Normal);
+                Directory.Delete(_dir, true);
+            }
+            catch { }
+        }
+
+        SettingsStore Store() => new SettingsStore(FilePath);
+
+        [Fact]
+        public void New_settings_have_the_documented_defaults()
+        {
+            var s = new Settings();
+            Assert.Equal(Settings.CurrentVersion, s.Version);
+            Assert.Equal("system", s.Theme);
+            Assert.Equal("Shutdown", s.Action);
+            Assert.Equal("Countdown", s.Mode);
+            Assert.Equal(1, s.Hours);
+            Assert.Equal(0, s.Minutes);
+            Assert.Null(s.Left);
+            Assert.Null(s.Top);
+            Assert.Null(s.PendingAction);
+            Assert.Null(s.PendingDue);
+            Assert.Null(s.PendingBoot);
+        }
+
+        [Fact]
+        public void Default_actions_and_modes_name_real_enum_values()
+        {
+            var s = new Settings();
+            Assert.True(Enum.IsDefined(typeof(PowerAction), s.Action));
+            Assert.True(Enum.IsDefined(typeof(TimeMode), s.Mode));
+        }
+
+        [Fact]
+        public void Current_version_is_one()
+        {
+            // Raising it needs a migration for files already out there.
+            Assert.Equal(1, Settings.CurrentVersion);
+        }
+
+        [Fact]
+        public void Missing_file_gives_defaults_and_creates_nothing()
+        {
+            var store = Store();
+            var s = store.Load();
+            Assert.Equal(1, s.Hours);
+            Assert.False(store.KeepFile);
+            Assert.False(File.Exists(FilePath));
+            Assert.Empty(Directory.GetFileSystemEntries(_dir));
+        }
+
+        [Fact]
+        public void Save_writes_the_current_version_whatever_the_object_says()
+        {
+            var s = new Settings { Version = 0 };
+            Assert.True(Store().Save(s));
+            Assert.Equal(Settings.CurrentVersion, s.Version);
+            Assert.Matches("\"Version\":\\s*1\\b", File.ReadAllText(FilePath));
+            Assert.Equal(1, Store().Load().Version);
+        }
+
+        [Fact]
+        public void Save_creates_missing_folders()
+        {
+            var path = Path.Combine(_dir, "a", "b", "c", SettingsStore.FileName);
+            var store = new SettingsStore(path);
+            Assert.True(store.Save(new Settings { Hours = 4 }));
+            Assert.True(File.Exists(path));
+            Assert.Equal(4, store.Load().Hours);
+        }
+
+        [Fact]
+        public void Save_leaves_no_temp_file_on_create_or_overwrite()
+        {
+            var store = Store();
+            Assert.True(store.Save(new Settings { Hours = 1 }));
+            Assert.Equal(new[] { FilePath }, Directory.GetFiles(_dir));
+            Assert.True(store.Save(new Settings { Hours = 2 }));
+            Assert.Equal(new[] { FilePath }, Directory.GetFiles(_dir));
+            Assert.Equal(2, store.Load().Hours);
+        }
+
+        [Fact]
+        public void Overwrite_replaces_the_content_completely()
+        {
+            var store = Store();
+            store.Save(new Settings { Hours = 12, Minutes = 30, Theme = "dark", PendingAction = "Restart", PendingDue = 5, PendingBoot = "boot:1" });
+            store.Save(new Settings());
+            var back = store.Load();
+            Assert.Equal(1, back.Hours);
+            Assert.Equal(0, back.Minutes);
+            Assert.Equal("system", back.Theme);
+            Assert.Null(back.PendingAction);
+            Assert.Null(back.PendingDue);
+            Assert.Null(back.PendingBoot);
+        }
+
+        [Fact]
+        public void A_stale_temp_file_from_a_crashed_save_is_replaced()
+        {
+            File.WriteAllText(FilePath + ".new", "garbage");
+            Assert.True(Store().Save(new Settings { Hours = 7 }));
+            Assert.False(File.Exists(FilePath + ".new"));
+            Assert.Equal(7, Store().Load().Hours);
+        }
+
+        [Fact]
+        public void Saved_file_is_utf8_json_without_a_byte_order_mark()
+        {
+            Store().Save(new Settings { PendingBoot = "boot:\u00e4\u00f6" });
+            var bytes = File.ReadAllBytes(FilePath);
+            var text = new UTF8Encoding(false).GetString(bytes);
+            Assert.StartsWith("{", text);
+            Assert.Equal("boot:\u00e4\u00f6", Store().Load().PendingBoot);
+
+            File.WriteAllText(FilePath, "{\"Version\":1,\"Hours\":9}", new UTF8Encoding(false));
+            Assert.Equal(9, Store().Load().Hours);
+        }
+
+        [Theory]
+        [InlineData("null")]
+        [InlineData("")]
+        [InlineData("   ")]
+        [InlineData("\r\n")]
+        [InlineData("[]")]
+        [InlineData("42")]
+        [InlineData("\"text\"")]
+        [InlineData("{")]
+        [InlineData("{\"Version\":1,")]
+        [InlineData("{\"Hours\":\"many\"}")]
+        [InlineData("not json at all")]
+        public void Unusable_file_content_gives_defaults_and_keeps_saving_possible(string content)
+        {
+            File.WriteAllText(FilePath, content);
+            var store = Store();
+            var s = store.Load();
+            Assert.Equal(1, s.Hours);
+            Assert.Equal("system", s.Theme);
+            Assert.Equal("Countdown", s.Mode);
+            Assert.False(store.KeepFile);
+            Assert.True(store.Save(s));
+            Assert.Equal(1, Store().Load().Hours);
+        }
+
+        [Fact]
+        public void Empty_object_gives_defaults_not_zero_values()
+        {
+            File.WriteAllText(FilePath, "{}");
+            var s = Store().Load();
+            Assert.Equal(1, s.Version);
+            Assert.Equal(1, s.Hours);
+            Assert.Equal(0, s.Minutes);
+            Assert.Equal("system", s.Theme);
+            Assert.Equal("Shutdown", s.Action);
+            Assert.Equal("Countdown", s.Mode);
+        }
+
+        [Fact]
+        public void Unknown_fields_are_ignored_and_known_ones_kept()
+        {
+            File.WriteAllText(FilePath,
+                "{\"Version\":1,\"Hours\":3,\"Extra\":{\"a\":[1,2,3]},\"Minutes\":20,\"Another\":\"x\",\"Theme\":\"dark\"}");
+            var store = Store();
+            var s = store.Load();
+            Assert.Equal(3, s.Hours);
+            Assert.Equal(20, s.Minutes);
+            Assert.Equal("dark", s.Theme);
+            Assert.False(store.KeepFile);
+        }
+
+        [Fact]
+        public void Optional_values_roundtrip_and_clear_again()
+        {
+            var store = Store();
+            var s = new Settings
+            {
+                Left = -1234.5678, Top = 0.25,
+                PendingAction = "Restart", PendingDue = 7200000, PendingBoot = "boot:7",
+            };
+            Assert.True(store.Save(s));
+            var back = store.Load();
+            Assert.Equal(-1234.5678, back.Left);
+            Assert.Equal(0.25, back.Top);
+            Assert.Equal("Restart", back.PendingAction);
+            Assert.Equal(7200000L, back.PendingDue);
+            Assert.Equal("boot:7", back.PendingBoot);
+
+            back.Left = null; back.Top = null; back.PendingAction = null; back.PendingDue = null; back.PendingBoot = null;
+            Assert.True(store.Save(back));
+            var cleared = store.Load();
+            Assert.Null(cleared.Left);
+            Assert.Null(cleared.Top);
+            Assert.Null(cleared.PendingAction);
+            Assert.Null(cleared.PendingDue);
+            Assert.Null(cleared.PendingBoot);
+        }
+
+        [Fact]
+        public void Extreme_numbers_roundtrip()
+        {
+            var store = Store();
+            store.Save(new Settings { Hours = int.MaxValue, Minutes = int.MinValue, PendingDue = long.MaxValue, Left = double.MaxValue });
+            var back = store.Load();
+            Assert.Equal(int.MaxValue, back.Hours);
+            Assert.Equal(int.MinValue, back.Minutes);
+            Assert.Equal(long.MaxValue, back.PendingDue);
+            Assert.Equal(double.MaxValue, back.Left);
+        }
+
+        [Fact]
+        public void Explicit_json_null_for_optional_fields_loads_as_null()
+        {
+            File.WriteAllText(FilePath, "{\"Left\":null,\"Top\":null,\"PendingAction\":null,\"PendingDue\":null,\"PendingBoot\":null}");
+            var s = Store().Load();
+            Assert.Null(s.Left);
+            Assert.Null(s.PendingDue);
+            Assert.Null(s.PendingAction);
+        }
+
+        [Theory]
+        [InlineData(2)]
+        [InlineData(99)]
+        [InlineData(int.MaxValue)]
+        public void Newer_file_gives_defaults_sets_keep_file_and_is_never_written(int version)
+        {
+            string content = "{\"Version\":" + version + ",\"Theme\":\"dark\",\"Hours\":9,\"NewThing\":true}";
+            File.WriteAllText(FilePath, content);
+            var before = File.ReadAllBytes(FilePath);
+            var store = Store();
+            var s = store.Load();
+            Assert.True(store.KeepFile);
+            Assert.Equal("system", s.Theme);
+            Assert.Equal(1, s.Hours);
+            s.Hours = 5;
+            Assert.False(store.Save(s));
+            Assert.False(store.Save(s));
+            Assert.Equal(before, File.ReadAllBytes(FilePath));
+            Assert.Equal(new[] { FilePath }, Directory.GetFiles(_dir));
+        }
+
+        [Theory]
+        [InlineData(1)]
+        [InlineData(0)]
+        [InlineData(-5)]
+        public void Current_or_older_file_does_not_set_keep_file(int version)
+        {
+            File.WriteAllText(FilePath, "{\"Version\":" + version + ",\"Hours\":6}");
+            var store = Store();
+            Assert.Equal(6, store.Load().Hours);
+            Assert.False(store.KeepFile);
+            Assert.True(store.Save(new Settings { Hours = 8 }));
+            Assert.Equal(8, Store().Load().Hours);
+        }
+
+        [Fact]
+        public void Fresh_store_starts_without_keep_file()
+        {
+            Assert.False(Store().KeepFile);
+        }
+
+        [Fact]
+        public void Save_into_a_path_that_is_a_directory_returns_false_without_throwing()
+        {
+            Directory.CreateDirectory(FilePath);
+            var store = Store();
+            Assert.False(store.Save(new Settings()));
+            Assert.True(Directory.Exists(FilePath));
+            // Loading from it is no failure either.
+            Assert.Equal(1, store.Load().Hours);
+        }
+
+        [Fact]
+        public void Save_below_a_file_returns_false_without_throwing()
+        {
+            string blocker = Path.Combine(_dir, "blocker");
+            File.WriteAllText(blocker, "x");
+            var store = new SettingsStore(Path.Combine(blocker, "sub", SettingsStore.FileName));
+            Assert.False(store.Save(new Settings()));
+            Assert.Equal("x", File.ReadAllText(blocker));
+        }
+
+        [Theory]
+        [InlineData("bad|name?.json")]
+        [InlineData("bad\0name.json")]
+        public void Save_to_an_invalid_file_name_returns_false_without_throwing(string name)
+        {
+            // Plain concatenation: Path.Combine itself rejects some of these characters.
+            var store = new SettingsStore(_dir + Path.DirectorySeparatorChar + name);
+            Assert.False(store.Save(new Settings()));
+            Assert.Equal(1, store.Load().Hours);
+        }
+
+        [Fact]
+        public void Save_of_a_read_only_file_returns_false_and_leaves_it_alone()
+        {
+            var store = Store();
+            Assert.True(store.Save(new Settings { Hours = 2 }));
+            File.SetAttributes(FilePath, FileAttributes.ReadOnly);
+            Assert.False(store.Save(new Settings { Hours = 9 }));
+            Assert.Equal(2, Store().Load().Hours);
+        }
+
+        [Fact]
+        public void Load_of_a_locked_file_gives_defaults_without_throwing()
+        {
+            Store().Save(new Settings { Hours = 5 });
+            using (new FileStream(FilePath, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
+            {
+                var s = Store().Load();
+                Assert.Equal(1, s.Hours);
+            }
+            Assert.Equal(5, Store().Load().Hours);
+        }
+
+        [Fact]
+        public void Two_loads_give_independent_objects()
+        {
+            Store().Save(new Settings { Hours = 5 });
+            var a = Store().Load();
+            var b = Store().Load();
+            a.Hours = 99;
+            Assert.Equal(5, b.Hours);
+        }
+
+        [Fact]
+        public void Default_store_lives_under_appdata_shutdown_and_never_beside_the_exe()
+        {
+            var store = SettingsStore.Default();
+            string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            Assert.Equal(Path.Combine(appData, "Shutdown", "Shutdown.settings.json"), store.FilePath);
+            Assert.Equal("Shutdown.settings.json", SettingsStore.FileName);
+            Assert.False(store.FilePath.StartsWith(AppDomain.CurrentDomain.BaseDirectory, StringComparison.OrdinalIgnoreCase));
+        }
+
+        [Fact]
+        public void App_paths_are_below_appdata_shutdown()
+        {
+            string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            Assert.Equal(Path.Combine(appData, "Shutdown"), AppPaths.AppData);
+            Assert.Equal(Path.Combine(appData, "Shutdown", "logs"), AppPaths.LogDir);
+        }
+
+        [Fact]
+        public void File_path_is_kept_as_given()
+        {
+            Assert.Equal(FilePath, Store().FilePath);
+        }
+    }
+
+    [Collection("window")]
+    public class LogEdgeTests : IDisposable
+    {
+        readonly string _dir = Path.Combine(Path.GetTempPath(), "ShutdownTests-" + Guid.NewGuid().ToString("N"));
+        readonly string _before = Log.Dir;
+
+        public LogEdgeTests() { Directory.CreateDirectory(_dir); Log.Dir = Path.Combine(_dir, "logs"); }
+
+        public void Dispose()
+        {
+            Log.Dir = _before;
+            try { Directory.Delete(_dir, true); } catch { }
+        }
+
+        [Fact]
+        public void Write_creates_the_folder_and_a_timestamped_line()
+        {
+            Assert.False(Directory.Exists(Log.Dir));
+            Log.Write("hello world");
+            var lines = File.ReadAllLines(Log.FilePath);
+            Assert.Single(lines);
+            Assert.Matches(@"^\d{4}-\d\d-\d\d \d\d:\d\d:\d\d  hello world$", lines[0]);
+            Assert.Equal("shutdown.log", Path.GetFileName(Log.FilePath));
+        }
+
+        [Fact]
+        public void Write_appends_in_order()
+        {
+            Log.Write("one");
+            Log.Write("two");
+            Log.Write("three");
+            var lines = File.ReadAllLines(Log.FilePath);
+            Assert.Equal(3, lines.Length);
+            Assert.EndsWith("one", lines[0]);
+            Assert.EndsWith("two", lines[1]);
+            Assert.EndsWith("three", lines[2]);
+        }
+
+        [Fact]
+        public void Write_with_an_exception_adds_its_type_message_and_stack()
+        {
+            Exception ex;
+            try { throw new InvalidOperationException("boom detail"); }
+            catch (Exception e) { ex = e; }
+            Log.Write("it failed", ex);
+            string text = File.ReadAllText(Log.FilePath);
+            Assert.Contains("it failed", text);
+            Assert.Contains("System.InvalidOperationException", text);
+            Assert.Contains("boom detail", text);
+            Assert.Contains("Write_with_an_exception_adds_its_type_message_and_stack", text);
+            // The message line comes first, the exception on the following lines.
+            Assert.True(text.IndexOf("it failed", StringComparison.Ordinal) < text.IndexOf("boom detail", StringComparison.Ordinal));
+        }
+
+        [Fact]
+        public void Write_with_a_nested_exception_includes_the_inner_one()
+        {
+            Log.Write("outer", new RunnerException("C:\\x\\shutdown.exe", new System.ComponentModel.Win32Exception(2)));
+            string text = File.ReadAllText(Log.FilePath);
+            Assert.Contains("shutdown.exe", text);
+            Assert.Contains("Win32Exception", text);
+        }
+
+        [Fact]
+        public void Write_keeps_non_ascii_text()
+        {
+            Log.Write("pr\u00fcfung \u00e4\u00f6\u00fc");
+            Assert.Contains("pr\u00fcfung \u00e4\u00f6\u00fc", File.ReadAllText(Log.FilePath, Encoding.UTF8));
+        }
+
+        [Fact]
+        public void Write_into_an_unusable_folder_does_not_throw()
+        {
+            string blocker = Path.Combine(_dir, "blocker");
+            File.WriteAllText(blocker, "x");
+            // A file where the folder should be, and an illegal path.
+            Log.Dir = Path.Combine(blocker, "sub");
+            Log.Write("nobody will read this");
+            Log.Write("with exception", new Exception("e"));
+            Log.Dir = "bad|path?:*";
+            Log.Write("still no throw");
+            Assert.Equal("x", File.ReadAllText(blocker));
+        }
+
+        [Fact]
+        public void Write_when_the_log_file_is_locked_does_not_throw()
+        {
+            Log.Write("first");
+            using (new FileStream(Log.FilePath, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
+                Log.Write("second");
+            Assert.Single(File.ReadAllLines(Log.FilePath));
+        }
+
+        [Fact]
+        public void Dir_defaults_to_the_app_log_folder_when_unset()
+        {
+            Log.Dir = null;
+            Assert.Equal(AppPaths.LogDir, Log.Dir);
+            Assert.Equal(Path.Combine(AppPaths.LogDir, "shutdown.log"), Log.FilePath);
+        }
+
+        [Fact]
+        public void Full_log_moves_to_dot_one_and_replaces_the_older_copy()
+        {
+            Directory.CreateDirectory(Log.Dir);
+            File.WriteAllText(Log.FilePath + ".1", "OLD");
+            File.WriteAllText(Log.FilePath, new string('x', 512 * 1024 + 1));
+            Log.Write("fresh");
+            Assert.Equal(512 * 1024 + 1, new FileInfo(Log.FilePath + ".1").Length);
+            Assert.DoesNotContain("OLD", File.ReadAllText(Log.FilePath + ".1"));
+            var lines = File.ReadAllLines(Log.FilePath);
+            Assert.Single(lines);
+            Assert.EndsWith("fresh", lines[0]);
+        }
+
+        [Fact]
+        public void Log_of_exactly_the_limit_is_not_rotated_yet()
+        {
+            Directory.CreateDirectory(Log.Dir);
+            File.WriteAllText(Log.FilePath, new string('x', 512 * 1024));
+            Log.Write("more");
+            Assert.False(File.Exists(Log.FilePath + ".1"));
+            Assert.EndsWith("more" + Environment.NewLine, File.ReadAllText(Log.FilePath));
+        }
+
+        [Fact]
+        public void Concurrent_writers_lose_no_lines()
+        {
+            var threads = Enumerable.Range(0, 8).Select(t => new System.Threading.Thread(() =>
+            {
+                for (int i = 0; i < 25; i++) Log.Write("t" + t + "-" + i);
+            })).ToList();
+            threads.ForEach(t => t.Start());
+            threads.ForEach(t => t.Join());
+            var lines = File.ReadAllLines(Log.FilePath);
+            Assert.Equal(200, lines.Length);
+            Assert.Equal(200, lines.Select(l => l.Substring(l.IndexOf("  ", StringComparison.Ordinal) + 2)).Distinct().Count());
+        }
+    }
 }
