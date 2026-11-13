@@ -189,8 +189,8 @@
       <Button x:Name="AbortButton" Click="OnAbort" MinHeight="36" AutomationProperties.AutomationId="Abort"
               AutomationProperties.Name="{Binding [Abort], Source={x:Static core:Loc.I}}">
         <StackPanel Orientation="Horizontal">
-          <ui:Glyph Style="{StaticResource Icon}" Text="&#xE711;" FontSize="11" Margin="0,0,8,0"/>
-          <TextBlock Text="{Binding [Abort], Source={x:Static core:Loc.I}}" TextWrapping="Wrap"/>
+          <ui:Glyph Style="{StaticResource Icon}" Text="&#xE711;" FontSize="13" Margin="0,2,8,0"/>
+          <TextBlock Text="{Binding [Abort], Source={x:Static core:Loc.I}}" TextWrapping="Wrap" VerticalAlignment="Center"/>
         </StackPanel>
       </Button>
       <Button x:Name="StartButton" Grid.Column="2" Style="{StaticResource AccentButton}" Click="OnStart" MinHeight="36"

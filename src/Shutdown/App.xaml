@@ -77,6 +77,9 @@
       <Setter Property="FontFamily" Value="{StaticResource IconFont}"/>
       <Setter Property="VerticalAlignment" Value="Center"/>
       <Setter Property="HorizontalAlignment" Value="Center"/>
+      <!-- Ideal keeps the round glyph outlines intact at small sizes; Display hinting flattens the bottom of the power ring. -->
+      <Setter Property="TextOptions.TextFormattingMode" Value="Ideal"/>
+      <Setter Property="TextOptions.TextRenderingMode" Value="Grayscale"/>
     </Style>
 
     <!-- Standard button -->
