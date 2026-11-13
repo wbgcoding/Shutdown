@@ -22,7 +22,7 @@
       <ColumnDefinition Width="Auto"/>
       <ColumnDefinition Width="Auto"/>
     </Grid.ColumnDefinitions>
-    <ui:AppLogo Width="28" Height="28" Margin="12,0,10,0" VerticalAlignment="Center"/>
+    <ui:AppLogo Width="24" Height="24" Margin="12,0,9,0" VerticalAlignment="Center"/>
     <TextBlock Grid.Column="1" Style="{StaticResource TitleText}"
                Text="{Binding Title, RelativeSource={RelativeSource AncestorType=Window}}"/>
     <Button x:Name="MinimizeButton" Grid.Column="2" Style="{StaticResource CaptionButton}" Click="OnMinimize"
@@ -92,33 +92,34 @@
         </Border>
 
         <!-- Day for a date -->
-        <Grid x:Name="DateRow" Visibility="Collapsed" Margin="0,0,0,8">
+        <!-- Today and Tomorrow share one width, so the date between the arrows sits exactly in the middle. -->
+        <Grid x:Name="DateRow" Visibility="Collapsed" Margin="0,0,0,8" Grid.IsSharedSizeScope="True">
           <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" SharedSizeGroup="DayChip"/>
             <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto" SharedSizeGroup="DayChip"/>
           </Grid.ColumnDefinitions>
-          <Button x:Name="PrevDay" Style="{StaticResource GhostButton}" Click="OnPrevDay" MinWidth="32" MinHeight="32"
+          <Button Style="{StaticResource ChipButton}" Click="OnToday" AutomationProperties.AutomationId="Today"
+                  Content="{Binding [Today], Source={x:Static core:Loc.I}}" Margin="0,0,6,0"/>
+          <Button x:Name="PrevDay" Grid.Column="1" Style="{StaticResource GhostButton}" Click="OnPrevDay" MinWidth="32" MinHeight="32"
                   AutomationProperties.AutomationId="PrevDay"
                   AutomationProperties.Name="{Binding [PrevDay], Source={x:Static core:Loc.I}}"
                   ToolTip="{Binding [PrevDay], Source={x:Static core:Loc.I}}">
             <ui:Glyph Style="{StaticResource Icon}" Text="&#xE76B;" FontSize="12"/>
           </Button>
-          <TextBlock x:Name="DateLabel" Grid.Column="1" FontSize="14" FontWeight="SemiBold"
+          <TextBlock x:Name="DateLabel" Grid.Column="2" FontSize="14" FontWeight="SemiBold"
                      HorizontalAlignment="Center" VerticalAlignment="Center"
                      AutomationProperties.AutomationId="DateLabel"/>
-          <Button x:Name="NextDay" Grid.Column="2" Style="{StaticResource GhostButton}" Click="OnNextDay" MinWidth="32" MinHeight="32"
+          <Button x:Name="NextDay" Grid.Column="3" Style="{StaticResource GhostButton}" Click="OnNextDay" MinWidth="32" MinHeight="32"
                   AutomationProperties.AutomationId="NextDay"
                   AutomationProperties.Name="{Binding [NextDay], Source={x:Static core:Loc.I}}"
                   ToolTip="{Binding [NextDay], Source={x:Static core:Loc.I}}">
             <ui:Glyph Style="{StaticResource Icon}" Text="&#xE76C;" FontSize="12"/>
           </Button>
-          <Button Grid.Column="3" Style="{StaticResource ChipButton}" Click="OnToday" AutomationProperties.AutomationId="Today"
-                  Content="{Binding [Today], Source={x:Static core:Loc.I}}" Margin="8,0,6,0"/>
           <Button Grid.Column="4" Style="{StaticResource ChipButton}" Click="OnTomorrow" AutomationProperties.AutomationId="Tomorrow"
-                  Content="{Binding [Tomorrow], Source={x:Static core:Loc.I}}" Margin="0"/>
+                  Content="{Binding [Tomorrow], Source={x:Static core:Loc.I}}" Margin="6,0,0,0"/>
         </Grid>
 
         <!-- The value the other mode would show: end time for a countdown, time left for a date -->
@@ -144,16 +145,16 @@
         </StackPanel>
 
         <WrapPanel x:Name="Chips" HorizontalAlignment="Center" Margin="0,8,0,-6"/>
-        <Border x:Name="AppTimedNote" Background="{DynamicResource Control}" CornerRadius="6" Padding="8,6" Margin="0,8,0,0">
+        <Border x:Name="AppTimedNote" Background="{DynamicResource Control}" BorderBrush="{DynamicResource Accent}"
+                BorderThickness="1" CornerRadius="6" Padding="10,7" Margin="0,8,0,0">
           <Grid>
             <Grid.ColumnDefinitions>
               <ColumnDefinition Width="Auto"/>
               <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <ui:Glyph Style="{StaticResource Icon}" Text="&#xE946;" FontSize="12" Foreground="{DynamicResource Text}"
-                      VerticalAlignment="Top" Margin="0,2,8,0"/>
+            <ui:InfoBadge Margin="0,0,10,0"/>
             <TextBlock x:Name="AppTimedText" Grid.Column="1" FontSize="12" Foreground="{DynamicResource Text}"
-                       TextWrapping="Wrap" AutomationProperties.AutomationId="AppTimedNote"/>
+                       VerticalAlignment="Center" TextWrapping="Wrap" AutomationProperties.AutomationId="AppTimedNote"/>
           </Grid>
         </Border>
       </StackPanel>
