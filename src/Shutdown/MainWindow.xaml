@@ -20,7 +20,7 @@
                          AutomationProperties.AutomationId="ActShutdown"
                          AutomationProperties.Name="{Binding [ActShutdown], Source={x:Static core:Loc.I}}">
               <StackPanel Orientation="Horizontal">
-                <ui:Glyph Style="{StaticResource Icon}" Text="&#xE7E8;" FontSize="13" Margin="0,0,5,0"/>
+                <ui:PowerGlyph Margin="0,0,5,0"/>
                 <TextBlock Text="{Binding [ActShutdown], Source={x:Static core:Loc.I}}"/>
               </StackPanel>
             </RadioButton>
@@ -196,7 +196,8 @@
       <Button x:Name="StartButton" Grid.Column="2" Style="{StaticResource AccentButton}" Click="OnStart" MinHeight="36"
               AutomationProperties.AutomationId="Start">
         <StackPanel Orientation="Horizontal">
-          <ui:Glyph x:Name="StartIcon" Style="{StaticResource Icon}" Text="&#xE7E8;" FontSize="13" Margin="0,0,8,0"/>
+          <ui:PowerGlyph x:Name="StartPower" Margin="0,0,8,0"/>
+          <ui:Glyph x:Name="StartIcon" Style="{StaticResource Icon}" FontSize="13" Margin="0,0,8,0" Visibility="Collapsed"/>
           <TextBlock x:Name="StartText" TextWrapping="Wrap"/>
         </StackPanel>
       </Button>

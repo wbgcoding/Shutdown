@@ -292,10 +292,10 @@ namespace Shutdown.Tests
         // ---- texts and controls per state ----
 
         [Theory]
-        [InlineData("en", "Shutdown", "Schedule shutdown", "")]
+        [InlineData("en", "Shutdown", "Schedule shutdown", "")]
         [InlineData("en", "Restart", "Schedule restart", "")]
         [InlineData("en", "Hibernate", "Schedule hibernation", "")]
-        [InlineData("de", "Shutdown", "Herunterfahren planen", "")]
+        [InlineData("de", "Shutdown", "Herunterfahren planen", "")]
         public void Start_button_follows_the_action_and_language(string lang, string action, string text, string icon) => Sta.Run(() =>
         {
             var w = Make();
@@ -303,6 +303,9 @@ namespace Shutdown.Tests
             (action == "Restart" ? w.ActRestart : action == "Hibernate" ? w.ActHibernate : w.ActShutdown).IsChecked = true;
             Assert.Equal(text, w.StartText.Text);
             Assert.Equal(icon, w.StartIcon.Text);
+            bool power = action == "Shutdown";
+            Assert.Equal(power ? Visibility.Visible : Visibility.Collapsed, w.StartPower.Visibility);
+            Assert.Equal(power ? Visibility.Collapsed : Visibility.Visible, w.StartIcon.Visibility);
             Assert.Equal(text, AutomationProperties.GetName(w.StartButton));
         });
 
