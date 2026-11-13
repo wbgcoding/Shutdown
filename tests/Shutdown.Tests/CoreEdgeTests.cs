@@ -795,6 +795,7 @@ namespace Shutdown.Tests
         {
             Store().Save(new Settings { PendingBoot = "boot:\u00e4\u00f6" });
             var bytes = File.ReadAllBytes(FilePath);
+            Assert.Equal((byte)'{', bytes[0]);
             var text = new UTF8Encoding(false).GetString(bytes);
             Assert.StartsWith("{", text);
             Assert.Equal("boot:\u00e4\u00f6", Store().Load().PendingBoot);
