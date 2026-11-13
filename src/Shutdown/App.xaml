@@ -82,6 +82,74 @@
       <Setter Property="TextOptions.TextRenderingMode" Value="Grayscale"/>
     </Style>
 
+    <!-- Title bar: caption text dims while the window is inactive, like the Windows caption. -->
+    <Style x:Key="TitleText" TargetType="TextBlock">
+      <Setter Property="FontFamily" Value="{StaticResource DisplayFont}"/>
+      <Setter Property="FontSize" Value="18"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="VerticalAlignment" Value="Center"/>
+      <Setter Property="Foreground" Value="{DynamicResource Text}"/>
+      <Style.Triggers>
+        <DataTrigger Binding="{Binding IsActive, RelativeSource={RelativeSource AncestorType=Window}}" Value="False">
+          <Setter Property="Foreground" Value="{DynamicResource TextSub}"/>
+        </DataTrigger>
+      </Style.Triggers>
+    </Style>
+
+    <!-- Caption buttons: not in the tab order (Alt+Space and Alt+F4 reach them), no tooltip. -->
+    <Style x:Key="CaptionButton" TargetType="Button">
+      <Setter Property="Width" Value="46"/>
+      <Setter Property="Focusable" Value="False"/>
+      <Setter Property="IsTabStop" Value="False"/>
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="Foreground" Value="{DynamicResource Text}"/>
+      <Setter Property="WindowChrome.IsHitTestVisibleInChrome" Value="True"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Button">
+            <Border x:Name="Bd" Background="{TemplateBinding Background}">
+              <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource ControlHover}"/>
+              </Trigger>
+              <Trigger Property="IsPressed" Value="True">
+                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource ControlPressed}"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+      <Style.Triggers>
+        <DataTrigger Binding="{Binding IsActive, RelativeSource={RelativeSource AncestorType=Window}}" Value="False">
+          <Setter Property="Foreground" Value="{DynamicResource TextSub}"/>
+        </DataTrigger>
+      </Style.Triggers>
+    </Style>
+
+    <Style x:Key="CaptionCloseButton" TargetType="Button" BasedOn="{StaticResource CaptionButton}">
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Button">
+            <Border x:Name="Bd" Background="{TemplateBinding Background}">
+              <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="Bd" Property="Background" Value="#C42B1C"/>
+                <Setter Property="Foreground" Value="#FFFFFF"/>
+              </Trigger>
+              <Trigger Property="IsPressed" Value="True">
+                <Setter TargetName="Bd" Property="Background" Value="#C83C31"/>
+                <Setter Property="Foreground" Value="#FFFFFF"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+
     <!-- Standard button -->
     <Style TargetType="Button">
       <Setter Property="Background" Value="{DynamicResource Control}"/>

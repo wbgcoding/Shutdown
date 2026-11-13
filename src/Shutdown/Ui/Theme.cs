@@ -148,6 +148,8 @@ namespace Shutdown.Ui
         // Windows 10 before 20H1 knows the same attribute under this id.
         const int DwmwaUseImmersiveDarkModeOld = 19;
         const int DwmwaCaptionColor = 35;
+        const int DwmwaWindowCornerPreference = 33;
+        const int DwmwcpRound = 2;
 
         /// <summary>Dark title bar and a caption matching the window background; skipped where Windows lacks it.</summary>
         public static void ApplyTitleBar(Window w)
@@ -159,6 +161,9 @@ namespace Shutdown.Ui
                 int dark = IsDark && !SystemParameters.HighContrast ? 1 : 0;
                 if (DwmSetWindowAttribute(hwnd, DwmwaUseImmersiveDarkMode, ref dark, sizeof(int)) != 0)
                     DwmSetWindowAttribute(hwnd, DwmwaUseImmersiveDarkModeOld, ref dark, sizeof(int));
+                // The app draws its own title bar; keep the rounded Windows 11 corners (ignored on Windows 10).
+                int round = DwmwcpRound;
+                DwmSetWindowAttribute(hwnd, DwmwaWindowCornerPreference, ref round, sizeof(int));
                 if (SystemParameters.HighContrast) return;
                 if (!(w.TryFindResource("Bg") is SolidColorBrush bg)) return;
                 var c = bg.Color;

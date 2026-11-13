@@ -212,7 +212,29 @@ namespace Shutdown
         {
             if (WindowState == WindowState.Minimized) WindowState = WindowState.Normal;
             Show();
+            // Topmost for a moment lifts the window above others even where Windows refuses the focus.
+            Topmost = true;
+            Topmost = false;
             Activate();
+        }
+
+        void OnMinimize(object sender, RoutedEventArgs e) => SystemCommands.MinimizeWindow(this);
+
+        void OnCloseButton(object sender, RoutedEventArgs e) => Close();
+
+        /// <summary>
+        /// Closes for a newer build of the app that was just started; false (window stays) while a timed
+        /// hibernate needs this window open, with the reason shown.
+        /// </summary>
+        public bool CloseForNewerBuild()
+        {
+            if (_pending?.AppTimed == true)
+            {
+                SetMessage(MessageKind.CloseGuard, "CloseGuard", null, false);
+                return false;
+            }
+            Close();
+            return true;
         }
 
         PowerAction SelectedAction =>

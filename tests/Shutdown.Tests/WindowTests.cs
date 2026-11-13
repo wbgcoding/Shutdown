@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Threading;
 using System.Windows;
+using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
@@ -547,6 +548,56 @@ namespace Shutdown.Tests
             Assert.Equal(Loc.I["CloseGuard"], w.MessageText.Text);
             Assert.Equal(Visibility.Visible, w.CloseAnywayButton.Visibility);
             Assert.Equal(Loc.I["KeepOpen"], w.DismissButton.Content);
+        });
+
+        [Fact]
+        public void A_newer_build_is_refused_while_a_hibernate_needs_the_window() => Sta.Run(() =>
+        {
+            var w = Make();
+            w.ActHibernate.IsChecked = true;
+            Click(w.StartButton);
+            bool closed = false;
+            w.Closed += (s, e) => closed = true;
+            Assert.False(w.CloseForNewerBuild());
+            Assert.Equal(Loc.I["CloseGuard"], w.MessageText.Text);
+            Assert.False(closed);
+        });
+
+        [Fact]
+        public void A_newer_build_closes_the_window_otherwise() => Sta.Run(() =>
+        {
+            var w = Make();
+            bool closed = false;
+            w.Closed += (s, e) => closed = true;
+            Assert.True(w.CloseForNewerBuild());
+            Assert.True(closed);
+        });
+
+        [Fact]
+        public void Title_bar_close_goes_through_the_close_guard() => Sta.Run(() =>
+        {
+            var w = Make();
+            w.ActHibernate.IsChecked = true;
+            Click(w.StartButton);
+            bool closed = false;
+            w.Closed += (s, e) => closed = true;
+            Click(w.CloseButton);
+            Assert.False(closed);
+            Assert.Equal(Loc.I["CloseGuard"], w.MessageText.Text);
+        });
+
+        [Fact]
+        public void Title_bar_buttons_carry_ids_and_names_but_stay_out_of_the_tab_order() => Sta.Run(() =>
+        {
+            var w = Make();
+            Loc.I.Apply("de");
+            Assert.Equal("TitleMinimize", AutomationProperties.GetAutomationId(w.MinimizeButton));
+            Assert.Equal("TitleClose", AutomationProperties.GetAutomationId(w.CloseButton));
+            Assert.Equal("Minimieren", AutomationProperties.GetName(w.MinimizeButton));
+            Assert.Equal("Schließen", AutomationProperties.GetName(w.CloseButton));
+            Assert.False(w.MinimizeButton.IsTabStop);
+            Assert.False(w.CloseButton.IsTabStop);
+            Assert.Null(w.CloseButton.ToolTip);
         });
 
         [Fact]
