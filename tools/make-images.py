@@ -1,16 +1,15 @@
 """Builds the README screenshot and the GitHub social preview.
 
-Usage: python tools/make-images.py <render.png> <window-shot.png>
-render.png: the client area at 200 % from tools/ShotHost (shot-render.png), dark theme
-(tests/vm/screenshot-setup.ps1). window-shot.png: a screen shot of the same window at 200 %,
-used only for the real title bar above the client area.
+Usage: python tools/make-images.py <render.png>
+render.png: the whole window at 200 % from tools/ShotHost (shot-render.png), dark theme
+(tests/vm/screenshot-setup.ps1). The app draws its own title bar, so the render already shows it.
 Writes docs/screenshot.png (window with rounded corners, transparent outside)
 and docs/social-preview.png (1280x640, window centred on a dark background).
 """
 import sys
 from pathlib import Path
 
-from PIL import Image, ImageChops, ImageDraw, ImageFilter, ImageStat
+from PIL import Image, ImageDraw, ImageFilter
 
 ROOT = Path(__file__).resolve().parent.parent
 RADIUS = 16  # Windows 11 window corner (8 px) at 200 %
@@ -44,37 +43,8 @@ def shadow(size, window, offset, radius):
     return layer.filter(ImageFilter.GaussianBlur(24))
 
 
-def title_bar(render, shot):
-    """Finds where the client area sits in the screen shot and returns the strip above it."""
-    probe = render.crop((0, 0, render.width, 30))
-    best = None
-    for y in range(20, 120):
-        for x in range(0, 40):
-            if x + render.width > shot.width:
-                break
-            d = sum(ImageStat.Stat(ImageChops.difference(shot.crop((x, y, x + render.width, y + 30)), probe)).mean)
-            if best is None or d < best[0]:
-                best = (d, x, y)
-    d, x, y = best
-    if d > 2:
-        sys.exit("client area not found in the window shot (difference %.1f)" % d)
-    # The shot can start a few rows above the window (desktop showing through): begin at the
-    # first row that matches the title bar background just below it.
-    def row(r):
-        return ImageStat.Stat(shot.crop((x, r, x + render.width, r + 1))).median
-    top = 0
-    while top < 8 and sum(abs(a - b) for a, b in zip(row(top), row(top + 4))) > 6:
-        top += 1
-    return shot.crop((x, top, x + render.width, y))
-
-
-def main(render_path, shot_path):
-    render = Image.open(render_path).convert("RGB")
-    bar = title_bar(render, Image.open(shot_path).convert("RGB"))
-    full = Image.new("RGB", (render.width, bar.height + render.height))
-    full.paste(bar, (0, 0))
-    full.paste(render, (0, bar.height))
-    window = rounded(full, RADIUS)
+def main(render_path):
+    window = rounded(Image.open(render_path).convert("RGB"), RADIUS)
     window.save(ROOT / "docs" / "screenshot.png", optimize=True)
 
     scale = PREVIEW_WINDOW_HEIGHT / window.height
@@ -88,4 +58,6 @@ def main(render_path, shot_path):
 
 
 if __name__ == "__main__":
-    main(sys.argv[1], sys.argv[2])
+    if len(sys.argv) != 2:
+        sys.exit(__doc__)
+    main(sys.argv[1])

@@ -2,6 +2,20 @@
 
 All notable changes to this project are documented here. The format follows Keep a Changelog; versions follow semantic versioning.
 
+## [1.2.1] - 2026-11-14
+
+### Changed
+- The window has its own title bar with a larger logo and title; only Minimize and Close remain, the unused Maximize button is gone.
+- Starting a newer version while an older one is open closes the older one and opens the new one. Only while a hibernate countdown runs does the open window stay, and it says why.
+- The app icon is redrawn: a shorter stem with a clear gap to the ring, sharp at small sizes.
+- On the date page, Today sits on the left and Tomorrow on the right at the same width, so the date between the arrows is centred.
+- The hibernate note has a clearer info badge and an accent border.
+- The power symbol on the buttons is drawn as a vector, so its ring stays round at every display scale.
+- The cross on Cancel schedule is larger and level with the text.
+
+### Fixed
+- Starting the app while it is already open brings the open window to the front instead of leaving it behind other windows.
+
 ## [1.2.0] - 2026-11-07
 
 ### Changed
