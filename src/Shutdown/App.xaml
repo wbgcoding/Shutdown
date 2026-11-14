@@ -31,6 +31,9 @@
     <SolidColorBrush x:Key="DangerSoft" Color="#FDE7E9"/>
     <SolidColorBrush x:Key="Focus" Color="#1B1B1B"/>
     <SolidColorBrush x:Key="Disabled" Color="#A0A0A0"/>
+    <SolidColorBrush x:Key="CaptionCloseHover" Color="#C42B1C"/>
+    <SolidColorBrush x:Key="CaptionClosePressed" Color="#C83C31"/>
+    <SolidColorBrush x:Key="CaptionCloseText" Color="#FFFFFF"/>
 
     <Style x:Key="FocusRing">
       <Setter Property="Control.Template">
@@ -113,9 +116,11 @@
             <ControlTemplate.Triggers>
               <Trigger Property="IsMouseOver" Value="True">
                 <Setter TargetName="Bd" Property="Background" Value="{DynamicResource ControlHover}"/>
+                <Setter Property="Foreground" Value="{DynamicResource ControlHoverText}"/>
               </Trigger>
               <Trigger Property="IsPressed" Value="True">
                 <Setter TargetName="Bd" Property="Background" Value="{DynamicResource ControlPressed}"/>
+                <Setter Property="Foreground" Value="{DynamicResource ControlHoverText}"/>
               </Trigger>
             </ControlTemplate.Triggers>
           </ControlTemplate>
@@ -137,12 +142,12 @@
             </Border>
             <ControlTemplate.Triggers>
               <Trigger Property="IsMouseOver" Value="True">
-                <Setter TargetName="Bd" Property="Background" Value="#C42B1C"/>
-                <Setter Property="Foreground" Value="#FFFFFF"/>
+                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource CaptionCloseHover}"/>
+                <Setter Property="Foreground" Value="{DynamicResource CaptionCloseText}"/>
               </Trigger>
               <Trigger Property="IsPressed" Value="True">
-                <Setter TargetName="Bd" Property="Background" Value="#C83C31"/>
-                <Setter Property="Foreground" Value="#FFFFFF"/>
+                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource CaptionClosePressed}"/>
+                <Setter Property="Foreground" Value="{DynamicResource CaptionCloseText}"/>
               </Trigger>
             </ControlTemplate.Triggers>
           </ControlTemplate>

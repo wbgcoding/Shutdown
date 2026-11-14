@@ -52,9 +52,17 @@ namespace Shutdown.Ui
                 Set(res, "DangerSoft", SystemColors.WindowColor);
                 Set(res, "Focus", SystemColors.HighlightColor);
                 Set(res, "Disabled", SystemColors.GrayTextColor);
+                // The red close hover would ignore the contrast theme.
+                Set(res, "CaptionCloseHover", SystemColors.HighlightColor);
+                Set(res, "CaptionClosePressed", SystemColors.HighlightColor);
+                Set(res, "CaptionCloseText", SystemColors.HighlightTextColor);
                 return;
             }
 
+            // Windows' own close button red, in both modes.
+            Set(res, "CaptionCloseHover", "#C42B1C");
+            Set(res, "CaptionClosePressed", "#C83C31");
+            Set(res, "CaptionCloseText", "#FFFFFF");
             var a = AccentPalette();
             if (IsDark)
             {

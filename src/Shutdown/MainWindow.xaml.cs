@@ -130,6 +130,12 @@ namespace Shutdown
             SystemEvents.TimeChanged += OnTimeChanged;
             SourceInitialized += (s, e) => Theme.ApplyTitleBar(this);
             SizeChanged += (s, e) => KeepOnScreen();
+            // Without the system frame, Windows 10 draws no window edge (Windows 11 adds its own border and corners).
+            if (Environment.OSVersion.Version.Build < 22000)
+            {
+                BorderThickness = new Thickness(1);
+                SetResourceReference(BorderBrushProperty, "ControlBorder");
+            }
 
             _tick = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
             _tick.Tick += (s, e) => OnTick();
@@ -230,7 +236,8 @@ namespace Shutdown
         {
             if (_pending?.AppTimed == true)
             {
-                SetMessage(MessageKind.CloseGuard, "CloseGuard", null, false);
+                // The newer copy has already exited, so offering "Close anyway" here would leave no window at all.
+                ShowInfo("NewerBuildWaits");
                 return false;
             }
             Close();
@@ -458,8 +465,8 @@ namespace Shutdown
         {
             _pending = null;
             SyncKeepAwake();
-            // The close warning is about the countdown that just ended.
-            if (_msgKind == MessageKind.CloseGuard) HideMessage();
+            // The close warning and the note for a newer copy are about the countdown that just ended.
+            if (_msgKind == MessageKind.CloseGuard || _msgKey == "NewerBuildWaits") HideMessage();
             if (_settings.PendingAction != null || _settings.PendingDue != null || _settings.PendingBoot != null)
             {
                 _settings.PendingAction = null;

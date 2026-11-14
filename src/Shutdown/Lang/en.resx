@@ -59,6 +59,7 @@
   <data name="CloseGuard" xml:space="preserve"><value>The countdown runs in this window. Closing it cancels the countdown.</value></data>
   <data name="CloseAnyway" xml:space="preserve"><value>Close anyway</value></data>
   <data name="KeepOpen" xml:space="preserve"><value>Keep open</value></data>
+  <data name="NewerBuildWaits" xml:space="preserve"><value>A newer version of Shutdown was started. Start it again once the hibernation countdown in this window has run or is cancelled.</value></data>
   <data name="ErrInvalidTime" xml:space="preserve"><value>This time does not exist on that day because of the clock change.</value></data>
   <data name="ExitCodeFmt" xml:space="preserve"><value>exit code {0}</value></data>
   <data name="MsgNotSaved" xml:space="preserve"><value>The schedule is set but could not be saved, so Shutdown will not show it after you close it.</value></data>

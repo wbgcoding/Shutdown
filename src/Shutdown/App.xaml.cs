@@ -88,12 +88,17 @@ namespace Shutdown
             var deadline = DateTime.UtcNow + ClaimTimeout;
             while (!TryOwnMutex(TimeSpan.Zero))
             {
-                AllowSetForegroundWindow(AsfwAny);
-                if (!takeoverTried && BuildId.ReadPublished(InfoName) is BuildId running && self.IsNewerThan(running))
+                var running = BuildId.ReadPublished(InfoName, out int runningPid);
+                // Only the running instance gets the right; a release that published nothing gets it the old way.
+                AllowSetForegroundWindow(runningPid > 0 ? runningPid : AsfwAny);
+                if (!takeoverTried && running.HasValue && self.IsNewerThan(running.Value))
                 {
                     takeoverTried = true;
-                    if (TakeOver()) break;
-                    deadline = DateTime.UtcNow + ClaimTimeout;
+                    var result = TakeOver();
+                    if (result == Takeover.Done) break;
+                    // Declined: the running window came to the front and says why.
+                    if (result == Takeover.Declined) return false;
+                    // No answer: one last activation round, the deadline has passed by now.
                     continue;
                 }
                 _ack.Reset();
@@ -109,7 +114,7 @@ namespace Shutdown
             _activate.Reset();
             _quit.Reset();
             _owned = true;
-            try { _info = self.Publish(InfoName); }
+            try { _info = self.Publish(InfoName, System.Diagnostics.Process.GetCurrentProcess().Id); }
             catch (Exception ex) { Log.Write("build info not published", ex); }
             new Thread(Listen) { IsBackground = true, Name = "activate" }.Start();
             return true;
@@ -119,21 +124,27 @@ namespace Shutdown
         /// Asks an older running build to close and waits for its lock. It declines (and comes to the front
         /// instead) while it must stay open for a timed hibernate; then this start only activates it.
         /// </summary>
-        bool TakeOver()
+        Takeover TakeOver()
         {
             _ack.Reset();
             _quit.Set();
             try
             {
                 int i = WaitHandle.WaitAny(new WaitHandle[] { _mutex, _ack }, ClaimTimeout);
-                if (i == 0) return true;
-                if (i == 1) Log.Write("running instance declined to close");
-                else Log.Write("running instance did not close");
+                if (i == 0) return Takeover.Done;
                 _quit.Reset();
-                return false;
+                if (i == 1)
+                {
+                    Log.Write("running instance declined to close");
+                    return Takeover.Declined;
+                }
+                Log.Write("running instance did not close");
+                return Takeover.NoAnswer;
             }
-            catch (AbandonedMutexException ex) when (ex.MutexIndex == 0) { return true; }
+            catch (AbandonedMutexException ex) when (ex.MutexIndex == 0) { return Takeover.Done; }
         }
+
+        enum Takeover { Done, Declined, NoAnswer }
 
         bool TryOwnMutex(TimeSpan wait)
         {
@@ -148,11 +159,15 @@ namespace Shutdown
             while ((i = WaitHandle.WaitAny(handles)) < 2)
             {
                 bool quit = i == 1;
+                var signalled = DateTime.UtcNow;
                 Dispatcher.BeginInvoke(new Action(() =>
                 {
                     if (!_owned || !(MainWindow is MainWindow w) || !w.IsVisible) return;
                     // A newer build was started: close so it can take over, unless a timed hibernate needs this window.
-                    if (quit && w.CloseForNewerBuild()) return;
+                    // A request that waited longer than the newer build waits (a busy window) is stale: that build has
+                    // given up already, so closing now would leave no window at all.
+                    bool stale = DateTime.UtcNow - signalled > ClaimTimeout;
+                    if (quit && !stale && w.CloseForNewerBuild()) return;
                     w.BringToFront();
                     _ack.Set();
                 }));

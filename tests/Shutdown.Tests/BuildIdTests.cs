@@ -27,10 +27,11 @@ namespace Shutdown.Tests
         {
             string name = @"Local\BGCoding.Shutdown.Test." + Guid.NewGuid().ToString("N");
             var id = B("3.4.5.6", 638700000000000000);
-            using (id.Publish(name))
+            using (id.Publish(name, 4242))
             {
-                var read = BuildId.ReadPublished(name);
+                var read = BuildId.ReadPublished(name, out int pid);
                 Assert.True(read.HasValue);
+                Assert.Equal(4242, pid);
                 Assert.Equal(id.Version, read.Value.Version);
                 Assert.Equal(id.StampTicks, read.Value.StampTicks);
                 Assert.False(read.Value.IsNewerThan(id));
@@ -41,6 +42,18 @@ namespace Shutdown.Tests
         [Fact]
         public void Nothing_published_reads_as_null() =>
             Assert.Null(BuildId.ReadPublished(@"Local\BGCoding.Shutdown.Test." + Guid.NewGuid().ToString("N")));
+
+        [Fact]
+        public void A_map_in_another_layout_reads_as_null()
+        {
+            string name = @"Local\BGCoding.Shutdown.Test." + Guid.NewGuid().ToString("N");
+            using (var map = System.IO.MemoryMappedFiles.MemoryMappedFile.CreateOrOpen(name, 7 * sizeof(long)))
+            {
+                using (var v = map.CreateViewAccessor()) v.Write(0, 1L);
+                Assert.Null(BuildId.ReadPublished(name, out int pid));
+                Assert.Equal(0, pid);
+            }
+        }
 
         [Fact]
         public void Current_build_has_the_exe_write_time()

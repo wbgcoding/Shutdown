@@ -559,7 +559,9 @@ namespace Shutdown.Tests
             bool closed = false;
             w.Closed += (s, e) => closed = true;
             Assert.False(w.CloseForNewerBuild());
-            Assert.Equal(Loc.I["CloseGuard"], w.MessageText.Text);
+            Assert.Equal(Loc.I["NewerBuildWaits"], w.MessageText.Text);
+            // The newer copy has already given up: "Close anyway" would leave no window open.
+            Assert.Equal(Visibility.Collapsed, w.CloseAnywayButton.Visibility);
             Assert.False(closed);
         });
 
