@@ -94,9 +94,15 @@ namespace Shutdown.Ui
         void OnUp(object sender, RoutedEventArgs e) => Step(1);
         void OnDown(object sender, RoutedEventArgs e) => Step(-1);
 
+        int _wheel;
+
+        // Precision touchpads send many small deltas per swipe: one step per notch (120), like a mouse wheel.
         protected override void OnPreviewMouseWheel(MouseWheelEventArgs e)
         {
-            Step(e.Delta > 0 ? WheelStep : -WheelStep);
+            _wheel += e.Delta;
+            int notches = _wheel / Mouse.MouseWheelDeltaForOneLine;
+            _wheel %= Mouse.MouseWheelDeltaForOneLine;
+            if (notches != 0) Step(notches * WheelStep);
             e.Handled = true;
         }
 
@@ -107,8 +113,10 @@ namespace Shutdown.Ui
 
         void OnPaste(object sender, DataObjectPastingEventArgs e)
         {
-            var text = e.SourceDataObject.GetData(DataFormats.UnicodeText) as string;
+            // A copied cell or line carries spaces or a line break around the number.
+            var text = (e.SourceDataObject.GetData(DataFormats.UnicodeText) as string)?.Trim();
             if (text == null || !IsDigits(text)) e.CancelCommand();
+            else e.DataObject = new DataObject(DataFormats.UnicodeText, text);
         }
 
         void OnKey(object sender, KeyEventArgs e)
@@ -120,6 +128,8 @@ namespace Shutdown.Ui
                 case Key.PageUp: Commit(); Step(10); e.Handled = true; break;
                 case Key.PageDown: Commit(); Step(-10); e.Handled = true; break;
                 case Key.Enter: Commit(); Box.SelectAll(); e.Handled = true; break;
+                // Space raises no PreviewTextInput, so the digit filter never sees it.
+                case Key.Space: e.Handled = true; break;
             }
         }
 

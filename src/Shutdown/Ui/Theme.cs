@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media;
+using System.Windows.Threading;
 using Microsoft.Win32;
 
 namespace Shutdown.Ui
@@ -189,7 +190,8 @@ namespace Shutdown.Ui
                 if (e.Category == UserPreferenceCategory.General || e.Category == UserPreferenceCategory.Color ||
                     e.Category == UserPreferenceCategory.VisualStyle ||
                     e.Category == UserPreferenceCategory.Accessibility)
-                    Application.Current?.Dispatcher.BeginInvoke(onChange);
+                    // Background: after WPF has refreshed SystemParameters.HighContrast and SystemColors.
+                    Application.Current?.Dispatcher.BeginInvoke(onChange, DispatcherPriority.Background);
             };
             SystemEvents.UserPreferenceChanged += handler;
             return () => SystemEvents.UserPreferenceChanged -= handler;

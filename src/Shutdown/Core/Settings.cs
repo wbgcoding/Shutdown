@@ -68,6 +68,9 @@ namespace Shutdown.Core
             catch (Exception ex)
             {
                 Log.Write("settings load failed", ex);
+                // The next save overwrites the file with defaults: keep the damaged one for the user to repair.
+                try { if (File.Exists(FilePath)) File.Copy(FilePath, FilePath + ".bad", true); }
+                catch (Exception copyEx) { Log.Write("settings backup failed", copyEx); }
                 return new Settings();
             }
         }

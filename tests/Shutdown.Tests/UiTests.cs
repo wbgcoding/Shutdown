@@ -906,11 +906,24 @@ namespace Shutdown.Tests
             s.Value = 20;
             Wheel(s, 120);
             Assert.Equal(25, s.Value);
-            Wheel(s, -120);
-            Wheel(s, -1);
+            Wheel(s, -240);
             Assert.Equal(15, s.Value);
             Wheel(s, 0);
-            Assert.Equal(10, s.Value);
+            Assert.Equal(15, s.Value);
+        });
+
+        [Fact]
+        public void Touchpad_deltas_add_up_to_one_step_per_notch() => Sta.Run(() =>
+        {
+            var s = Make();
+            s.Value = 20;
+            for (int i = 0; i < 4; i++) Wheel(s, 30);
+            Assert.Equal(21, s.Value);
+            Wheel(s, 60);
+            Assert.Equal(21, s.Value);
+            Wheel(s, -90);
+            Wheel(s, -90);
+            Assert.Equal(20, s.Value);
         });
 
         [Fact]
@@ -946,9 +959,29 @@ namespace Shutdown.Tests
         [InlineData("", true)]
         [InlineData("1 2", true)]
         [InlineData("٣", true)]
+        [InlineData(" 15\r\n", false)]
+        [InlineData("\t", true)]
         public void Only_ascii_digits_can_be_pasted(string text, bool cancelled) => Sta.Run(() =>
         {
             Assert.Equal(cancelled, Paste(Make(), text));
+        });
+
+        [Fact]
+        public void Pasted_number_arrives_without_surrounding_whitespace() => Sta.Run(() =>
+        {
+            var s = Make();
+            var data = new DataObject();
+            data.SetData(DataFormats.UnicodeText, "15\r\n");
+            var e = new DataObjectPastingEventArgs(data, false, DataFormats.UnicodeText) { RoutedEvent = DataObject.PastingEvent };
+            s.Box.RaiseEvent(e);
+            Assert.False(e.CommandCancelled);
+            Assert.Equal("15", e.DataObject.GetData(DataFormats.UnicodeText));
+        });
+
+        [Fact]
+        public void Space_is_swallowed() => Sta.Run(() =>
+        {
+            Assert.True(Press(Make(), Key.Space));
         });
 
         [Fact]

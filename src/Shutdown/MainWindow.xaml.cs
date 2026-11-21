@@ -99,7 +99,8 @@ namespace Shutdown
             DurHours.Value = settings.Hours;
             DurMinutes.Value = settings.Minutes;
 
-            var start = Now().AddHours(1);
+            // One real hour ahead: wall-clock math lands in the gap or an hour off on a DST change day.
+            var start = Now().ToUniversalTime().AddHours(1).ToLocalTime();
             start = start.AddMinutes((5 - start.Minute % 5) % 5);
             _date = start.Date;
             AtHour.Value = start.Hour;
@@ -307,7 +308,10 @@ namespace Shutdown
             DateRow.Visibility = AtPanel.Visibility;
 
             DateLabel.Text = L.DateText(_date);
-            PrevDay.IsEnabled = _date > now.Date;
+            bool prevDay = _date > now.Date;
+            // A focused control that turns itself off drops the focus to the window and Tab starts over.
+            if (!prevDay && PrevDay.IsKeyboardFocused) NextDay.Focus();
+            PrevDay.IsEnabled = prevDay;
 
             StartText.Text = L[action == PowerAction.Restart ? "StartRestart" : action == PowerAction.Hibernate ? "StartHibernate" : "StartShutdown"];
             System.Windows.Automation.AutomationProperties.SetName(StartButton, StartText.Text);
@@ -361,6 +365,9 @@ namespace Shutdown
         {
             var L = Loc.I;
             // Only something this app scheduled can be cancelled here.
+            // A focused control that turns itself off drops the focus to the window and Tab starts over.
+            if (_pending == null && AbortButton.IsKeyboardFocused && !StartButton.Focus())
+                (ActRestart.IsChecked == true ? ActRestart : ActHibernate.IsChecked == true ? ActHibernate : ActShutdown).Focus();
             AbortButton.IsEnabled = _pending != null;
             if (_pending == null)
             {

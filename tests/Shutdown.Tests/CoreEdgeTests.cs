@@ -804,6 +804,18 @@ namespace Shutdown.Tests
             Assert.Equal(9, Store().Load().Hours);
         }
 
+        [Fact]
+        public void Damaged_file_is_kept_aside_before_it_gets_overwritten()
+        {
+            const string damaged = "{\"Version\":1,\"Hours\":3,\"Theme\":\"dark\" \"Mode\":\"At\"}";
+            File.WriteAllText(FilePath, damaged);
+            var store = Store();
+            Assert.Equal(1, store.Load().Hours);
+            Assert.Equal(damaged, File.ReadAllText(FilePath + ".bad"));
+            Assert.True(store.Save(new Settings()));
+            Assert.Equal(damaged, File.ReadAllText(FilePath + ".bad"));
+        }
+
         [Theory]
         [InlineData("null")]
         [InlineData("")]

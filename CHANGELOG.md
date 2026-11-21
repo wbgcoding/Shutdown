@@ -7,6 +7,11 @@ All notable changes to this project are documented here. The format follows Keep
 ### Fixed
 - If a new time became too close while the old schedule was being cancelled, the app now says that the old schedule is gone and no new one was set.
 - A newer version no longer takes over while this window holds a schedule that could not be saved, since the new version would not show it.
+- The default time on the date page is one real hour ahead, also on the days the clock changes.
+- A settings file that cannot be read is kept as `Shutdown.settings.json.bad` before it is replaced with defaults.
+- Number fields: a touchpad swipe steps once per wheel notch instead of jumping, Space is ignored, and pasted numbers with spaces or a line break around them are accepted.
+- Keyboard focus stays in the window when the previous-day button or Cancel schedule turns itself off.
+- Switching high contrast on or off applies the new colours at once.
 
 ### Changed
 - `build.bat` only builds and no longer starts the app; `NOSTART` is gone.
