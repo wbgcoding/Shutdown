@@ -2,7 +2,7 @@
 title Shutdown
 rem Builds the portable dist\Shutdown.exe (C# WPF, .NET Framework 4.8 built into Windows 10/11).
 rem Toolchain: .NET SDK 8 or newer (dotnet build targets net48 through reference assemblies).
-rem Env: NOSTART=1 skips starting the fresh build, NOPAUSE=1 never pauses on error.
+rem Env: NOPAUSE=1 never pauses on error.
 setlocal
 cd /d "%~dp0"
 
@@ -45,7 +45,6 @@ if errorlevel 1 goto :fail
 rem === build freshness: save ===
 if exist "%BS%" powershell -NoProfile -ExecutionPolicy RemoteSigned -File "%BS%" -Save -Project "%~dp0." -Key "%BSKEY%" -Extra "%BSEXTRA%" -Artifact "%BSART%" >nul 2>&1
 echo Built dist\Shutdown.exe
-if not defined NOSTART start "" "dist\Shutdown.exe"
 if defined DBL "%SystemRoot%\System32\timeout.exe" /t 10
 exit /b 0
 

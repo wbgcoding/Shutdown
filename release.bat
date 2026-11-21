@@ -4,7 +4,6 @@ rem The version comes from src\Shutdown\Shutdown.csproj. Publishing stays a manu
 setlocal
 cd /d "%~dp0"
 
-set NOSTART=1
 set NOPAUSE=1
 call "%~dp0build.bat"
 if errorlevel 1 exit /b 1
