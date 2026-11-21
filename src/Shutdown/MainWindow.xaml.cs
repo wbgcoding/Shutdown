@@ -39,6 +39,8 @@ namespace Shutdown
         bool _loading = true;
         string _lastInputError;
         bool _allowClose;
+        // A Windows-timed schedule whose last save failed: only this window knows about it.
+        bool _pendingUnsaved;
         bool _keepingAwake;
 
         MessageKind _msgKind;
@@ -240,6 +242,12 @@ namespace Shutdown
                 ShowInfo("NewerBuildWaits");
                 return false;
             }
+            if (_pendingUnsaved)
+            {
+                // The newer copy restores schedules only from the settings file, so it would lose this one.
+                ShowInfo("NewerBuildWaitsUnsaved");
+                return false;
+            }
             Close();
             return true;
         }
@@ -408,11 +416,18 @@ namespace Shutdown
                 ShowRunError(Schedule.AbortArgs, abortCode);
                 return;
             }
+            bool replaced = _pending != null;
             ClearPending();
 
             // The abort call took time; the target must count from now, not from the click.
             r = Compute(Now());
-            if (!r.Ok) { UpdateUi(); return; }
+            if (!r.Ok)
+            {
+                // The inline error says why; this says the old schedule is gone too.
+                if (replaced) ShowInfo("MsgOldCancelled");
+                UpdateUi();
+                return;
+            }
 
             if (appTimed)
             {
@@ -466,7 +481,7 @@ namespace Shutdown
             _pending = null;
             SyncKeepAwake();
             // The close warning and the note for a newer copy are about the countdown that just ended.
-            if (_msgKind == MessageKind.CloseGuard || _msgKey == "NewerBuildWaits") HideMessage();
+            if (_msgKind == MessageKind.CloseGuard || _msgKey == "NewerBuildWaits" || _msgKey == "NewerBuildWaitsUnsaved") HideMessage();
             if (_settings.PendingAction != null || _settings.PendingDue != null || _settings.PendingBoot != null)
             {
                 _settings.PendingAction = null;
@@ -590,7 +605,9 @@ namespace Shutdown
             _settings.Hours = DurHours.Value;
             _settings.Minutes = DurMinutes.Value;
             if (WindowState == WindowState.Normal && IsLoaded) { _settings.Left = Left; _settings.Top = Top; }
-            return _store.Save(_settings);
+            bool ok = _store.Save(_settings);
+            _pendingUnsaved = !ok && _pending?.AppTimed == false;
+            return ok;
         }
 
         protected override void OnClosing(CancelEventArgs e)

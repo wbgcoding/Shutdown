@@ -196,6 +196,25 @@ namespace Shutdown.Tests
         });
 
         [Fact]
+        public void Replacing_a_schedule_with_a_time_that_became_too_soon_says_the_old_one_is_gone() => Sta.Run(() =>
+        {
+            var w = Make();
+            w.ModeAt.IsChecked = true;
+            _runner.Result = a => { if (a == "/a") _now = _now.AddSeconds(10); return 0; };
+            Click(w.StartButton);
+            Assert.Equal(Visibility.Visible, w.PendingCard.Visibility);
+            // 65 s ahead passes the first check; the abort call pushes it under the 1 minute floor.
+            _now = new DateTime(2026, 10, 16, 12, 0, 55, DateTimeKind.Local);
+            w.AtHour.Value = 12;
+            w.AtMinute.Value = 2;
+            Click(w.StartButton);
+            Assert.Equal(new[] { "/a", "/s /f /t 3590", "/a" }, _runner.Calls);
+            Assert.Equal(Visibility.Collapsed, w.PendingCard.Visibility);
+            Assert.Equal(Loc.I["MsgOldCancelled"], w.MessageText.Text);
+            Assert.Null(_store.Load().PendingAction);
+        });
+
+        [Fact]
         public void Pending_from_an_earlier_run_is_restored() => Sta.Run(() =>
         {
             var w = Make(new Settings { PendingAction = "Restart", PendingDue = Due(30), PendingBoot = Marker });
@@ -563,6 +582,25 @@ namespace Shutdown.Tests
             // The newer copy has already given up: "Close anyway" would leave no window open.
             Assert.Equal(Visibility.Collapsed, w.CloseAnywayButton.Visibility);
             Assert.False(closed);
+        });
+
+        [Fact]
+        public void A_newer_build_is_refused_while_an_unsaved_schedule_exists() => Sta.Run(() =>
+        {
+            var w = Make();
+            // A settings file of a newer version is never overwritten, so nothing gets saved.
+            File.WriteAllText(_store.FilePath, "{\"Version\":99}");
+            _store.Load();
+            Click(w.StartButton);
+            bool closed = false;
+            w.Closed += (s, e) => closed = true;
+            Assert.False(w.CloseForNewerBuild());
+            Assert.Equal(Loc.I["NewerBuildWaitsUnsaved"], w.MessageText.Text);
+            Assert.False(closed);
+            // Once the schedule is cancelled, nothing is lost by the takeover.
+            Click(w.AbortButton);
+            Assert.True(w.CloseForNewerBuild());
+            Assert.True(closed);
         });
 
         [Fact]

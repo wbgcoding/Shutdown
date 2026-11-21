@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here. The format follows Keep a Changelog; versions follow semantic versioning.
 
+## [1.2.2] - unreleased
+
+### Fixed
+- If a new time became too close while the old schedule was being cancelled, the app now says that the old schedule is gone and no new one was set.
+- A newer version no longer takes over while this window holds a schedule that could not be saved, since the new version would not show it.
+
+### Changed
+- `build.bat` only builds and no longer starts the app; `NOSTART` is gone.
+
 ## [1.2.1] - 2026-11-14
 
 ### Changed
