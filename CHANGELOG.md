@@ -2,7 +2,7 @@
 
 All notable changes to this project are documented here. The format follows Keep a Changelog; versions follow semantic versioning.
 
-## [1.2.2] - unreleased
+## [1.2.2] - 2026-11-21
 
 ### Fixed
 - If a new time became too close while the old schedule was being cancelled, the app now says that the old schedule is gone and no new one was set.
