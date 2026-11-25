@@ -361,17 +361,15 @@ namespace Shutdown
 
         void UpdatePending(DateTime now)
         {
-            var L = Loc.I;
-            // Only something this app scheduled can be cancelled here.
-            // A focused control that turns itself off drops the focus to the window and Tab starts over.
-            if (_pending == null && AbortButton.IsKeyboardFocused && !StartButton.Focus())
-                (ActRestart.IsChecked == true ? ActRestart : ActHibernate.IsChecked == true ? ActHibernate : ActShutdown).Focus();
-            AbortButton.IsEnabled = _pending != null;
             if (_pending == null)
             {
+                // Move focus before the card collapses so Tab can continue from Start.
+                if (AbortButton.IsKeyboardFocused && !StartButton.Focus())
+                    (ActRestart.IsChecked == true ? ActRestart : ActHibernate.IsChecked == true ? ActHibernate : ActShutdown).Focus();
                 PendingCard.Visibility = Visibility.Collapsed;
                 return;
             }
+            var L = Loc.I;
             PendingCard.Visibility = Visibility.Visible;
             PendingTitle.Text = L[_pending.Action == PowerAction.Restart ? "PendingRestart" :
                                   _pending.Action == PowerAction.Hibernate ? "PendingHibernate" : "PendingShutdown"];

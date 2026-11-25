@@ -171,6 +171,10 @@
           <ColumnDefinition Width="*"/>
           <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
         <StackPanel>
           <TextBlock x:Name="PendingTitle" FontWeight="SemiBold" TextWrapping="Wrap" AutomationProperties.AutomationId="PendingTitle"/>
           <TextBlock x:Name="PendingWhen" FontSize="12" Foreground="{DynamicResource TextSub}" TextWrapping="Wrap"
@@ -181,6 +185,16 @@
         <TextBlock x:Name="PendingClock" Grid.Column="1" FontFamily="{StaticResource DisplayFont}" FontSize="22"
                    FontWeight="SemiBold" Foreground="{DynamicResource Text}" VerticalAlignment="Center"
                    Margin="10,0,0,0" AutomationProperties.AutomationId="PendingClock"/>
+        <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8,0,0">
+          <Button x:Name="AbortButton" Style="{StaticResource GhostButton}" Click="OnAbort"
+                  AutomationProperties.AutomationId="Abort"
+                  AutomationProperties.Name="{Binding [Abort], Source={x:Static core:Loc.I}}">
+            <StackPanel Orientation="Horizontal">
+              <ui:IconGlyph Style="{StaticResource Icon}" Text="&#xE711;" FontSize="13" Margin="0,2,8,0"/>
+              <TextBlock Text="{Binding [Abort], Source={x:Static core:Loc.I}}" TextWrapping="Wrap" VerticalAlignment="Center"/>
+            </StackPanel>
+          </Button>
+        </StackPanel>
       </Grid>
     </Border>
 
@@ -209,21 +223,11 @@
       </StackPanel>
     </Border>
 
-    <!-- Buttons -->
     <Grid>
       <Grid.ColumnDefinitions>
         <ColumnDefinition Width="*"/>
-        <ColumnDefinition Width="8"/>
-        <ColumnDefinition Width="*"/>
       </Grid.ColumnDefinitions>
-      <Button x:Name="AbortButton" Click="OnAbort" MinHeight="36" AutomationProperties.AutomationId="Abort"
-              AutomationProperties.Name="{Binding [Abort], Source={x:Static core:Loc.I}}">
-        <StackPanel Orientation="Horizontal">
-          <ui:IconGlyph Style="{StaticResource Icon}" Text="&#xE711;" FontSize="13" Margin="0,2,8,0"/>
-          <TextBlock Text="{Binding [Abort], Source={x:Static core:Loc.I}}" TextWrapping="Wrap" VerticalAlignment="Center"/>
-        </StackPanel>
-      </Button>
-      <Button x:Name="StartButton" Grid.Column="2" Style="{StaticResource AccentButton}" Click="OnStart" MinHeight="36"
+      <Button x:Name="StartButton" Style="{StaticResource AccentButton}" Click="OnStart" MinHeight="36"
               AutomationProperties.AutomationId="Start">
         <StackPanel Orientation="Horizontal">
           <ui:PowerGlyph x:Name="StartPower" Margin="0,0,8,0"/>

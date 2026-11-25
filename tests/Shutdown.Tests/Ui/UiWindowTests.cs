@@ -282,11 +282,31 @@ namespace Shutdown.Tests
             var s = new Settings { PendingAction = "Hibernate", PendingDue = Due(30), PendingBoot = Marker };
             var w = Make(s);
             Assert.Equal(Visibility.Collapsed, w.PendingCard.Visibility);
-            Assert.False(w.AbortButton.IsEnabled);
             Assert.Null(s.PendingAction);
         });
 
         // ---- texts and controls per state ----
+
+        [Fact]
+        public void Start_has_its_own_row_and_abort_is_only_shown_in_the_pending_card() => Sta.Run(() =>
+        {
+            var w = Make();
+            var bottomRow = Assert.IsType<Grid>(w.StartButton.Parent);
+            Assert.Single(bottomRow.ColumnDefinitions);
+            Assert.Same(w.StartButton, Assert.Single(bottomRow.Children.Cast<UIElement>()));
+            Assert.Same(bottomRow, Assert.IsType<StackPanel>(bottomRow.Parent).Children.Cast<UIElement>().Last());
+
+            var abort = ById<Button>(w.PendingCard, "Abort");
+            Assert.Same(w.AbortButton, abort);
+            Assert.Equal(Visibility.Collapsed, w.PendingCard.Visibility);
+
+            Click(w.StartButton);
+            Assert.Equal(Visibility.Visible, w.PendingCard.Visibility);
+            Assert.Equal(Visibility.Visible, abort.Visibility);
+
+            Click(abort);
+            Assert.Equal(Visibility.Collapsed, w.PendingCard.Visibility);
+        });
 
         [Theory]
         [InlineData("en", "Shutdown", "Schedule shutdown", "")]
@@ -498,7 +518,6 @@ namespace Shutdown.Tests
             Assert.Equal(Visibility.Visible, w.OpenLogButton.Visibility);
             Assert.Equal(Visibility.Visible, w.CopyButton.Visibility);
             Assert.Equal(Visibility.Collapsed, w.PendingCard.Visibility);
-            Assert.False(w.AbortButton.IsEnabled);
         });
 
         [Theory]

@@ -197,7 +197,6 @@ namespace Shutdown.Tests
             var s = new Settings { PendingAction = "Restart", PendingDue = Due(30), PendingBoot = "boot:41" };
             var w = Make(s);
             Assert.Equal(Visibility.Collapsed, w.PendingCard.Visibility);
-            Assert.False(w.AbortButton.IsEnabled);
             Assert.Null(s.PendingAction);
             Assert.Null(s.PendingDue);
             Assert.Null(s.PendingBoot);
@@ -348,26 +347,14 @@ namespace Shutdown.Tests
         });
 
         [Fact]
-        public void Abort_is_only_enabled_while_something_is_scheduled() => Sta.Run(() =>
-        {
-            var w = Make();
-            Assert.False(w.AbortButton.IsEnabled);
-            Click(w.StartButton);
-            Assert.True(w.AbortButton.IsEnabled);
-            Click(w.AbortButton);
-            Assert.False(w.AbortButton.IsEnabled);
-        });
-
-        [Fact]
         public void Abort_of_a_schedule_cancelled_elsewhere_just_clears_it() => Sta.Run(() =>
         {
             var w = Make(new Settings { PendingAction = "Shutdown", PendingDue = Due(30), PendingBoot = Marker });
-            Assert.True(w.AbortButton.IsEnabled);
+            Assert.Equal(Visibility.Visible, w.PendingCard.Visibility);
             _runner.Result = a => ShutdownRunner.ErrorNoShutdownInProgress;
             Click(w.AbortButton);
             Assert.Equal(Visibility.Collapsed, w.PendingCard.Visibility);
             Assert.Equal(Visibility.Collapsed, w.MessageCard.Visibility);
-            Assert.False(w.AbortButton.IsEnabled);
         });
 
         [Fact]
@@ -452,7 +439,6 @@ namespace Shutdown.Tests
             w.OnTick();
             Assert.Equal(Visibility.Visible, w.PendingCard.Visibility);
             Assert.Equal("0:00:00", w.PendingClock.Text);
-            Assert.True(w.AbortButton.IsEnabled);
             Assert.Equal("Shutdown", _store.Load().PendingAction);
             Click(w.AbortButton);
             Assert.Equal(Visibility.Collapsed, w.PendingCard.Visibility);
@@ -606,7 +592,6 @@ namespace Shutdown.Tests
             Assert.Equal(new[] { "/a", "/s /f /t 3600", "/a" }, _runner.Calls);
             Assert.Equal(Loc.I["ErrTimeout"], w.MessageText.Text);
             Assert.Equal(Visibility.Visible, w.PendingCard.Visibility);
-            Assert.True(w.AbortButton.IsEnabled);
             Assert.Equal("Shutdown", _store.Load().PendingAction);
         });
 
