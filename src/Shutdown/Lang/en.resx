@@ -69,4 +69,25 @@
   <data name="MenuPaste" xml:space="preserve"><value>Paste</value></data>
   <data name="MenuSelectAll" xml:space="preserve"><value>Select all</value></data>
   <data name="ElevatedRunning" xml:space="preserve"><value>Shutdown is already running as administrator. Switch to its window, or close it and start Shutdown again.</value></data>
+  <data name="InstallerWelcome" xml:space="preserve"><value>Shutdown %1 Setup</value></data>
+  <data name="InstallerWelcomeDescription" xml:space="preserve"><value>Setup installs Shutdown, a timer for shutdown, restart or hibernation.</value></data>
+  <data name="InstallerExisting" xml:space="preserve"><value>Existing install detected</value></data>
+  <data name="InstallerSameVersion" xml:space="preserve"><value>This version of Shutdown is already installed.</value></data>
+  <data name="InstallerReplaceVersion" xml:space="preserve"><value>Choose what to do with the installed version of Shutdown.</value></data>
+  <data name="InstallerReinstall" xml:space="preserve"><value>Add/Reinstall</value></data>
+  <data name="InstallerUninstall" xml:space="preserve"><value>Uninstall</value></data>
+  <data name="InstallerUninstallFirst" xml:space="preserve"><value>Uninstall before installing</value></data>
+  <data name="InstallerKeepInstalled" xml:space="preserve"><value>Don't uninstall</value></data>
+  <data name="InstallerDowngrade" xml:space="preserve"><value>Shutdown %1 is already installed. Setup cannot replace it with %2.</value></data>
+  <data name="InstallerPreviousUninstallFailed" xml:space="preserve"><value>The existing installation could not be removed. Close Shutdown and uninstall it from Windows Settings before continuing.</value></data>
+  <data name="InstallerPortable" xml:space="preserve"><value>Portable installation</value></data>
+  <data name="InstallerPortableDescription" xml:space="preserve"><value>Copies only Shutdown.exe to the selected folder.</value></data>
+  <data name="InstallerRun" xml:space="preserve"><value>Run Shutdown</value></data>
+  <data name="InstallerDeleteAppData" xml:space="preserve"><value>Also delete settings and logs</value></data>
+  <data name="InstallerDeleteAppDataFailed" xml:space="preserve"><value>Some settings or logs could not be deleted.</value></data>
+  <data name="InstallerCompilerMissing" xml:space="preserve"><value>Inno Setup 6 compiler (ISCC.exe) was not found.</value></data>
+  <data name="InstallerCompileFailed" xml:space="preserve"><value>Could not compile the Shutdown installer.</value></data>
+  <data name="InstallerCloseFailed" xml:space="preserve"><value>Shutdown is still running. Close it and try again.</value></data>
+  <data name="InstallerInstallFailed" xml:space="preserve"><value>Shutdown installation failed.</value></data>
+  <data name="InstallerStartFailed" xml:space="preserve"><value>Could not start the installed copy of Shutdown.</value></data>
 </root>

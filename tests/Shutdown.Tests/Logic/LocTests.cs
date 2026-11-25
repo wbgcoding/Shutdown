@@ -356,6 +356,15 @@ namespace Shutdown.Tests
     [Trait("Layer", "Logic")]
     public class LocTests
     {
+        static string ProjectRoot()
+        {
+            var dir = AppDomain.CurrentDomain.BaseDirectory;
+            while (dir != null && !Directory.Exists(Path.Combine(dir, "src", "Shutdown")))
+                dir = Path.GetDirectoryName(dir);
+            Assert.NotNull(dir);
+            return dir;
+        }
+
         [Fact]
         public void Every_locale_has_the_same_keys_both_ways()
         {
@@ -375,8 +384,9 @@ namespace Shutdown.Tests
             {
                 Assert.False(string.IsNullOrWhiteSpace(en[key]), "en " + key);
                 Assert.False(string.IsNullOrWhiteSpace(de[key]), "de " + key);
-                var pe = Regex.Matches(en[key], @"\{\d\}").Cast<Match>().Select(m => m.Value).OrderBy(x => x);
-                var pd = Regex.Matches(de[key], @"\{\d\}").Cast<Match>().Select(m => m.Value).OrderBy(x => x);
+                string placeholders = key.StartsWith("Installer", StringComparison.Ordinal) ? @"%\d+" : @"\{\d\}";
+                var pe = Regex.Matches(en[key], placeholders).Cast<Match>().Select(m => m.Value).OrderBy(x => x);
+                var pd = Regex.Matches(de[key], placeholders).Cast<Match>().Select(m => m.Value).OrderBy(x => x);
                 Assert.Equal(pe, pd);
             }
         }
@@ -384,14 +394,33 @@ namespace Shutdown.Tests
         [Fact]
         public void Every_key_is_used_in_the_source()
         {
-            var dir = AppDomain.CurrentDomain.BaseDirectory;
-            while (dir != null && !Directory.Exists(Path.Combine(dir, "src", "Shutdown"))) dir = Path.GetDirectoryName(dir);
-            Assert.NotNull(dir);
+            var dir = ProjectRoot();
             var src = string.Concat(Directory.GetFiles(Path.Combine(dir, "src", "Shutdown"), "*.*", SearchOption.AllDirectories)
                 .Where(f => (f.EndsWith(".cs") || f.EndsWith(".xaml")) && !f.Contains(@"\obj\") && !f.Contains(@"\bin\"))
                 .Select(File.ReadAllText));
-            var unused = Loc.LoadTable("en").Keys.Where(k => !src.Contains("\"" + k + "\"") && !src.Contains("[" + k + "]")).ToList();
+            var installer = File.ReadAllText(Path.Combine(dir, "installer", "Shutdown.iss"))
+                + File.ReadAllText(Path.Combine(dir, "tools", "build-installer.ps1"));
+            var unused = Loc.LoadTable("en").Keys.Where(k => k.StartsWith("Installer", StringComparison.Ordinal)
+                ? !installer.Contains("'" + k + "'") && !installer.Contains("{cm:" + k + "}")
+                : !src.Contains("\"" + k + "\"") && !src.Contains("[" + k + "]")).ToList();
             Assert.Empty(unused);
+        }
+
+        [Fact]
+        public void Installer_language_switches_match_the_app_language_codes()
+        {
+            var script = File.ReadAllText(Path.Combine(ProjectRoot(), "installer", "Shutdown.iss"));
+            var languages = Regex.Matches(script, "^Name: \"([^\"]+)\"; MessagesFile:", RegexOptions.Multiline)
+                .Cast<Match>().Select(m => m.Groups[1].Value);
+            Assert.Equal(Loc.Languages, languages);
+        }
+
+        [Theory]
+        [InlineData("en", "Also delete settings and logs")]
+        [InlineData("de", "Auch Einstellungen und Protokolle löschen")]
+        public void Installer_displays_the_expected_uninstall_opt_in(string language, string caption)
+        {
+            Assert.Equal(caption, Loc.LoadTable(language)["InstallerDeleteAppData"]);
         }
 
         [Fact]
