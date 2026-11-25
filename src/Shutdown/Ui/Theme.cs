@@ -143,7 +143,7 @@ namespace Shutdown.Ui
         static Color Rgb(string hex) => (Color)ColorConverter.ConvertFromString(hex);
 
         // Index into the Windows accent palette: three lighter shades, the accent, three darker shades.
-        const int Light3 = 0, Light2 = 1, Light1 = 2, Accent = 3, Dark1 = 4, Dark2 = 5, Dark3 = 6;
+        const int Accent = 3, Dark1 = 4, Dark2 = 5;
 
         // Windows default blue, used when the palette cannot be read.
         static readonly string[] DefaultPalette = { "#99EBFF", "#4CC2FF", "#0091F8", "#0078D4", "#005FB8", "#004275", "#002642" };

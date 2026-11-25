@@ -171,7 +171,6 @@ namespace Shutdown
         void OnLanguageChanged(object sender, EventArgs e) => RefreshTexts();
 
         // .NET caches the local zone; after a zone or clock change the shown times would use the old one.
-        // Raised on a system thread.
         internal void OnTimeChanged(object sender, EventArgs e)
         {
             TimeZoneInfo.ClearCachedData();
@@ -321,26 +320,25 @@ namespace Shutdown
             StartIcon.Text = action == PowerAction.Restart ? "\uE72C" : action == PowerAction.Hibernate ? "\uE708" : "";
 
             AppTimedNote.Visibility = appTimed ? Visibility.Visible : Visibility.Collapsed;
-            AppTimedText.Text = L["AppTimedHibernate"];
             Chips.Visibility = SelectedMode == TimeMode.Countdown ? Visibility.Visible : Visibility.Collapsed;
 
             var r = Compute(now);
             StartButton.IsEnabled = r.Ok;
             AnnounceInputError(r.Ok ? null : r.ErrorKey);
-            if (r.Ok)
-            {
-                // Show what the inputs do not: the end time for a countdown, the time left for a date.
-                ResultText.SetResourceReference(TextBlock.ForegroundProperty, "Text");
-                ResultText.Text = SelectedMode == TimeMode.Countdown
-                    ? L.F("SummaryAt", L.DateText(r.Target), L.TimeText(r.Target))
-                    : L.F("SummaryIn", L.Span(WholeMinutesUp(r.TargetUtc - now.ToUniversalTime())));
-            }
-            else
-            {
-                ResultText.SetResourceReference(TextBlock.ForegroundProperty, "Danger");
-                ResultText.Text = L[r.ErrorKey];
-            }
+            SetBrush(ResultText, r.Ok ? "Text" : "Danger");
+            // Show what the inputs do not: the end time for a countdown, the time left for a date.
+            ResultText.Text = !r.Ok ? L[r.ErrorKey] : SelectedMode == TimeMode.Countdown
+                ? L.F("SummaryAt", L.DateText(r.Target), L.TimeText(r.Target))
+                : L.F("SummaryIn", L.Span(WholeMinutesUp(r.TargetUtc - now.ToUniversalTime())));
             UpdatePending(now);
+        }
+
+        // Runs every second: a new resource reference only when the colour actually changes.
+        static void SetBrush(TextBlock t, string key)
+        {
+            if (Equals(t.Tag, key)) return;
+            t.Tag = key;
+            t.SetResourceReference(TextBlock.ForegroundProperty, key);
         }
 
         // Screen readers hear why Start is disabled, once per new reason rather than on every tick.
@@ -380,12 +378,7 @@ namespace Shutdown
             PendingWhen.Text = L.F("SummaryAt", L.DateText(_pending.Target), L.TimeText(_pending.Target));
             var left = _pending.TargetUtc - now.ToUniversalTime();
             PendingClock.Text = L.Clock(left);
-            var key = ClockBrushKey(left);
-            if (!Equals(PendingClock.Tag, key))
-            {
-                PendingClock.Tag = key;
-                PendingClock.SetResourceReference(TextBlock.ForegroundProperty, key);
-            }
+            SetBrush(PendingClock, ClockBrushKey(left));
             System.Windows.Automation.AutomationProperties.SetName(PendingClock, L.F("PendingRemaining", L.Clock(left)));
             PendingKeepOpen.Visibility = _pending.AppTimed ? Visibility.Visible : Visibility.Collapsed;
         }
