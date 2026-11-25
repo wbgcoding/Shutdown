@@ -4,6 +4,7 @@ using Xunit;
 
 namespace Shutdown.Tests
 {
+    [Trait("Layer", "Logic")]
     public class BuildIdTests
     {
         static BuildId B(string v, long stamp) => new BuildId(new Version(v), stamp);

@@ -1,0 +1,158 @@
+using System;
+using System.Linq;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
+using Shutdown.Ui;
+using Xunit;
+
+namespace Shutdown.Tests
+{
+    /// <summary>Palette and resources of Theme; Theme.Override is process-wide, so every test restores it.</summary>
+    [Collection("window")]
+    [Trait("Layer", "Ui")]
+    public class ThemeTests
+    {
+        static void WithOverride(string value, Action<ResourceDictionary> check)
+        {
+            var before = Theme.Override;
+            try
+            {
+                Theme.Override = value;
+                var res = new ResourceDictionary();
+                Theme.Apply(res);
+                check(res);
+            }
+            finally
+            {
+                Theme.Override = before;
+                Theme.Apply(Application.Current.Resources);
+            }
+        }
+
+        static Color C(ResourceDictionary r, string key) => ((SolidColorBrush)r[key]).Color;
+        static Color Hex(string s) => (Color)ColorConverter.ConvertFromString(s);
+
+        static readonly string[] Keys =
+        {
+            "Bg", "Card", "CardBorder", "Text", "TextSub", "Control", "ControlHover", "ControlHoverText", "ControlPressed",
+            "DisabledFill", "ControlBorder", "Accent", "AccentHover", "AccentText", "Warn", "Urgent", "Danger", "DangerSoft",
+            "Focus", "Disabled"
+        };
+
+        [Theory]
+        [InlineData("dark")]
+        [InlineData("light")]
+        public void Both_themes_define_every_brush_frozen(string theme) => Sta.Run(() =>
+        {
+            if (SystemParameters.HighContrast) return;
+            WithOverride(theme, r =>
+            {
+                foreach (var k in Keys)
+                {
+                    var b = Assert.IsType<SolidColorBrush>(r[k]);
+                    Assert.True(b.IsFrozen, k);
+                }
+            });
+        });
+
+        [Fact]
+        public void Dark_theme_uses_the_dark_palette() => Sta.Run(() =>
+        {
+            if (SystemParameters.HighContrast) return;
+            WithOverride("dark", r =>
+            {
+                Assert.True(Theme.IsDark);
+                Assert.Equal(Hex("#202020"), C(r, "Bg"));
+                Assert.Equal(Hex("#2B2B2B"), C(r, "Card"));
+                Assert.Equal(Hex("#FFFFFF"), C(r, "Text"));
+                Assert.Equal(Hex("#FCE100"), C(r, "Warn"));
+                Assert.Equal(Hex("#FF6B6B"), C(r, "Urgent"));
+                Assert.Equal(Hex("#FF99A4"), C(r, "Danger"));
+                Assert.Equal(Hex("#442726"), C(r, "DangerSoft"));
+                var p = Theme.AccentPalette();
+                Assert.Equal(p[4], C(r, "Accent"));
+                Assert.Equal(p[3], C(r, "AccentHover"));
+            });
+        });
+
+        [Fact]
+        public void Light_theme_uses_the_light_palette() => Sta.Run(() =>
+        {
+            if (SystemParameters.HighContrast) return;
+            WithOverride("light", r =>
+            {
+                Assert.False(Theme.IsDark);
+                Assert.Equal(Hex("#F3F3F3"), C(r, "Bg"));
+                Assert.Equal(Hex("#FFFFFF"), C(r, "Card"));
+                Assert.Equal(Hex("#1B1B1B"), C(r, "Text"));
+                Assert.Equal(Hex("#9D5D00"), C(r, "Warn"));
+                Assert.Equal(Hex("#C42B1C"), C(r, "Urgent"));
+                Assert.Equal(Hex("#B3261E"), C(r, "Danger"));
+                Assert.Equal(Hex("#FDE7E9"), C(r, "DangerSoft"));
+                var p = Theme.AccentPalette();
+                Assert.Equal(p[4], C(r, "Accent"));
+                Assert.Equal(p[5], C(r, "AccentHover"));
+            });
+        });
+
+        [Theory]
+        [InlineData("system")]
+        [InlineData("bogus")]
+        [InlineData("")]
+        [InlineData(null)]
+        public void Any_other_override_follows_windows(string value) => Sta.Run(() =>
+        {
+            if (SystemParameters.HighContrast) return;
+            WithOverride(value, r => Assert.Equal(Theme.SystemPrefersDark(), Theme.IsDark));
+        });
+
+        [Fact]
+        public void Applying_again_replaces_the_brushes_in_place() => Sta.Run(() =>
+        {
+            if (SystemParameters.HighContrast) return;
+            var before = Theme.Override;
+            try
+            {
+                var r = new ResourceDictionary();
+                Theme.Override = "dark";
+                Theme.Apply(r);
+                int count = r.Count;
+                var dark = r["Bg"];
+                Theme.Override = "light";
+                Theme.Apply(r);
+                Assert.Equal(count, r.Count);
+                Assert.NotSame(dark, r["Bg"]);
+                Assert.Equal(Hex("#F3F3F3"), C(r, "Bg"));
+            }
+            finally { Theme.Override = before; Theme.Apply(Application.Current.Resources); }
+        });
+
+        [Fact]
+        public void The_accent_palette_has_seven_opaque_colours() => Sta.Run(() =>
+        {
+            var p = Theme.AccentPalette();
+            Assert.Equal(7, p.Length);
+            Assert.All(p, c => Assert.Equal(255, c.A));
+        });
+
+        [Fact]
+        public void Title_bar_styling_on_a_window_without_a_handle_does_nothing() => Sta.Run(() =>
+        {
+            var w = new Window();
+            Theme.ApplyTitleBar(w);
+            Theme.ApplyTitleBar(null);
+        });
+
+        [Fact]
+        public void Watching_returns_an_unsubscribe_that_can_run_twice() => Sta.Run(() =>
+        {
+            int calls = 0;
+            var stop = Theme.Watch(() => calls++);
+            Assert.NotNull(stop);
+            stop();
+            stop();
+            Assert.Equal(0, calls);
+        });
+    }
+}
