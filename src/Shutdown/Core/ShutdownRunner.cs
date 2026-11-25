@@ -37,7 +37,8 @@ namespace Shutdown.Core
             {
                 using (var p = Process.Start(psi))
                 {
-                    if (!p.WaitForExit(15000))
+                    // It answers within a fraction of a second; the wait blocks the window, so keep it short.
+                    if (!p.WaitForExit(5000))
                     {
                         // A hung shutdown.exe must not linger and act later.
                         try { p.Kill(); } catch (Exception) { }
