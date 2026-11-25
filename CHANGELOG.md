@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here. The format follows Keep a Changelog; versions follow semantic versioning.
 
+## [1.3.0] - unreleased
+
+### Fixed
+- With a light Windows accent colour (for example yellow), the start button text is now black instead of hard-to-read white.
+
 ## [1.2.2] - 2026-11-21
 
 ### Fixed

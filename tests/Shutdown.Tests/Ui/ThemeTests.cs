@@ -136,6 +136,48 @@ namespace Shutdown.Tests
             Assert.All(p, c => Assert.Equal(255, c.A));
         });
 
+        [Theory]
+        [InlineData("#005FB8", "#004275", "#FFFFFF")] // Windows blue, light mode: white text
+        [InlineData("#005FB8", "#0078D4", "#FFFFFF")] // Windows blue, dark mode hover
+        [InlineData("#E3A600", "#FFB900", "#000000")] // yellow accent: white would read at about 2:1
+        [InlineData("#00B7C3", "#2DD7E0", "#000000")] // light teal
+        [InlineData("#881798", "#B146C2", "#FFFFFF")] // purple
+        public void Accent_text_is_white_or_black_whichever_reads_better(string fill, string hover, string expected) =>
+            Assert.Equal(Hex(expected), Theme.TextOn(Hex(fill), Hex(hover)));
+
+        [Fact]
+        public void Contrast_matches_the_wcag_formula()
+        {
+            Assert.Equal(21.0, Theme.Contrast(Colors.White, Colors.Black), 3);
+            Assert.Equal(1.0, Theme.Contrast(Hex("#777777"), Hex("#777777")), 3);
+            // #767676 on white is the classic 4.54:1 threshold grey.
+            Assert.Equal(4.54, Theme.Contrast(Hex("#767676"), Colors.White), 2);
+        }
+
+        [Theory]
+        [InlineData("light")]
+        [InlineData("dark")]
+        public void Text_colours_reach_aa_contrast_on_their_surfaces(string theme) => Sta.Run(() =>
+        {
+            if (SystemParameters.HighContrast) return;
+            var before = Theme.Override;
+            var res = new ResourceDictionary();
+            try
+            {
+                Theme.Override = theme;
+                Theme.Apply(res);
+                Color C(string key) => ((SolidColorBrush)res[key]).Color;
+                foreach (var (text, surface) in new[]
+                {
+                    ("Text", "Bg"), ("Text", "Card"), ("Text", "Control"), ("Text", "ControlHover"), ("Text", "DangerSoft"),
+                    ("TextSub", "Bg"), ("TextSub", "Card"), ("Warn", "Card"), ("Urgent", "Card"),
+                    ("Danger", "Card"), ("Danger", "DangerSoft"), ("CaptionCloseText", "CaptionCloseHover"),
+                })
+                    Assert.True(Theme.Contrast(C(text), C(surface)) >= 4.5, $"{theme}: {text} on {surface} below 4.5:1");
+            }
+            finally { Theme.Override = before; }
+        });
+
         [Fact]
         public void Title_bar_styling_on_a_window_without_a_handle_does_nothing() => Sta.Run(() =>
         {

@@ -78,10 +78,10 @@ namespace Shutdown.Ui
                 Set(res, "ControlPressed", "#2F2F2F");
                 Set(res, "DisabledFill", "#2F2F2F");
                 Set(res, "ControlBorder", "#4A4A4A");
-                // A deep accent with white text, as in light mode; it reads better than WinUI's pale fill with black text.
+                // A deep accent, as in light mode; it reads better than WinUI's pale fill with black text.
                 Set(res, "Accent", a[Dark1]);
                 Set(res, "AccentHover", a[Accent]);
-                Set(res, "AccentText", Colors.White);
+                Set(res, "AccentText", TextOn(a[Dark1], a[Accent]));
                 Set(res, "Warn", "#FCE100");
                 Set(res, "Urgent", "#FF6B6B");
                 Set(res, "Danger", "#FF99A4");
@@ -104,7 +104,7 @@ namespace Shutdown.Ui
                 Set(res, "ControlBorder", "#D3D3D3");
                 Set(res, "Accent", a[Dark1]);
                 Set(res, "AccentHover", a[Dark2]);
-                Set(res, "AccentText", Colors.White);
+                Set(res, "AccentText", TextOn(a[Dark1], a[Dark2]));
                 Set(res, "Warn", "#9D5D00");
                 Set(res, "Urgent", "#C42B1C");
                 Set(res, "Danger", "#B3261E");
@@ -115,6 +115,30 @@ namespace Shutdown.Ui
         }
 
         static void Set(ResourceDictionary res, string key, string hex) => Set(res, key, Rgb(hex));
+
+        /// <summary>White or black, whichever stays more readable on both fills (a yellow accent needs black text).</summary>
+        internal static Color TextOn(Color fill, Color hover)
+        {
+            double Worst(Color text) => Math.Min(Contrast(text, fill), Contrast(text, hover));
+            return Worst(Colors.White) >= Worst(Colors.Black) ? Colors.White : Colors.Black;
+        }
+
+        /// <summary>WCAG contrast ratio of two opaque colours, 1 to 21.</summary>
+        internal static double Contrast(Color a, Color b)
+        {
+            double la = Luminance(a), lb = Luminance(b);
+            return (Math.Max(la, lb) + 0.05) / (Math.Min(la, lb) + 0.05);
+        }
+
+        static double Luminance(Color c)
+        {
+            double Channel(byte v)
+            {
+                double s = v / 255.0;
+                return s <= 0.03928 ? s / 12.92 : Math.Pow((s + 0.055) / 1.055, 2.4);
+            }
+            return 0.2126 * Channel(c.R) + 0.7152 * Channel(c.G) + 0.0722 * Channel(c.B);
+        }
 
         static Color Rgb(string hex) => (Color)ColorConverter.ConvertFromString(hex);
 
