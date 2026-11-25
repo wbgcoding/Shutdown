@@ -22,6 +22,8 @@
     <SolidColorBrush x:Key="ControlPressed" Color="#D2D2D2"/>
     <SolidColorBrush x:Key="DisabledFill" Color="#EBEBEB"/>
     <SolidColorBrush x:Key="ControlBorder" Color="#5A5A5A"/>
+    <SolidColorBrush x:Key="SegmentFill" Color="#E6E6E6"/>
+    <SolidColorBrush x:Key="SegmentBorder" Color="#5A5A5A"/>
     <SolidColorBrush x:Key="Accent" Color="#005FB8"/>
     <SolidColorBrush x:Key="AccentHover" Color="#004275"/>
     <SolidColorBrush x:Key="AccentText" Color="#FFFFFF"/>
@@ -282,8 +284,8 @@
     </Style>
 
     <Style x:Key="SegmentHost" TargetType="Border">
-      <Setter Property="Background" Value="{DynamicResource Control}"/>
-      <Setter Property="BorderBrush" Value="{DynamicResource ControlBorder}"/>
+      <Setter Property="Background" Value="{DynamicResource SegmentFill}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource SegmentBorder}"/>
       <Setter Property="BorderThickness" Value="1"/>
       <Setter Property="CornerRadius" Value="7"/>
       <Setter Property="Padding" Value="1"/>

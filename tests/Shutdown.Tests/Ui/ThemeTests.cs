@@ -36,7 +36,7 @@ namespace Shutdown.Tests
         static readonly string[] Keys =
         {
             "Bg", "Card", "CardBorder", "Text", "TextSub", "Control", "ControlHover", "ControlHoverText", "ControlPressed",
-            "DisabledFill", "ControlBorder", "Accent", "AccentHover", "AccentText", "Warn", "Urgent", "Danger", "DangerSoft",
+            "DisabledFill", "ControlBorder", "SegmentFill", "SegmentBorder", "Accent", "AccentHover", "AccentText", "Warn", "Urgent", "Danger", "DangerSoft",
             "Focus", "Disabled"
         };
 
@@ -174,9 +174,19 @@ namespace Shutdown.Tests
                     ("Danger", "Card"), ("Danger", "DangerSoft"), ("CaptionCloseText", "CaptionCloseHover"),
                 })
                     Assert.True(Theme.Contrast(C(text), C(surface)) >= 4.5, $"{theme}: {text} on {surface} below 4.5:1");
-                // Control outlines only need 3:1, on every surface a control sits on.
-                foreach (var surface in new[] { "Control", "Card", "Bg" })
-                    Assert.True(Theme.Contrast(C("ControlBorder"), C(surface)) >= 3.0, $"{theme}: ControlBorder on {surface} below 3:1");
+                if (theme == "light")
+                {
+                    // Light mode keeps outlines that reach 3:1 on every surface a control sits on.
+                    foreach (var surface in new[] { "Control", "Card", "Bg" })
+                        Assert.True(Theme.Contrast(C("ControlBorder"), C(surface)) >= 3.0, $"{theme}: ControlBorder on {surface} below 3:1");
+                }
+                else
+                {
+                    // Dark mode follows Windows 11: controls stand out by their fill, the outline is only a fine edge.
+                    Assert.True(Theme.Contrast(C("Control"), C("Card")) >= 1.15, "dark: Control fill blends into the card");
+                    // The choice bars sit a step below the card.
+                    Assert.True(C("SegmentFill").R < C("Card").R, "dark: choice bar is not darker than the card");
+                }
             }
             finally { Theme.Override = before; }
         });

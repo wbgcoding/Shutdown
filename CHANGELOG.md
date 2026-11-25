@@ -12,7 +12,7 @@ All notable changes to this project are documented here. The format follows Keep
 - A start that takes longer than 1 second is written to the log with the time of each step, so a slow start can be traced.
 
 ### Changed
-- Buttons, number fields and the choice bars have clearly visible outlines in light and dark mode; the light mode is less glaring, with controls set slightly darker than their panel.
+- Dark mode looks like Windows 11 itself: buttons and number fields stand out by a slightly lighter fill instead of bright outlines. Light mode is less glaring, with clearly outlined controls set slightly darker than their panel.
 
 ## [1.2.2] - 2026-11-21
 

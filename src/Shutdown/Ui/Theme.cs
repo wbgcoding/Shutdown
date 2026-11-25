@@ -44,6 +44,8 @@ namespace Shutdown.Ui
                 // A highlight fill would make a disabled button look selected.
                 Set(res, "DisabledFill", SystemColors.ControlColor);
                 Set(res, "ControlBorder", SystemColors.WindowTextColor);
+                Set(res, "SegmentFill", SystemColors.ControlColor);
+                Set(res, "SegmentBorder", SystemColors.WindowTextColor);
                 Set(res, "Accent", SystemColors.HighlightColor);
                 Set(res, "AccentHover", SystemColors.HighlightColor);
                 Set(res, "AccentText", SystemColors.HighlightTextColor);
@@ -69,15 +71,19 @@ namespace Shutdown.Ui
             {
                 Set(res, "Bg", "#202020");
                 Set(res, "Card", "#2B2B2B");
-                Set(res, "CardBorder", "#3A3A3A");
+                Set(res, "CardBorder", "#1C1C1C");
                 Set(res, "Text", "#FFFFFF");
                 Set(res, "TextSub", "#C8C8C8");
-                Set(res, "Control", "#363636");
-                Set(res, "ControlHover", "#404040");
+                // As in Windows 11 itself: controls stand out by a lighter fill, the outline is only a fine edge.
+                Set(res, "Control", "#373737");
+                Set(res, "ControlHover", "#3F3F3F");
                 Set(res, "ControlHoverText", "#FFFFFF");
-                Set(res, "ControlPressed", "#2F2F2F");
-                Set(res, "DisabledFill", "#2F2F2F");
-                Set(res, "ControlBorder", "#828282");
+                Set(res, "ControlPressed", "#303030");
+                Set(res, "DisabledFill", "#2A2A2A");
+                Set(res, "ControlBorder", "#424242");
+                // The choice bars sit a step below the card, so the selected option stands out.
+                Set(res, "SegmentFill", "#262626");
+                Set(res, "SegmentBorder", "#333333");
                 // A deep accent, as in light mode; it reads better than WinUI's pale fill with black text.
                 Set(res, "Accent", a[Dark1]);
                 Set(res, "AccentHover", a[Accent]);
@@ -102,6 +108,8 @@ namespace Shutdown.Ui
                 Set(res, "ControlPressed", "#D2D2D2");
                 Set(res, "DisabledFill", "#EBEBEB");
                 Set(res, "ControlBorder", "#5A5A5A");
+                Set(res, "SegmentFill", "#E6E6E6");
+                Set(res, "SegmentBorder", "#5A5A5A");
                 Set(res, "Accent", a[Dark1]);
                 Set(res, "AccentHover", a[Dark2]);
                 Set(res, "AccentText", TextOn(a[Dark1], a[Dark2]));
