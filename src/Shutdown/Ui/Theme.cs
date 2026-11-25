@@ -93,7 +93,7 @@ namespace Shutdown.Ui
             {
                 Set(res, "Bg", "#EBEBEB");
                 Set(res, "Card", "#F5F5F5");
-                Set(res, "CardBorder", "#D0D0D0");
+                Set(res, "CardBorder", "#BDBDBD");
                 Set(res, "Text", "#1B1B1B");
                 Set(res, "TextSub", "#5C5C5C");
                 Set(res, "Control", "#E6E6E6");
@@ -101,7 +101,7 @@ namespace Shutdown.Ui
                 Set(res, "ControlHoverText", "#1B1B1B");
                 Set(res, "ControlPressed", "#D2D2D2");
                 Set(res, "DisabledFill", "#EBEBEB");
-                Set(res, "ControlBorder", "#707070");
+                Set(res, "ControlBorder", "#5A5A5A");
                 Set(res, "Accent", a[Dark1]);
                 Set(res, "AccentHover", a[Dark2]);
                 Set(res, "AccentText", TextOn(a[Dark1], a[Dark2]));
