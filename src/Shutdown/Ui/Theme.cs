@@ -77,7 +77,7 @@ namespace Shutdown.Ui
                 Set(res, "ControlHoverText", "#FFFFFF");
                 Set(res, "ControlPressed", "#2F2F2F");
                 Set(res, "DisabledFill", "#2F2F2F");
-                Set(res, "ControlBorder", "#4A4A4A");
+                Set(res, "ControlBorder", "#828282");
                 // A deep accent, as in light mode; it reads better than WinUI's pale fill with black text.
                 Set(res, "Accent", a[Dark1]);
                 Set(res, "AccentHover", a[Accent]);
@@ -101,7 +101,7 @@ namespace Shutdown.Ui
                 Set(res, "ControlHoverText", "#1B1B1B");
                 Set(res, "ControlPressed", "#E6E6E6");
                 Set(res, "DisabledFill", "#E6E6E6");
-                Set(res, "ControlBorder", "#D3D3D3");
+                Set(res, "ControlBorder", "#8A8A8A");
                 Set(res, "Accent", a[Dark1]);
                 Set(res, "AccentHover", a[Dark2]);
                 Set(res, "AccentText", TextOn(a[Dark1], a[Dark2]));

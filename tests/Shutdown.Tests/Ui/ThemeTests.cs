@@ -174,6 +174,9 @@ namespace Shutdown.Tests
                     ("Danger", "Card"), ("Danger", "DangerSoft"), ("CaptionCloseText", "CaptionCloseHover"),
                 })
                     Assert.True(Theme.Contrast(C(text), C(surface)) >= 4.5, $"{theme}: {text} on {surface} below 4.5:1");
+                // Control outlines only need 3:1, on every surface a control sits on.
+                foreach (var surface in new[] { "Control", "Card", "Bg" })
+                    Assert.True(Theme.Contrast(C("ControlBorder"), C(surface)) >= 3.0, $"{theme}: ControlBorder on {surface} below 3:1");
             }
             finally { Theme.Override = before; }
         });

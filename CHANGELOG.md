@@ -10,6 +10,9 @@ All notable changes to this project are documented here. The format follows Keep
 - Starting Shutdown while a copy already runs as administrator now says so instead of doing nothing.
 - A hanging shutdown.exe blocks the window for at most 5 seconds instead of 15.
 
+### Changed
+- Buttons, number fields and the choice bars have clearly visible outlines in light and dark mode.
+
 ## [1.2.2] - 2026-11-21
 
 ### Fixed
