@@ -29,12 +29,12 @@
     <Button x:Name="MinimizeButton" Grid.Column="2" Style="{StaticResource CaptionButton}" Click="OnMinimize"
             AutomationProperties.AutomationId="TitleMinimize"
             AutomationProperties.Name="{Binding [TitleMinimize], Source={x:Static core:Loc.I}}">
-      <ui:Glyph Style="{StaticResource Icon}" Text="&#xE921;" FontSize="10"/>
+      <ui:IconGlyph Style="{StaticResource Icon}" Text="&#xE921;" FontSize="10"/>
     </Button>
     <Button x:Name="CloseButton" Grid.Column="3" Style="{StaticResource CaptionCloseButton}" Click="OnCloseButton"
             AutomationProperties.AutomationId="TitleClose"
             AutomationProperties.Name="{Binding [TitleClose], Source={x:Static core:Loc.I}}">
-      <ui:Glyph Style="{StaticResource Icon}" Text="&#xE8BB;" FontSize="10"/>
+      <ui:IconGlyph Style="{StaticResource Icon}" Text="&#xE8BB;" FontSize="10"/>
     </Button>
   </Grid>
   <StackPanel Margin="12,0,12,10">
@@ -56,7 +56,7 @@
                          AutomationProperties.AutomationId="ActRestart"
                          AutomationProperties.Name="{Binding [ActRestart], Source={x:Static core:Loc.I}}">
               <StackPanel Orientation="Horizontal">
-                <ui:Glyph Style="{StaticResource Icon}" Text="&#xE72C;" FontSize="13" Margin="0,0,5,0"/>
+                <ui:IconGlyph Style="{StaticResource Icon}" Text="&#xE72C;" FontSize="13" Margin="0,0,5,0"/>
                 <TextBlock Text="{Binding [ActRestart], Source={x:Static core:Loc.I}}"/>
               </StackPanel>
             </RadioButton>
@@ -64,7 +64,7 @@
                          AutomationProperties.AutomationId="ActHibernate"
                          AutomationProperties.Name="{Binding [ActHibernate], Source={x:Static core:Loc.I}}">
               <StackPanel Orientation="Horizontal">
-                <ui:Glyph Style="{StaticResource Icon}" Text="&#xE708;" FontSize="13" Margin="0,0,5,0"/>
+                <ui:IconGlyph Style="{StaticResource Icon}" Text="&#xE708;" FontSize="13" Margin="0,0,5,0"/>
                 <TextBlock Text="{Binding [ActHibernate], Source={x:Static core:Loc.I}}"/>
               </StackPanel>
             </RadioButton>
@@ -77,7 +77,7 @@
                          AutomationProperties.AutomationId="ModeCountdown"
                          AutomationProperties.Name="{Binding [ModeCountdown], Source={x:Static core:Loc.I}}">
               <StackPanel Orientation="Horizontal">
-                <ui:Glyph Style="{StaticResource Icon}" Text="&#xE916;" FontSize="13" Margin="0,0,5,0"/>
+                <ui:IconGlyph Style="{StaticResource Icon}" Text="&#xE916;" FontSize="13" Margin="0,0,5,0"/>
                 <TextBlock Text="{Binding [ModeCountdown], Source={x:Static core:Loc.I}}"/>
               </StackPanel>
             </RadioButton>
@@ -85,7 +85,7 @@
                          AutomationProperties.AutomationId="ModeAt"
                          AutomationProperties.Name="{Binding [ModeAt], Source={x:Static core:Loc.I}}">
               <StackPanel Orientation="Horizontal">
-                <ui:Glyph Style="{StaticResource Icon}" Text="&#xE787;" FontSize="13" Margin="0,0,5,0"/>
+                <ui:IconGlyph Style="{StaticResource Icon}" Text="&#xE787;" FontSize="13" Margin="0,0,5,0"/>
                 <TextBlock Text="{Binding [ModeAt], Source={x:Static core:Loc.I}}"/>
               </StackPanel>
             </RadioButton>
@@ -108,7 +108,7 @@
                   AutomationProperties.AutomationId="PrevDay"
                   AutomationProperties.Name="{Binding [PrevDay], Source={x:Static core:Loc.I}}"
                   ToolTip="{Binding [PrevDay], Source={x:Static core:Loc.I}}">
-            <ui:Glyph Style="{StaticResource Icon}" Text="&#xE76B;" FontSize="12"/>
+            <ui:IconGlyph Style="{StaticResource Icon}" Text="&#xE76B;" FontSize="12"/>
           </Button>
           <TextBlock x:Name="DateLabel" Grid.Column="2" FontSize="14" FontWeight="SemiBold"
                      HorizontalAlignment="Center" VerticalAlignment="Center"
@@ -117,7 +117,7 @@
                   AutomationProperties.AutomationId="NextDay"
                   AutomationProperties.Name="{Binding [NextDay], Source={x:Static core:Loc.I}}"
                   ToolTip="{Binding [NextDay], Source={x:Static core:Loc.I}}">
-            <ui:Glyph Style="{StaticResource Icon}" Text="&#xE76C;" FontSize="12"/>
+            <ui:IconGlyph Style="{StaticResource Icon}" Text="&#xE76C;" FontSize="12"/>
           </Button>
           <Button Grid.Column="4" Style="{StaticResource ChipButton}" Click="OnTomorrow" AutomationProperties.AutomationId="Tomorrow"
                   Content="{Binding [Tomorrow], Source={x:Static core:Loc.I}}" Margin="6,0,0,0"/>
@@ -219,7 +219,7 @@
       <Button x:Name="AbortButton" Click="OnAbort" MinHeight="36" AutomationProperties.AutomationId="Abort"
               AutomationProperties.Name="{Binding [Abort], Source={x:Static core:Loc.I}}">
         <StackPanel Orientation="Horizontal">
-          <ui:Glyph Style="{StaticResource Icon}" Text="&#xE711;" FontSize="13" Margin="0,2,8,0"/>
+          <ui:IconGlyph Style="{StaticResource Icon}" Text="&#xE711;" FontSize="13" Margin="0,2,8,0"/>
           <TextBlock Text="{Binding [Abort], Source={x:Static core:Loc.I}}" TextWrapping="Wrap" VerticalAlignment="Center"/>
         </StackPanel>
       </Button>
@@ -227,7 +227,7 @@
               AutomationProperties.AutomationId="Start">
         <StackPanel Orientation="Horizontal">
           <ui:PowerGlyph x:Name="StartPower" Margin="0,0,8,0"/>
-          <ui:Glyph x:Name="StartIcon" Style="{StaticResource Icon}" FontSize="13" Margin="0,0,8,0" Visibility="Collapsed"/>
+          <ui:IconGlyph x:Name="StartIcon" Style="{StaticResource Icon}" FontSize="13" Margin="0,0,8,0" Visibility="Collapsed"/>
           <TextBlock x:Name="StartText" TextWrapping="Wrap"/>
         </StackPanel>
       </Button>

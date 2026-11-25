@@ -13,6 +13,7 @@ All notable changes to this project are documented here. The format follows Keep
 
 ### Changed
 - Dark mode looks like Windows 11 itself: buttons and number fields stand out by a slightly lighter fill instead of bright outlines. Light mode is less glaring, with clearly outlined controls set slightly darker than their panel.
+- Icons such as the stopwatch and the restart arrow are drawn smoothly instead of with a jagged, flattened bottom edge.
 
 ## [1.2.2] - 2026-11-21
 

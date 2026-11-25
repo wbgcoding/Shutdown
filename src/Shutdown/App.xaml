@@ -78,13 +78,11 @@
       <Setter Property="Padding" Value="12,10"/>
     </Style>
 
-    <Style x:Key="Icon" TargetType="TextBlock">
+    <!-- Icons are drawn as shapes (IconGlyph), so round outlines stay smooth at small sizes. -->
+    <Style x:Key="Icon" TargetType="ui:IconGlyph">
       <Setter Property="FontFamily" Value="{StaticResource IconFont}"/>
       <Setter Property="VerticalAlignment" Value="Center"/>
       <Setter Property="HorizontalAlignment" Value="Center"/>
-      <!-- Ideal keeps the round glyph outlines intact at small sizes; Display hinting flattens the bottom of the power ring. -->
-      <Setter Property="TextOptions.TextFormattingMode" Value="Ideal"/>
-      <Setter Property="TextOptions.TextRenderingMode" Value="Grayscale"/>
     </Style>
 
     <!-- Title bar: caption text dims while the window is inactive, like the Windows caption. -->
@@ -358,7 +356,7 @@
                   <ColumnDefinition Width="*"/>
                   <ColumnDefinition Width="Auto" SharedSizeGroup="MenuGesture"/>
                 </Grid.ColumnDefinitions>
-                <ui:Glyph x:Name="Check" Style="{StaticResource Icon}" Text="&#xE73E;" FontSize="12"
+                <ui:IconGlyph x:Name="Check" Style="{StaticResource Icon}" Text="&#xE73E;" FontSize="12"
                           Margin="0,0,8,0" Visibility="Collapsed"/>
                 <ContentPresenter Grid.Column="1" ContentSource="Header" RecognizesAccessKey="True"
                                   VerticalAlignment="Center"/>
