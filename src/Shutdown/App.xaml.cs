@@ -49,21 +49,26 @@ namespace Shutdown
             // First, so every message from here on, even an early error, is in the user's language.
             Loc.I.Apply("system");
 
+            var trace = new StartTrace();
             if (!ClaimSingleInstance())
             {
                 Shutdown();
                 return;
             }
 
+            trace.Mark("instance");
             var store = SettingsStore.Default();
             var settings = store.Load();
+            trace.Mark("settings");
             Theme.Override = settings.Theme;
             Theme.Apply(Resources);
 
             base.OnStartup(e);
             var w = new MainWindow(store, settings, new ShutdownRunner());
+            trace.Mark("window");
             MainWindow = w;
             w.Closed += (s, a) => ReleaseInstance();
+            w.ContentRendered += (s, a) => trace.Done("first frame");
             w.Show();
         }
 

@@ -9,9 +9,10 @@ All notable changes to this project are documented here. The format follows Keep
 - A settings file that is only locked for a moment (for example by a virus scanner) is no longer replaced with defaults, so a saved schedule stays.
 - Starting Shutdown while a copy already runs as administrator now says so instead of doing nothing.
 - A hanging shutdown.exe blocks the window for at most 5 seconds instead of 15.
+- A start that takes longer than 2 seconds is written to the log with the time of each step, so a slow start can be traced.
 
 ### Changed
-- Buttons, number fields and the choice bars have clearly visible outlines in light and dark mode.
+- Buttons, number fields and the choice bars have clearly visible outlines in light and dark mode; the light mode is less glaring, with controls set slightly darker than their panel.
 
 ## [1.2.2] - 2026-11-21
 
