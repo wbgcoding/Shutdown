@@ -68,4 +68,5 @@
   <data name="MenuCut" xml:space="preserve"><value>Ausschneiden</value></data>
   <data name="MenuPaste" xml:space="preserve"><value>Einfügen</value></data>
   <data name="MenuSelectAll" xml:space="preserve"><value>Alles auswählen</value></data>
+  <data name="ElevatedRunning" xml:space="preserve"><value>Shutdown läuft bereits als Administrator. Wechsle zu diesem Fenster oder schließe es und starte Shutdown erneut.</value></data>
 </root>

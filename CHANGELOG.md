@@ -6,6 +6,9 @@ All notable changes to this project are documented here. The format follows Keep
 
 ### Fixed
 - With a light Windows accent colour (for example yellow), the start button text is now black instead of hard-to-read white.
+- A settings file that is only locked for a moment (for example by a virus scanner) is no longer replaced with defaults, so a saved schedule stays.
+- Starting Shutdown while a copy already runs as administrator now says so instead of doing nothing.
+- A hanging shutdown.exe blocks the window for at most 5 seconds instead of 15.
 
 ## [1.2.2] - 2026-11-21
 

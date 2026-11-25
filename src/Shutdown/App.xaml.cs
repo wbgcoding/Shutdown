@@ -21,6 +21,7 @@ namespace Shutdown
         static readonly TimeSpan AckTimeout = TimeSpan.FromMilliseconds(400);
         static readonly TimeSpan RetryWait = TimeSpan.FromMilliseconds(200);
         static readonly TimeSpan ClaimTimeout = TimeSpan.FromSeconds(5);
+        static readonly TimeSpan CloseMargin = TimeSpan.FromSeconds(1.5);
 
         Mutex _mutex;
         EventWaitHandle _activate;
@@ -45,6 +46,8 @@ namespace Shutdown
 
             DispatcherUnhandledException += OnDispatcherError;
             AppDomain.CurrentDomain.UnhandledException += (s, a) => Log.Write("unhandled", a.ExceptionObject as Exception);
+            // First, so every message from here on, even an early error, is in the user's language.
+            Loc.I.Apply("system");
 
             if (!ClaimSingleInstance())
             {
@@ -56,7 +59,6 @@ namespace Shutdown
             var settings = store.Load();
             Theme.Override = settings.Theme;
             Theme.Apply(Resources);
-            Loc.I.Apply("system");
 
             base.OnStartup(e);
             var w = new MainWindow(store, settings, new ShutdownRunner());
@@ -81,6 +83,7 @@ namespace Shutdown
             {
                 // The running copy was started as administrator; a normal start may not even signal it.
                 Log.Write("another instance runs elevated");
+                MessageBox.Show(Loc.I["ElevatedRunning"], "Shutdown", MessageBoxButton.OK, MessageBoxImage.Information);
                 return false;
             }
             var self = BuildId.Current();
@@ -164,9 +167,9 @@ namespace Shutdown
                 {
                     if (!_owned || !(MainWindow is MainWindow w) || !w.IsVisible) return;
                     // A newer build was started: close so it can take over, unless a timed hibernate needs this window.
-                    // A request that waited longer than the newer build waits (a busy window) is stale: that build has
-                    // given up already, so closing now would leave no window at all.
-                    bool stale = DateTime.UtcNow - signalled > ClaimTimeout;
+                    // A request that waited about as long as the newer build waits (a busy window) is stale: that build
+                    // gives up soon, so closing now could leave no window at all. The margin covers closing the window.
+                    bool stale = DateTime.UtcNow - signalled > ClaimTimeout - CloseMargin;
                     if (quit && !stale && w.CloseForNewerBuild()) return;
                     w.BringToFront();
                     _ack.Set();
