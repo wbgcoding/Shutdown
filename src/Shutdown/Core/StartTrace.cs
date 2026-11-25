@@ -13,7 +13,7 @@ namespace Shutdown.Core
     public sealed class StartTrace
     {
         /// <summary>Starts at or below this stay out of the log.</summary>
-        public static readonly TimeSpan SlowAfter = TimeSpan.FromSeconds(2);
+        public static readonly TimeSpan SlowAfter = TimeSpan.FromSeconds(1);
 
         readonly Func<TimeSpan> _elapsed;
         readonly Action<string> _write;

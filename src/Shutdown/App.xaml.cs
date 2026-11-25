@@ -43,13 +43,14 @@ namespace Shutdown
         protected override void OnStartup(StartupEventArgs e)
         {
             if (HostedByTests) { base.OnStartup(e); return; }
+            var trace = new StartTrace();
 
             DispatcherUnhandledException += OnDispatcherError;
             AppDomain.CurrentDomain.UnhandledException += (s, a) => Log.Write("unhandled", a.ExceptionObject as Exception);
             // First, so every message from here on, even an early error, is in the user's language.
             Loc.I.Apply("system");
+            trace.Mark("language");
 
-            var trace = new StartTrace();
             if (!ClaimSingleInstance())
             {
                 Shutdown();
@@ -62,12 +63,14 @@ namespace Shutdown
             trace.Mark("settings");
             Theme.Override = settings.Theme;
             Theme.Apply(Resources);
+            trace.Mark("theme");
 
             base.OnStartup(e);
             var w = new MainWindow(store, settings, new ShutdownRunner());
             trace.Mark("window");
             MainWindow = w;
             w.Closed += (s, a) => ReleaseInstance();
+            w.Loaded += (s, a) => trace.Mark("loaded");
             w.ContentRendered += (s, a) => trace.Done("first frame");
             w.Show();
         }
