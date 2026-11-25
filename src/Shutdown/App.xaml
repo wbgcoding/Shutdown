@@ -11,16 +11,16 @@
     <FontFamily x:Key="MonoFont">Cascadia Mono, Consolas</FontFamily>
 
     <!-- Placeholder brushes; Theme.Apply replaces them before the window shows. -->
-    <SolidColorBrush x:Key="Bg" Color="#F3F3F3"/>
-    <SolidColorBrush x:Key="Card" Color="#FFFFFF"/>
-    <SolidColorBrush x:Key="CardBorder" Color="#E3E3E3"/>
+    <SolidColorBrush x:Key="Bg" Color="#EBEBEB"/>
+    <SolidColorBrush x:Key="Card" Color="#F5F5F5"/>
+    <SolidColorBrush x:Key="CardBorder" Color="#DADADA"/>
     <SolidColorBrush x:Key="Text" Color="#1B1B1B"/>
     <SolidColorBrush x:Key="TextSub" Color="#5C5C5C"/>
-    <SolidColorBrush x:Key="Control" Color="#FAFAFA"/>
-    <SolidColorBrush x:Key="ControlHover" Color="#F0F0F0"/>
+    <SolidColorBrush x:Key="Control" Color="#FCFCFC"/>
+    <SolidColorBrush x:Key="ControlHover" Color="#EFEFEF"/>
     <SolidColorBrush x:Key="ControlHoverText" Color="#1B1B1B"/>
-    <SolidColorBrush x:Key="ControlPressed" Color="#E6E6E6"/>
-    <SolidColorBrush x:Key="DisabledFill" Color="#E6E6E6"/>
+    <SolidColorBrush x:Key="ControlPressed" Color="#E4E4E4"/>
+    <SolidColorBrush x:Key="DisabledFill" Color="#E4E4E4"/>
     <SolidColorBrush x:Key="ControlBorder" Color="#707070"/>
     <SolidColorBrush x:Key="Accent" Color="#005FB8"/>
     <SolidColorBrush x:Key="AccentHover" Color="#004275"/>

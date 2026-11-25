@@ -83,8 +83,8 @@ namespace Shutdown.Tests
             WithOverride("light", r =>
             {
                 Assert.False(Theme.IsDark);
-                Assert.Equal(Hex("#F3F3F3"), C(r, "Bg"));
-                Assert.Equal(Hex("#FFFFFF"), C(r, "Card"));
+                Assert.Equal(Hex("#EBEBEB"), C(r, "Bg"));
+                Assert.Equal(Hex("#F5F5F5"), C(r, "Card"));
                 Assert.Equal(Hex("#1B1B1B"), C(r, "Text"));
                 Assert.Equal(Hex("#9D5D00"), C(r, "Warn"));
                 Assert.Equal(Hex("#C42B1C"), C(r, "Urgent"));
@@ -123,7 +123,7 @@ namespace Shutdown.Tests
                 Theme.Apply(r);
                 Assert.Equal(count, r.Count);
                 Assert.NotSame(dark, r["Bg"]);
-                Assert.Equal(Hex("#F3F3F3"), C(r, "Bg"));
+                Assert.Equal(Hex("#EBEBEB"), C(r, "Bg"));
             }
             finally { Theme.Override = before; Theme.Apply(Application.Current.Resources); }
         });
