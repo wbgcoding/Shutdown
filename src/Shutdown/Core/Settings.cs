@@ -65,6 +65,13 @@ namespace Shutdown.Core
                     return s;
                 }
             }
+            catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException)
+            {
+                // Locked or not readable right now, not damaged: defaults for this run, but never saved over it.
+                Log.Write("settings file not readable, not saving over it", ex);
+                KeepFile = true;
+                return new Settings();
+            }
             catch (Exception ex)
             {
                 Log.Write("settings load failed", ex);
@@ -75,7 +82,7 @@ namespace Shutdown.Core
             }
         }
 
-        /// <summary>Set when the file on disk belongs to a newer version; saving then leaves it alone.</summary>
+        /// <summary>Set when the file on disk belongs to a newer version or could not be read; saving then leaves it alone.</summary>
         public bool KeepFile { get; private set; }
 
         /// <summary>False when nothing was written (file of a newer version, or a write error).</summary>
@@ -95,14 +102,19 @@ namespace Shutdown.Core
                 }
                 if (File.Exists(FilePath)) File.Replace(tmp, FilePath, null);
                 else File.Move(tmp, FilePath);
+                _saveFailing = false;
                 return true;
             }
             catch (Exception ex)
             {
-                Log.Write("settings save failed", ex);
+                // Every input saves; a folder that stays unwritable is logged once, not on every step.
+                if (!_saveFailing) Log.Write("settings save failed", ex);
+                _saveFailing = true;
                 return false;
             }
         }
+
+        bool _saveFailing;
     }
 
     public static class AppPaths
@@ -140,7 +152,7 @@ namespace Shutdown.Core
                         File.Move(FilePath, old);
                     }
                     File.AppendAllText(FilePath,
-                        DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "  " + what +
+                        DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture) +"  " + what +
                         (ex != null ? Environment.NewLine + ex : "") + Environment.NewLine, Encoding.UTF8);
                 }
             }

@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using Shutdown.Core;
 using Xunit;
 
@@ -307,6 +308,29 @@ namespace Shutdown.Tests
         }
 
         [Fact]
+        public void A_save_that_keeps_failing_is_logged_once_until_one_succeeds()
+        {
+            string before = Log.Dir;
+            Log.Dir = Path.Combine(_dir, "logs");
+            try
+            {
+                int Logged() => File.Exists(Log.FilePath)
+                    ? Regex.Matches(File.ReadAllText(Log.FilePath), "settings save failed").Count : 0;
+                Directory.CreateDirectory(FilePath);
+                var store = Store();
+                for (int i = 0; i < 5; i++) Assert.False(store.Save(new Settings()));
+                Assert.Equal(1, Logged());
+                Directory.Delete(FilePath);
+                Assert.True(store.Save(new Settings()));
+                File.Delete(FilePath);
+                Directory.CreateDirectory(FilePath);
+                Assert.False(store.Save(new Settings()));
+                Assert.Equal(2, Logged());
+            }
+            finally { Log.Dir = before; }
+        }
+
+        [Fact]
         public void Save_below_a_file_returns_false_without_throwing()
         {
             string blocker = Path.Combine(_dir, "blocker");
@@ -347,6 +371,21 @@ namespace Shutdown.Tests
                 Assert.Equal(1, s.Hours);
             }
             Assert.Equal(5, Store().Load().Hours);
+        }
+
+        [Fact]
+        public void A_file_that_was_locked_while_loading_is_never_saved_over()
+        {
+            Store().Save(new Settings { Hours = 5, PendingAction = "Shutdown", PendingDue = 1234 });
+            var store = Store();
+            using (new FileStream(FilePath, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
+                store.Load();
+            // The file is intact, only unreadable for a moment: defaults must not replace it or its schedule.
+            Assert.False(store.Save(new Settings { Hours = 9 }));
+            var back = Store().Load();
+            Assert.Equal(5, back.Hours);
+            Assert.Equal("Shutdown", back.PendingAction);
+            Assert.False(File.Exists(FilePath + ".bad"));
         }
 
         [Fact]
