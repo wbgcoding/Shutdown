@@ -101,7 +101,7 @@ namespace Shutdown.Ui
                 Set(res, "ControlHoverText", "#1B1B1B");
                 Set(res, "ControlPressed", "#E6E6E6");
                 Set(res, "DisabledFill", "#E6E6E6");
-                Set(res, "ControlBorder", "#8A8A8A");
+                Set(res, "ControlBorder", "#707070");
                 Set(res, "Accent", a[Dark1]);
                 Set(res, "AccentHover", a[Dark2]);
                 Set(res, "AccentText", TextOn(a[Dark1], a[Dark2]));
