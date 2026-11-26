@@ -10,6 +10,10 @@ All notable changes to this project are documented here. The format follows Keep
 - Starting Shutdown while a copy already runs as administrator now says so instead of doing nothing.
 - A hanging shutdown.exe blocks the window for at most 5 seconds instead of 15.
 - When startup takes more than one second, the log shows how long each step took through the first frame.
+- If Windows refuses to go to sleep, the window now says so instead of only turning the display off.
+- The command line ends with exit code 2 or 3 when the open window could not take the command, so scripts can tell.
+- The log and copied error details show %USERPROFILE% instead of a path that contains the account name.
+- Setup for all users explains how to remove a copy installed for one account instead of reporting a failed uninstall.
 
 ### Changed
 - Dark mode looks like Windows 11 itself: buttons and number fields stand out by a slightly lighter fill instead of bright outlines. Light mode is less glaring, with clearly outlined controls set slightly darker than their panel.
@@ -33,6 +37,7 @@ All notable changes to this project are documented here. The format follows Keep
 - Releases include a setup program for the current user or all users, with an option to copy a portable executable.
 - The highlight slides to the newly chosen action, timing mode or preset; with Windows animations turned off it moves at once.
 - The note for hibernation and sleep puts "Keep this window open" on its own line.
+- Uninstalling cancels a shutdown or restart that Shutdown scheduled. Deleting settings on uninstall removes only Shutdown's own files.
 
 ## [1.2.2] - 2026-11-21
 

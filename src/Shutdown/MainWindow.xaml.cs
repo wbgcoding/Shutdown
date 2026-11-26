@@ -349,7 +349,11 @@ namespace Shutdown
                 var late = Uptime() - p.Due;
                 ClearPending();
                 if (late > MissedGrace) ShowInfo("MsgMissed");
-                else if (p.Action == PowerAction.Sleep) _suspendRunner.Run();
+                else if (p.Action == PowerAction.Sleep)
+                {
+                    string error = _suspendRunner.Run();
+                    if (error != null) ShowError(error, null, false);
+                }
                 else Execute(Schedule.ArgsFor(p.Action, 0, Loc.I["ShutdownComment"]));
             }
             UpdateUi();

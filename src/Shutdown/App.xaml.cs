@@ -21,6 +21,8 @@ namespace Shutdown
         const string InfoName = @"Local\BGCoding.Shutdown.Build";
         const string CommandName = @"Local\BGCoding.Shutdown.Command";
         const string RequestName = @"Local\BGCoding.Shutdown.Request";
+        const int MailboxBusyExitCode = 2;
+        const int CommandNotAcknowledgedExitCode = 3;
         static readonly TimeSpan AckTimeout = TimeSpan.FromMilliseconds(400);
         static readonly TimeSpan RetryWait = TimeSpan.FromMilliseconds(200);
         static readonly TimeSpan ClaimTimeout = TimeSpan.FromSeconds(5);
@@ -55,9 +57,9 @@ namespace Shutdown
             Loc.I.Apply("system");
             trace.Mark("language");
 
-            if (!ClaimSingleInstance(e.Args))
+            if (ClaimSingleInstance(e.Args) is int exitCode)
             {
-                Shutdown();
+                Shutdown(e.Args.Length == 0 ? 0 : exitCode);
                 return;
             }
 
@@ -97,7 +99,8 @@ namespace Shutdown
         // A closing instance can still own the lock for a moment after its window is gone, so a quick
         // restart would only signal a process that is about to exit. The running instance acknowledges
         // each activation; without an acknowledgement the new start keeps trying to take the lock.
-        bool ClaimSingleInstance(string[] args)
+        // A null result means this instance owns the lock and should continue starting up.
+        int? ClaimSingleInstance(string[] args)
         {
             try
             {
@@ -111,7 +114,7 @@ namespace Shutdown
                     if (!TryOwnMutex(request, ClaimTimeout))
                     {
                         Log.Write("instance request still in progress");
-                        return false;
+                        return MailboxBusyExitCode;
                     }
                     try { return ClaimOrNotify(args); }
                     finally { request.ReleaseMutex(); }
@@ -122,11 +125,11 @@ namespace Shutdown
                 // The running copy was started as administrator; a normal start may not even signal it.
                 Log.Write("another instance runs elevated");
                 MessageBox.Show(Loc.I["ElevatedRunning"], "Shutdown", MessageBoxButton.OK, MessageBoxImage.Information);
-                return false;
+                return CommandNotAcknowledgedExitCode;
             }
         }
 
-        bool ClaimOrNotify(string[] args)
+        int? ClaimOrNotify(string[] args)
         {
             var self = BuildId.Current();
             bool takeoverTried = false;
@@ -141,7 +144,7 @@ namespace Shutdown
                     takeoverTried = true;
                     var result = TakeOver();
                     if (result == Reply.Acquired) break;
-                    if (result == Reply.Acknowledged && args.Length == 0) return false;
+                    if (result == Reply.Acknowledged && args.Length == 0) return 0;
                 }
 
                 _ack.Reset();
@@ -150,26 +153,31 @@ namespace Shutdown
                 {
                     var result = WaitForReply(_mutex, _ack, ClaimTimeout);
                     if (result == Reply.Acquired) break;
-                    if (post == CommandInbox.PostResult.Busy) Log.Write("command inbox busy, command not posted");
-                    else if (result == Reply.TimedOut)
+                    if (post == CommandInbox.PostResult.Busy)
+                    {
+                        Log.Write("command inbox busy, command not posted");
+                        return MailboxBusyExitCode;
+                    }
+                    if (result == Reply.TimedOut)
                     {
                         CommandInbox.Withdraw(CommandName);
                         Log.Write("running instance did not acknowledge the command");
+                        return CommandNotAcknowledgedExitCode;
                     }
-                    return false;
+                    return 0;
                 }
 
                 // An owner may still be creating its inbox. A build that published without one can still be activated.
                 if (args.Length == 0 || running.HasValue || DateTime.UtcNow >= deadline)
                 {
                     _activate.Set();
-                    if (_ack.WaitOne(AckTimeout)) return false;
+                    if (_ack.WaitOne(AckTimeout)) return CommandNotAcknowledgedExitCode;
                 }
                 if (TryOwnMutex(_mutex, RetryWait)) break;
                 if (DateTime.UtcNow > deadline)
                 {
                     Log.Write("running instance did not answer");
-                    return false;
+                    return CommandNotAcknowledgedExitCode;
                 }
             }
             _activate.Reset();
@@ -179,7 +187,7 @@ namespace Shutdown
             catch (Exception ex) { Log.Write("command inbox not created", ex); }
             try { _info = self.Publish(InfoName, System.Diagnostics.Process.GetCurrentProcess().Id); }
             catch (Exception ex) { Log.Write("build info not published", ex); }
-            return true;
+            return null;
         }
 
         /// <summary>
@@ -238,13 +246,15 @@ namespace Shutdown
                     // gives up soon, so closing now could leave no window at all. The margin covers closing the window.
                     bool stale = DateTime.UtcNow - signalled > ClaimTimeout - CloseMargin;
                     if (quit && !stale && w.CloseForNewerBuild()) return;
-                    if (!quit)
+                    var command = quit ? null : CommandInbox.Take(CommandName, _commands);
+                    if (command != null)
                     {
-                        var command = CommandInbox.Take(CommandName, _commands);
-                        if (command != null) w.ApplyCommand(command);
+                        // Applying the command can block longer than the sender waits for a reply.
+                        _ack.Set();
+                        w.ApplyCommand(command);
                     }
                     w.BringToFront();
-                    _ack.Set();
+                    if (command == null) _ack.Set();
                 }));
             }
         }
@@ -272,15 +282,16 @@ namespace Shutdown
         {
             Log.Write("ui error", e.Exception);
             e.Handled = true;
+            string detail = Log.Redact(e.Exception.Message);
             if (MainWindow is MainWindow w && w.IsLoaded)
             {
-                w.ShowError("ErrUnexpected", e.Exception.Message, true);
+                w.ShowError("ErrUnexpected", detail, true);
                 return;
             }
             // No window to report into: without one the process would linger invisibly.
             // Free the lock first, so a new start is not refused while the dialog is open.
             ReleaseInstance();
-            MessageBox.Show(Loc.I["ErrUnexpected"] + Environment.NewLine + Environment.NewLine + e.Exception.Message,
+            MessageBox.Show(Loc.I["ErrUnexpected"] + Environment.NewLine + Environment.NewLine + detail,
                 "Shutdown", MessageBoxButton.OK, MessageBoxImage.Error);
             Shutdown(1);
         }

@@ -483,8 +483,8 @@ namespace Shutdown.Tests
         [InlineData("en",
             "Turns the PC off. Open programs are closed without asking.",
             "Restarts the PC. Open programs are closed without asking.",
-            "Saves the session to disk and turns the PC off. On the next start everything is as it was.",
-            "Runs once the set time has passed.",
+            "Saves the session to disk and turns the PC off. The next start brings everything back as you left it.",
+            "Runs when the countdown ends.",
             "Runs at a set date and time.",
             "Hibernation is turned off on this PC.")]
         [InlineData("de",

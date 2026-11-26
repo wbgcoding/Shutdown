@@ -3,6 +3,7 @@ using System.IO;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Shutdown.Core
 {
@@ -136,6 +137,15 @@ namespace Shutdown.Core
 
         public static string FilePath => Path.Combine(Dir, "shutdown.log");
 
+        internal static string Redact(string text)
+        {
+            if (string.IsNullOrEmpty(text)) return text;
+            string profile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            if (string.IsNullOrEmpty(profile)) return text;
+            return Regex.Replace(text, Regex.Escape(profile), "%USERPROFILE%",
+                RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+        }
+
         public static void Write(string what, Exception ex = null)
         {
             try
@@ -153,7 +163,7 @@ namespace Shutdown.Core
                     }
                     File.AppendAllText(FilePath,
                         DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture) +"  " + what +
-                        (ex != null ? Environment.NewLine + ex : "") + Environment.NewLine, Encoding.UTF8);
+                        (ex != null ? Environment.NewLine + Redact(ex.ToString()) : "") + Environment.NewLine, Encoding.UTF8);
                 }
             }
             catch { }

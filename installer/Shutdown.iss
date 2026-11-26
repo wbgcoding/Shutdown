@@ -378,6 +378,12 @@ begin
     Exit;
   if IsManagedInstall and (ExistingComparison <> 0) and ExistingPage.Values[0] and not ExistingUninstalled then
   begin
+    // A per-user copy has a user-writable uninstaller; it never runs with admin rights, so say what to do instead.
+    if (ExistingRoot = HKCU) and IsAdmin then
+    begin
+      Result := CustomMessage('InstallerPerUserFirst');
+      Exit;
+    end;
     ExistingUninstalled := RemoveExisting(False);
     if not ExistingUninstalled then
       Result := CustomMessage('InstallerPreviousUninstallFailed');
@@ -428,13 +434,47 @@ begin
   end;
 end;
 
+procedure DeleteDataFile(const Path: String; var Failed: Boolean);
+begin
+  if FileExists(Path) and not DeleteFile(Path) then
+    Failed := True;
+end;
+
+// Shutdown and restart run on the Windows timer. After an interactive uninstall nothing could cancel a pending one,
+// so it is cancelled here. A silent uninstall is skipped: setup runs it for an update, and the new version keeps the schedule.
+procedure CancelPendingTimer(const DataDir: String);
+var
+  Json: AnsiString;
+  Text: String;
+  ResultCode: Integer;
+begin
+  if not LoadStringFromFile(DataDir + '\Shutdown.settings.json', Json) then
+    Exit;
+  Text := String(Json);
+  StringChangeEx(Text, ' ', '', True);
+  if (Pos('"PendingAction":"Shutdown"', Text) > 0) or (Pos('"PendingAction":"Restart"', Text) > 0) then
+    Exec(ExpandConstant('{sys}\shutdown.exe'), '/a', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+end;
+
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
 var
   DataDir: String;
+  Failed: Boolean;
 begin
+  DataDir := ExpandConstant('{userappdata}\Shutdown');
+  if (CurUninstallStep = usUninstall) and not UninstallSilent then
+    CancelPendingTimer(DataDir);
   if (CurUninstallStep <> usPostUninstall) or not DeleteAppData then
     Exit;
-  DataDir := ExpandConstant('{userappdata}\Shutdown');
-  if DirExists(DataDir) and not DelTree(DataDir, True, True, True) then
+  // Only the app's own files: the folder name is generic, so anything else in it stays.
+  Failed := False;
+  DeleteDataFile(DataDir + '\Shutdown.settings.json', Failed);
+  DeleteDataFile(DataDir + '\Shutdown.settings.json.new', Failed);
+  DeleteDataFile(DataDir + '\Shutdown.settings.json.bad', Failed);
+  DeleteDataFile(DataDir + '\logs\shutdown.log', Failed);
+  DeleteDataFile(DataDir + '\logs\shutdown.log.1', Failed);
+  RemoveDir(DataDir + '\logs');
+  RemoveDir(DataDir);
+  if Failed then
     MsgBox(CustomMessage('InstallerDeleteAppDataFailed'), mbError, MB_OK);
 end;

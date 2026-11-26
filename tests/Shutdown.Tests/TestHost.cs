@@ -19,7 +19,8 @@ namespace Shutdown.Tests
     sealed class FakeSuspendRunner : ISuspendRunner
     {
         public int Calls { get; private set; }
-        public void Run() => Calls++;
+        public string Result { get; set; }
+        public string Run() { Calls++; return Result; }
     }
 
     static class TestEnvironment

@@ -76,6 +76,7 @@
   <data name="ErrPast" xml:space="preserve"><value>This time is in the past.</value></data>
   <data name="ErrTooSoon" xml:space="preserve"><value>Choose a time at least 1 minute from now.</value></data>
   <data name="ErrRunFailed" xml:space="preserve"><value>Windows refused the command.</value></data>
+  <data name="ErrSleepFailed" xml:space="preserve"><value>The PC could not go to sleep. Windows refused it.</value></data>
   <data name="ErrAccessDenied" xml:space="preserve"><value>This account may not run this action. Ask an administrator for permission.</value></data>
   <data name="ErrTimeout" xml:space="preserve"><value>shutdown.exe did not respond.</value></data>
   <data name="ErrStart" xml:space="preserve"><value>shutdown.exe could not be started.</value></data>
@@ -108,6 +109,7 @@
   <data name="InstallerKeepInstalled" xml:space="preserve"><value>Don't uninstall</value></data>
   <data name="InstallerDowngrade" xml:space="preserve"><value>Shutdown %1 is already installed. Setup cannot replace it with %2.</value></data>
   <data name="InstallerPreviousUninstallFailed" xml:space="preserve"><value>The existing installation could not be removed. Close Shutdown and uninstall it from Windows Settings before continuing.</value></data>
+  <data name="InstallerPerUserFirst" xml:space="preserve"><value>Shutdown is already installed for your account only. Uninstall that copy from Windows Settings first, then run Setup again.</value></data>
   <data name="InstallerPortable" xml:space="preserve"><value>Portable installation</value></data>
   <data name="InstallerPortableDescription" xml:space="preserve"><value>Copies only Shutdown.exe to the selected folder.</value></data>
   <data name="InstallerRun" xml:space="preserve"><value>Run Shutdown</value></data>

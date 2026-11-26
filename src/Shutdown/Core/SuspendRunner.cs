@@ -5,7 +5,8 @@ namespace Shutdown.Core
 {
     internal interface ISuspendRunner
     {
-        void Run();
+        // Returns a resource key on failure or null on success.
+        string Run();
     }
 
     internal sealed class SuspendRunner : ISuspendRunner
@@ -52,7 +53,7 @@ namespace Shutdown.Core
 
         static bool IsModernStandby() => GetPwrCapabilities(out var capabilities) && capabilities.AoAc != 0;
 
-        public void Run()
+        public string Run()
         {
             if (BlockedForTests) throw new InvalidOperationException("Sleep is blocked in tests.");
             bool modernStandby;
@@ -62,17 +63,18 @@ namespace Shutdown.Core
                 Log.Write("power capabilities unavailable", ex);
                 modernStandby = false;
             }
-            Run(modernStandby, () => SetSuspendState(false, false, false), TurnDisplayOff);
+            return Run(modernStandby, () => SetSuspendState(false, false, false), TurnDisplayOff);
         }
 
-        internal static void Run(bool modernStandby, Func<bool> suspend, Action turnDisplayOff)
+        internal static string Run(bool modernStandby, Func<bool> suspend, Action turnDisplayOff)
         {
             if (!modernStandby)
             {
-                if (suspend()) return;
+                if (suspend()) return null;
                 Log.Write("SetSuspendState returned false. Turning off the display.");
             }
             turnDisplayOff();
+            return modernStandby ? null : "ErrSleepFailed";
         }
 
         static void TurnDisplayOff() => SendMessageTimeout(HwndBroadcast, WmSysCommand, ScMonitorPower,

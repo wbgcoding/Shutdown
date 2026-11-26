@@ -1635,5 +1635,56 @@ namespace Shutdown.Tests
             Sta.Run(() => { });
             Assert.Throws<InvalidOperationException>(() => new ShutdownRunner().Run("/a"));
         }
+
+        [Theory]
+        [InlineData("ErrSleepFailed")]
+        [InlineData(null)]
+        public void Due_sleep_only_restores_the_window_from_the_tray_on_failure(string error) => Sta.Run(() =>
+        {
+            var previousShow = MainWindow.ShowNoActivate;
+            var previousFlash = MainWindow.Flash;
+            var flashes = new List<Window>();
+            MainWindow.ShowNoActivate = MainWindow.ShowWithoutFocus;
+            MainWindow.Flash = flashes.Add;
+            try
+            {
+                var w = Make();
+                var tray = new FakeTray();
+                w.CreateTrayIcon = tray.Create;
+                w.ShowActivated = false;
+                w.Show();
+                w.ActSleep.IsEnabled = true;
+                w.ActSleep.IsChecked = true;
+                _suspendRunner.Result = error;
+                Click(w.StartButton);
+                w.WindowState = WindowState.Minimized;
+                Assert.True(w.IsInTray);
+
+                _now = _now.AddHours(1);
+                w.OnTick();
+
+                Assert.Equal(1, _suspendRunner.Calls);
+                Assert.Equal(Visibility.Collapsed, w.PendingCard.Visibility);
+                if (error == null)
+                {
+                    Assert.True(w.IsInTray);
+                    Assert.Equal(Visibility.Collapsed, w.MessageCard.Visibility);
+                    Assert.Empty(flashes);
+                }
+                else
+                {
+                    Assert.False(w.IsInTray);
+                    Assert.True(w.IsVisible);
+                    Assert.Equal(Visibility.Visible, w.MessageCard.Visibility);
+                    Assert.Equal(Loc.I["ErrSleepFailed"], w.MessageText.Text);
+                    Assert.Same(w, Assert.Single(flashes));
+                }
+            }
+            finally
+            {
+                MainWindow.ShowNoActivate = previousShow;
+                MainWindow.Flash = previousFlash;
+            }
+        });
     }
 }

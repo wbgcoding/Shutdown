@@ -66,9 +66,11 @@ Use `Shutdown.exe` or the filename of your portable copy. An action switch on it
 
 Switch names are case-insensitive and also accept a `/` prefix, as in `/sleep /in 30`. Scheduling requires at least one minute of lead time.
 
+When Shutdown is already open, the second start ends with exit code 0 once the open window has taken the command, 2 when another command is still being handed over, and 3 when the open window did not answer. Invalid switches are reported in the window.
+
 ## Files
 
-Settings (`Shutdown.settings.json`) and a small log (rotated at 512 KB, one old copy kept) live in `%APPDATA%\Shutdown`. For an installed copy, use Windows Settings to uninstall Shutdown and optionally delete that data. For a portable copy, delete the exe and optionally delete the data folder.
+Settings (`Shutdown.settings.json`) and a small log (rotated at 512 KB, one old copy kept) live in `%APPDATA%\Shutdown`. For an installed copy, use Windows Settings to uninstall Shutdown and optionally delete that data. Uninstalling also cancels a shutdown or restart that Shutdown scheduled. For a portable copy, delete the exe and optionally delete the data folder.
 
 ## Build from source
 

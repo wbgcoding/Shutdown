@@ -76,6 +76,7 @@
   <data name="ErrPast" xml:space="preserve"><value>Dieser Zeitpunkt liegt in der Vergangenheit.</value></data>
   <data name="ErrTooSoon" xml:space="preserve"><value>Wähle einen Zeitpunkt, der mindestens 1 Minute in der Zukunft liegt.</value></data>
   <data name="ErrRunFailed" xml:space="preserve"><value>Windows hat den Befehl abgelehnt.</value></data>
+  <data name="ErrSleepFailed" xml:space="preserve"><value>Der PC konnte nicht in „Energie sparen“ wechseln. Windows hat es abgelehnt.</value></data>
   <data name="ErrAccessDenied" xml:space="preserve"><value>Dieses Konto darf diese Aktion nicht ausführen. Frag einen Administrator nach der Berechtigung.</value></data>
   <data name="ErrTimeout" xml:space="preserve"><value>shutdown.exe hat nicht reagiert.</value></data>
   <data name="ErrStart" xml:space="preserve"><value>shutdown.exe konnte nicht gestartet werden.</value></data>
@@ -108,6 +109,7 @@
   <data name="InstallerKeepInstalled" xml:space="preserve"><value>Installiert lassen</value></data>
   <data name="InstallerDowngrade" xml:space="preserve"><value>Shutdown %1 ist bereits installiert. Das Setup kann diese Version nicht durch %2 ersetzen.</value></data>
   <data name="InstallerPreviousUninstallFailed" xml:space="preserve"><value>Die vorhandene Installation konnte nicht entfernt werden. Schließen Sie Shutdown und deinstallieren Sie es in den Windows-Einstellungen.</value></data>
+  <data name="InstallerPerUserFirst" xml:space="preserve"><value>Shutdown ist bereits nur für Ihr Konto installiert. Deinstallieren Sie diese Kopie zuerst in den Windows-Einstellungen und starten Sie das Setup dann erneut.</value></data>
   <data name="InstallerPortable" xml:space="preserve"><value>Portable Installation</value></data>
   <data name="InstallerPortableDescription" xml:space="preserve"><value>Kopiert nur Shutdown.exe in den gewählten Ordner.</value></data>
   <data name="InstallerRun" xml:space="preserve"><value>Shutdown starten</value></data>
