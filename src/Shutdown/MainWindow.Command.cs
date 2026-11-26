@@ -38,11 +38,7 @@ namespace Shutdown
                 {
                     ModeCountdown.IsChecked = true;
                     int hours = Math.DivRem(countdown, 60, out int minutes);
-                    if (hours > DurHours.Maximum)
-                    {
-                        DurHours.Maximum = CommandLine.MaxCountdownMinutes / 60;
-                        DurHours.MaxLength = 5;
-                    }
+                    if (hours > DurHours.Maximum) AllowLongCountdown();
                     SetCountdown(hours, minutes);
                 }
                 else if (command.At is TimeSpan at)

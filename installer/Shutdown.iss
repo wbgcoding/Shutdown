@@ -275,6 +275,9 @@ begin
   WizardForm.OnShow := @WizardShown;
   WizardForm.BeveledLabel.Caption := '{#AppCopyright}';
   WizardForm.BeveledLabel.Visible := True;
+  // By default the label sits on the footer line, which then runs through the text: center it in the button row.
+  WizardForm.BeveledLabel.Top := WizardForm.NextButton.Top +
+    (WizardForm.NextButton.Height - WizardForm.BeveledLabel.Height) div 2;
   WizardForm.WelcomeLabel1.Caption := FmtMessage(CustomMessage('InstallerWelcome'), ['{#AppVersion}']);
   WizardForm.WelcomeLabel2.Caption := CustomMessage('InstallerWelcomeDescription');
 

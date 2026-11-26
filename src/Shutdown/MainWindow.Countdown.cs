@@ -52,8 +52,17 @@ namespace Shutdown
                 chip.IsChecked = chip.Minutes == duration;
         }
 
+        /// <summary>Lets the hour field take every countdown the command line accepts (up to the Windows timer limit).</summary>
+        void AllowLongCountdown()
+        {
+            DurHours.Maximum = CommandLine.MaxCountdownMinutes / 60;
+            DurHours.MaxLength = 5;
+        }
+
         void InitializeCountdown(Settings settings)
         {
+            // A countdown set from the command line can exceed the field's usual hour limit; keep it on the next start.
+            if (settings.Hours > DurHours.Maximum) AllowLongCountdown();
             DurHours.Value = settings.Hours;
             long total = DurHours.Value * 60L + Math.Max(DurMinutes.Minimum, settings.Minutes);
             SetCountdown(0, (int)Math.Min(total, MaxCountdownMinutes));

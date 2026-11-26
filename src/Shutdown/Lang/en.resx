@@ -98,7 +98,7 @@
   <data name="MenuSelectAll" xml:space="preserve"><value>Select all</value></data>
   <data name="ElevatedRunning" xml:space="preserve"><value>Shutdown is already running as administrator. Switch to its window, or close it and start Shutdown again.</value></data>
   <data name="InstallerWelcome" xml:space="preserve"><value>Shutdown %1 Setup</value></data>
-  <data name="InstallerWelcomeDescription" xml:space="preserve"><value>Setup installs Shutdown, a timer for shutdown, restart or hibernation.</value></data>
+  <data name="InstallerWelcomeDescription" xml:space="preserve"><value>Setup installs Shutdown, a timer for shutdown, restart, hibernation or sleep.</value></data>
   <data name="InstallerExisting" xml:space="preserve"><value>Existing install detected</value></data>
   <data name="InstallerSameVersion" xml:space="preserve"><value>This version of Shutdown is already installed.</value></data>
   <data name="InstallerReplaceVersion" xml:space="preserve"><value>Choose what to do with the installed version of Shutdown.</value></data>

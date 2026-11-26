@@ -223,9 +223,10 @@ namespace Shutdown.Tests
         [Fact]
         public void An_oversized_stored_duration_loads_at_the_limit_with_info() => Sta.Run(() =>
         {
-            var w = Make(new Settings { Hours = 5000, Minutes = 75 });
-            Assert.Equal(999, w.DurHours.Value);
-            Assert.Equal(59, w.DurMinutes.Value);
+            // Above the ten-year Windows limit; anything below it may come from the command line and is kept.
+            var w = Make(new Settings { Hours = 90000, Minutes = 75 });
+            Assert.Equal(87600, w.DurHours.Value);
+            Assert.Equal(0, w.DurMinutes.Value);
             Assert.True(w.StartButton.IsEnabled);
             Assert.Equal(Loc.I["ErrTooLong"], w.MessageText.Text);
         });

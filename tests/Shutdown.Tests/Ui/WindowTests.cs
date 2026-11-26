@@ -306,6 +306,38 @@ namespace Shutdown.Tests
         });
 
         [Fact]
+        public void Windows_timed_card_past_its_target_stops_staying_on_top() => Sta.Run(() =>
+        {
+            var previousFlash = MainWindow.Flash;
+            MainWindow.Flash = _ => { };
+            try
+            {
+                var w = Make(new Settings { Hours = 0, Minutes = 2 });
+                Click(w.StartButton);
+                var due = _now.AddMinutes(2);
+
+                _now = due.AddSeconds(-30);
+                w.OnTick();
+                Assert.True(w.Topmost);
+
+                // Windows' timer was cancelled elsewhere: the card stays, the window must not cover everything.
+                _now = due.AddSeconds(5);
+                w.OnTick();
+                Assert.False(w.Topmost);
+                Assert.Equal(Visibility.Visible, w.PendingCard.Visibility);
+            }
+            finally { MainWindow.Flash = previousFlash; }
+        });
+
+        [Fact]
+        public void Long_command_line_countdown_survives_the_next_start() => Sta.Run(() =>
+        {
+            var w = Make(new Settings { Hours = 1500, Minutes = 0 });
+            Assert.Equal(1500, w.DurHours.Value);
+            Assert.NotEqual(Visibility.Visible, w.MessageCard.Visibility);
+        });
+
+        [Fact]
         public void Pending_countdown_updates_the_window_title_and_taskbar_until_aborted() => Sta.Run(() =>
         {
             var w = Make();
@@ -344,7 +376,7 @@ namespace Shutdown.Tests
             try
             {
                 Loc.I.Apply("de");
-                Assert.Equal("Neustart in 0:10:00", w.Title);
+                Assert.Equal("Neustart: noch 0:10:00", w.Title);
             }
             finally { Loc.I.Apply("en"); }
         });

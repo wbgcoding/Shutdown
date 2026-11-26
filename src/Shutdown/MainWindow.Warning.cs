@@ -19,7 +19,10 @@ namespace Shutdown
         void WarnLastMinute()
         {
             var pending = _pending;
-            if (pending == null || pending.WarnedLastMinute || pending.Due - Uptime() > LastMinuteThreshold) return;
+            if (pending == null) return;
+            // A Windows-timed card can outlive its target (aborted elsewhere): stop staying on top once it is due.
+            if (pending.WarnedLastMinute && Topmost && Uptime() >= pending.Due) { Topmost = false; return; }
+            if (pending.WarnedLastMinute || pending.Due - Uptime() > LastMinuteThreshold) return;
 
             pending.WarnedLastMinute = true;
             if (WindowState == WindowState.Minimized || IsInTray)
