@@ -98,8 +98,7 @@ namespace Shutdown
             if (action == PowerAction.Hibernate && !ActHibernate.IsEnabled) action = PowerAction.Shutdown;
             (action == PowerAction.Restart ? ActRestart : action == PowerAction.Hibernate ? ActHibernate : ActShutdown).IsChecked = true;
             (settings.Mode == nameof(TimeMode.At) ? ModeAt : ModeCountdown).IsChecked = true;
-            DurHours.Value = settings.Hours;
-            DurMinutes.Value = settings.Minutes;
+            InitializeCountdown(settings);
 
             // One real hour ahead: wall-clock math lands in the gap or an hour off on a DST change day.
             var start = Now().ToUniversalTime().AddHours(1).ToLocalTime();
@@ -108,7 +107,7 @@ namespace Shutdown
             AtHour.Value = start.Hour;
             AtMinute.Value = start.Minute;
 
-            foreach (var sp in new[] { DurHours, DurMinutes, AtHour, AtMinute }) sp.ValueChanged += (s, e) => OnInputChanged(s, null);
+            foreach (var sp in new[] { AtHour, AtMinute }) sp.ValueChanged += (s, e) => OnInputChanged(s, null);
 
             _pending = RestorePending(settings);
             if (_pending == null)
@@ -242,7 +241,7 @@ namespace Shutdown
         ScheduleResult Compute(DateTime now) =>
             SelectedMode == TimeMode.At
                 ? Schedule.FromTarget(_date, AtHour.Value, AtMinute.Value, now)
-                : Schedule.FromCountdown(DurHours.Value, DurMinutes.Value, now);
+                : ComputeCountdown(now);
 
         void RefreshTexts()
         {
@@ -263,7 +262,7 @@ namespace Shutdown
                     Content = h > 0 ? L.F("ChipHours", h) : L.F("ChipMinutes", m),
                 };
                 System.Windows.Automation.AutomationProperties.SetAutomationId(b, "Chip" + (h * 60 + m));
-                b.Click += (s, e) => { DurHours.Value = h; DurMinutes.Value = m; };
+                b.Click += (s, e) => SetCountdown(h, m);
                 Chips.Children.Add(b);
             }
             UpdateUi();

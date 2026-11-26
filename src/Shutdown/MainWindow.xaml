@@ -137,7 +137,8 @@
           <ui:NumberSpinner x:Name="DurHours" Maximum="999" Digits="1" AutomationKey="DurHours"/>
           <TextBlock Text=":" FontSize="22" FontWeight="SemiBold" Foreground="{DynamicResource TextSub}"
                      VerticalAlignment="Top" Margin="8,22.5,8,0"/>
-          <ui:NumberSpinner x:Name="DurMinutes" Maximum="59" Digits="2" AutomationKey="DurMinutes"/>
+          <ui:NumberSpinner x:Name="DurMinutes" Maximum="59" TypedMaximum="5999" MaxLength="4"
+                            CarryInsteadOfWrap="True" Digits="2" AutomationKey="DurMinutes"/>
         </StackPanel>
 
         <!-- Time of day -->

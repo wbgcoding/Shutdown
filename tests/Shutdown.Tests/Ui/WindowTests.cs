@@ -868,17 +868,64 @@ namespace Shutdown.Tests
             Assert.Equal("in 30 min", w.ResultText.Text);
         });
 
-        [Fact]
-        public void Typed_value_above_the_maximum_counts_as_the_maximum() => Sta.Run(() =>
+        static void CommitMinutes(MainWindow w, string text)
         {
-            var w = Make();
-            w.DurMinutes.Box.Text = "7";
-            Assert.Equal(7, w.DurMinutes.Value);
-            // The summary must not keep showing 7 while 75 is in the field.
-            w.DurMinutes.Box.Text = "75";
-            Assert.Equal(59, w.DurMinutes.Value);
-            var end = _now.AddHours(1).AddMinutes(59);
+            var box = w.DurMinutes.Box;
+            box.Text = text;
+            box.RaiseEvent(new KeyboardFocusChangedEventArgs(Keyboard.PrimaryDevice, 0, box, null)
+            {
+                RoutedEvent = Keyboard.LostKeyboardFocusEvent
+            });
+        }
+
+        [Theory]
+        [InlineData("90", 1, 30, "30")]
+        [InlineData("5999", 99, 59, "59")]
+        public void Typed_minutes_carry_into_hours_on_commit(string text, int hours, int minutes, string display) => Sta.Run(() =>
+        {
+            var w = Make(new Settings { Hours = 0 });
+            Assert.Equal(4, w.DurMinutes.Box.MaxLength);
+            CommitMinutes(w, text);
+            Assert.Equal(hours, w.DurHours.Value);
+            Assert.Equal(minutes, w.DurMinutes.Value);
+            Assert.Equal(display, w.DurMinutes.Box.Text);
+            var end = _now.AddHours(hours).AddMinutes(minutes);
             Assert.Equal(Loc.I.F("SummaryAt", Loc.I.DateText(end), Loc.I.TimeText(end)), w.ResultText.Text);
+            var saved = _store.Load();
+            Assert.Equal(hours, saved.Hours);
+            Assert.Equal(minutes, saved.Minutes);
+        });
+
+        [Theory]
+        [InlineData(0, 59, true, 1, 0)]
+        [InlineData(1, 0, false, 0, 59)]
+        [InlineData(0, 0, false, 0, 0)]
+        public void Minute_arrows_carry_or_borrow_hours(int hours, int minutes, bool up, int expectedHours, int expectedMinutes) => Sta.Run(() =>
+        {
+            var w = Make(new Settings { Hours = hours, Minutes = minutes });
+            Click(up ? w.DurMinutes.UpButton : w.DurMinutes.DownButton);
+            Assert.Equal(expectedHours, w.DurHours.Value);
+            Assert.Equal(expectedMinutes, w.DurMinutes.Value);
+        });
+
+        [Theory]
+        [InlineData(null, 0)]
+        [InlineData("90", 30)]
+        public void Minute_carry_past_the_hour_limit_shows_the_duration_error(string text, int minutes) => Sta.Run(() =>
+        {
+            var w = Make(new Settings { Hours = 999, Minutes = 59 });
+            if (text == null) Click(w.DurMinutes.UpButton);
+            else CommitMinutes(w, text);
+
+            Assert.Equal(999, w.DurHours.Value);
+            Assert.Equal(minutes, w.DurMinutes.Value);
+            Assert.Equal(Loc.I["ErrTooLong"], w.ResultText.Text);
+            Assert.False(w.StartButton.IsEnabled);
+            Click(w.StartButton);
+            Assert.Empty(_runner.Calls);
+
+            Click(w.DurMinutes.DownButton);
+            Assert.True(w.StartButton.IsEnabled);
         });
 
         [Fact]

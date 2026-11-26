@@ -124,15 +124,19 @@ namespace Shutdown.Tests
         });
 
         [Theory]
-        [InlineData(5000, 75, 999, 59)]
-        [InlineData(-3, -1, 0, 0)]
-        [InlineData(999, 59, 999, 59)]
-        [InlineData(2, 30, 2, 30)]
-        public void Stored_duration_is_clamped_to_the_field_ranges(int h, int m, int eh, int em) => Sta.Run(() =>
+        [InlineData(5000, 75, 999, 15, "ErrTooLong")]
+        [InlineData(-3, -1, 0, 0, "ErrTooShort")]
+        [InlineData(999, 59, 999, 59, null)]
+        [InlineData(2, 30, 2, 30, null)]
+        [InlineData(2, 90, 3, 30, null)]
+        [InlineData(0, 6000, 100, 0, null)]
+        public void Stored_duration_normalizes_minutes_and_caps_hours(int h, int m, int eh, int em, string error) => Sta.Run(() =>
         {
             var w = Make(new Settings { Hours = h, Minutes = m });
             Assert.Equal(eh, w.DurHours.Value);
             Assert.Equal(em, w.DurMinutes.Value);
+            Assert.Equal(error == null, w.StartButton.IsEnabled);
+            if (error != null) Assert.Equal(Loc.I[error], w.ResultText.Text);
         });
 
         [Theory]

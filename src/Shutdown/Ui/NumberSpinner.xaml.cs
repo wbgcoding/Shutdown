@@ -15,12 +15,16 @@ namespace Shutdown.Ui
         int _value;
         public int Minimum { get; set; }
         public int Maximum { get; set; } = 99;
+        public int? TypedMaximum { get; set; }
+        public bool CarryInsteadOfWrap { get; set; }
         /// <summary>Stepping past an end continues at the other end (clock fields); typed values are clamped.</summary>
         public bool Wrap { get; set; }
         public int Digits { get; set; } = 2;
         public int WheelStep { get; set; } = 1;
+        public int MaxLength { get => Box.MaxLength; set => Box.MaxLength = value; }
 
         public event EventHandler ValueChanged;
+        public event EventHandler<int> Carry;
 
         public NumberSpinner()
         {
@@ -31,14 +35,16 @@ namespace Shutdown.Ui
         public int Value
         {
             get => _value;
-            set
-            {
-                int v = Clamp(value);
-                bool changed = v != _value;
-                _value = v;
-                Render();
-                if (changed) ValueChanged?.Invoke(this, EventArgs.Empty);
-            }
+            set => SetValue(value, Maximum);
+        }
+
+        void SetValue(int value, int maximum)
+        {
+            int v = Clamp(value, maximum);
+            bool changed = v != _value;
+            _value = v;
+            Render();
+            if (changed) ValueChanged?.Invoke(this, EventArgs.Empty);
         }
 
         /// <summary>Sets AutomationIds of the field (key) and arrows (keyUp, keyDown).</summary>
@@ -66,7 +72,7 @@ namespace Shutdown.Ui
             }
         }
 
-        int Clamp(int v) => Math.Max(Minimum, Math.Min(Maximum, v));
+        int Clamp(int v, int maximum) => Math.Max(Minimum, Math.Min(maximum, v));
 
         void Render()
         {
@@ -74,10 +80,18 @@ namespace Shutdown.Ui
             if (Box.Text != text) Box.Text = text;
         }
 
-        void Step(int delta)
+        void Step(int delta, bool commitText = false)
         {
+            if (commitText || TypedMaximum.HasValue) Commit();
+
+            if (CarryInsteadOfWrap && ((_value == Maximum && delta > 0) || (_value == Minimum && delta < 0)))
+            {
+                Carry?.Invoke(this, Math.Sign(delta));
+                return;
+            }
+
             int v = _value + delta;
-            if (Wrap)
+            if (Wrap && !CarryInsteadOfWrap)
             {
                 int span = Maximum - Minimum + 1;
                 v = ((v - Minimum) % span + span) % span + Minimum;
@@ -87,7 +101,8 @@ namespace Shutdown.Ui
 
         void Commit()
         {
-            if (int.TryParse(Box.Text, NumberStyles.None, CultureInfo.InvariantCulture, out int v)) Value = v;
+            if (int.TryParse(Box.Text, NumberStyles.None, CultureInfo.InvariantCulture, out int v))
+                SetValue(v, TypedMaximum ?? Maximum);
             else Render();
         }
 
@@ -123,10 +138,10 @@ namespace Shutdown.Ui
         {
             switch (e.Key)
             {
-                case Key.Up: Commit(); Step(1); e.Handled = true; break;
-                case Key.Down: Commit(); Step(-1); e.Handled = true; break;
-                case Key.PageUp: Commit(); Step(10); e.Handled = true; break;
-                case Key.PageDown: Commit(); Step(-10); e.Handled = true; break;
+                case Key.Up: Step(1, commitText: true); e.Handled = true; break;
+                case Key.Down: Step(-1, commitText: true); e.Handled = true; break;
+                case Key.PageUp: Step(10, commitText: true); e.Handled = true; break;
+                case Key.PageDown: Step(-10, commitText: true); e.Handled = true; break;
                 case Key.Enter: Commit(); Box.SelectAll(); e.Handled = true; break;
                 // Space raises no PreviewTextInput, so the digit filter never sees it.
                 case Key.Space: e.Handled = true; break;
@@ -137,7 +152,9 @@ namespace Shutdown.Ui
         void OnTextChanged(object sender, TextChangedEventArgs e)
         {
             if (!int.TryParse(Box.Text, NumberStyles.None, CultureInfo.InvariantCulture, out int v)) return;
-            v = Clamp(v);
+            // Leave room for more digits before committing a value that can carry into another field.
+            if (TypedMaximum.HasValue && v > Maximum) return;
+            v = Clamp(v, Maximum);
             if (v == _value) return;
             _value = v;
             ValueChanged?.Invoke(this, EventArgs.Empty);

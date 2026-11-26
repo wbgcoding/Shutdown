@@ -168,6 +168,23 @@ namespace Shutdown.Tests
         });
 
         [Fact]
+        public void The_typed_maximum_applies_only_when_text_is_committed() => Sta.Run(() =>
+        {
+            var s = Make(max: 59);
+            s.TypedMaximum = 5999;
+            s.Box.Text = "599";
+            Assert.Equal(0, s.Value);
+            s.Box.Text = "5999";
+            Press(s, Key.Enter);
+            Assert.Equal(5999, s.Value);
+            s.Box.Text = "9999";
+            Press(s, Key.Enter);
+            Assert.Equal("5999", s.Box.Text);
+            s.Value = 90;
+            Assert.Equal(59, s.Value);
+        });
+
+        [Fact]
         public void Arrow_keys_step_from_the_typed_value() => Sta.Run(() =>
         {
             var s = Make();
@@ -222,6 +239,28 @@ namespace Shutdown.Tests
             Assert.Equal(5, s.Value);
             Click(s.DownButton);
             Assert.Equal(8, s.Value);
+        });
+
+        [Fact]
+        public void Carry_replaces_wrapping_when_stepping_from_a_limit() => Sta.Run(() =>
+        {
+            var s = Make(max: 59, wrap: true);
+            s.TypedMaximum = 5999;
+            s.CarryInsteadOfWrap = true;
+            int carry = 0;
+            s.Carry += (sender, direction) => carry = direction;
+
+            s.Value = 55;
+            Press(s, Key.PageUp);
+            Assert.Equal(59, s.Value);
+            Assert.Equal(0, carry);
+            Wheel(s, 120);
+            Assert.Equal(59, s.Value);
+            Assert.Equal(1, carry);
+            s.Value = 0;
+            Wheel(s, -120);
+            Assert.Equal(0, s.Value);
+            Assert.Equal(-1, carry);
         });
 
         [Fact]
