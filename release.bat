@@ -19,7 +19,7 @@ rem Start empty so no file of an older version is shipped by mistake.
 if exist "%OUT%" rmdir /s /q "%OUT%"
 mkdir "%OUT%"
 if errorlevel 1 exit /b 1
-set "NAME=Shutdown-%VERSION%-windows.exe"
+set "NAME=Shutdown.exe"
 set "SETUP=Shutdown-Setup-%VERSION%.exe"
 copy /y dist\Shutdown.exe "%OUT%\%NAME%" >nul
 if errorlevel 1 exit /b 1

@@ -31,14 +31,14 @@
 Choose an installer or a portable copy from the [latest release](../../releases/latest).
 
 - Run `Shutdown-Setup-<version>.exe` to **install for your Windows account or all users**. Setup creates a Start menu shortcut and offers a desktop shortcut. Pass `/LANG=en` or `/LANG=de` to override the setup language.
-- Put the **portable executable** `Shutdown-<version>-windows.exe` in any folder and run it directly. You can also choose **Portable installation** in Setup to copy `Shutdown.exe` to a folder of your choice.
+- Put the **portable executable** `Shutdown.exe` in any folder and run it directly. You can also choose **Portable installation** in Setup to copy `Shutdown.exe` to a folder of your choice.
 
 Requires Windows 10 (version 1903 or newer) or Windows 11. The .NET Framework 4.8 it needs is already part of Windows.
 
 The exe is not code signed, so Windows SmartScreen may warn before the first start. Click **More info**, then **Run anyway**. To check the download, compare its SHA-256 hash with the matching line in `SHA256SUMS.txt` from the release:
 
 ```bat
-certutil -hashfile Shutdown-<version>-windows.exe SHA256
+certutil -hashfile Shutdown.exe SHA256
 ```
 
 ## How it works
