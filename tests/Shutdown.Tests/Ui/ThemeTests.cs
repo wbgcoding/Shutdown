@@ -36,11 +36,14 @@ namespace Shutdown.Tests
 
         static (SolidColorBrush text, SolidColorBrush fill) CheckedChipBrushes(ResourceDictionary resources)
         {
+            // The accent fill behind a checked chip is drawn by its SelectionSlider; the chip itself stays see-through.
             var chip = new ToggleButton { Style = (Style)Application.Current.Resources["ChipToggle"], IsChecked = true };
-            chip.Resources.MergedDictionaries.Add(resources);
+            var slider = new SelectionSlider { Child = chip };
+            slider.Resources.MergedDictionaries.Add(resources);
             chip.ApplyTemplate();
             var border = (Border)chip.Template.FindName("Bd", chip);
-            return ((SolidColorBrush)chip.Foreground, (SolidColorBrush)border.Background);
+            Assert.Equal(0, ((SolidColorBrush)border.Background).Color.A);
+            return ((SolidColorBrush)chip.Foreground, (SolidColorBrush)slider.IndicatorBrush);
         }
 
         static readonly string[] Keys =

@@ -2,6 +2,7 @@ using System;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls.Primitives;
+using System.Windows.Documents;
 using Shutdown.Core;
 
 namespace Shutdown
@@ -26,6 +27,20 @@ namespace Shutdown
 
             // Activating a preset always selects its duration, including through UI Automation.
             protected override void OnToggle() => _select();
+        }
+
+        string _appTimedReason;
+
+        /// <summary>Why the app counts down itself, then on its own line what the user has to do.</summary>
+        void SetAppTimedNote(string reason)
+        {
+            if (reason == _appTimedReason) return;
+            _appTimedReason = reason;
+            AppTimedText.Inlines.Clear();
+            if (reason == null) return;
+            AppTimedText.Inlines.Add(new Run(reason));
+            AppTimedText.Inlines.Add(new LineBreak());
+            AppTimedText.Inlines.Add(new Run(Loc.I["PendingKeepOpen"]) { FontWeight = FontWeights.SemiBold });
         }
 
         void RefreshPresetChips()

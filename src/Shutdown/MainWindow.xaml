@@ -46,7 +46,7 @@
     <Border Style="{StaticResource CardStyle}" Margin="0,0,0,8">
       <StackPanel>
         <Border Style="{StaticResource SegmentHost}" Margin="0,0,0,8">
-          <UniformGrid Rows="2" Columns="2">
+          <ui:SelectionSlider><UniformGrid Rows="2" Columns="2">
             <RadioButton x:Name="ActShutdown" GroupName="Action" Style="{StaticResource Segment}" Checked="OnInputChanged"
                          AutomationProperties.AutomationId="ActShutdown"
                          ToolTip="{Binding [TipShutdown], Source={x:Static core:Loc.I}}"
@@ -155,11 +155,11 @@
                 <ui:InfoBadge/>
               </Button>
             </Grid>
-          </UniformGrid>
+          </UniformGrid></ui:SelectionSlider>
         </Border>
 
         <Border Style="{StaticResource SegmentHost}" Margin="0,0,0,10">
-          <UniformGrid Rows="1">
+          <ui:SelectionSlider><UniformGrid Rows="1">
             <RadioButton x:Name="ModeCountdown" GroupName="Mode" Style="{StaticResource Segment}" Checked="OnInputChanged"
                          AutomationProperties.AutomationId="ModeCountdown"
                          ToolTip="{Binding [TipCountdown], Source={x:Static core:Loc.I}}"
@@ -180,7 +180,7 @@
                 <TextBlock Text="{Binding [ModeAt], Source={x:Static core:Loc.I}}"/>
               </StackPanel>
             </RadioButton>
-          </UniformGrid>
+          </UniformGrid></ui:SelectionSlider>
         </Border>
 
         <!-- Day for a date -->
@@ -237,7 +237,10 @@
           <ui:NumberSpinner x:Name="AtMinute" Maximum="59" Wrap="True" Digits="2" AutomationKey="AtMinute"/>
         </StackPanel>
 
-        <WrapPanel x:Name="Chips" HorizontalAlignment="Center" Margin="0,8,0,-6"/>
+        <ui:SelectionSlider HorizontalAlignment="Center" Margin="0,8,0,-6" ItemFill="{DynamicResource Control}"
+                            Visibility="{Binding Visibility, ElementName=Chips}">
+          <WrapPanel x:Name="Chips"/>
+        </ui:SelectionSlider>
         <Border x:Name="AppTimedNote" Background="{DynamicResource Control}" BorderBrush="{DynamicResource Accent}"
                 BorderThickness="1" CornerRadius="6" Padding="10,7" Margin="0,8,0,0">
           <Grid>

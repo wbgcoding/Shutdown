@@ -7,7 +7,9 @@ using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Media;
 using Shutdown.Core;
+using Shutdown.Ui;
 using Xunit;
 
 namespace Shutdown.Tests
@@ -205,6 +207,62 @@ namespace Shutdown.Tests
                 .Select(c => c.TranslatePoint(new Point(0, 0), w.Chips).Y).Distinct().ToList();
             Assert.True(w.Chips.Children.Count >= 5);
             Assert.Single(tops);
+        });
+
+        /// <summary>Text of a TextBlock built from inlines (its Text property stays empty then); a line break reads as "\n".</summary>
+        internal static string InlineText(TextBlock block) =>
+            string.Concat(block.Inlines.Select(i => i is System.Windows.Documents.Run r ? r.Text : i is System.Windows.Documents.LineBreak ? "\n" : ""));
+
+        static void LayOut(MainWindow w)
+        {
+            var root = Assert.IsAssignableFrom<FrameworkElement>(w.Content);
+            double clientWidth = w.Width - w.BorderThickness.Left - w.BorderThickness.Right;
+            root.Measure(new Size(clientWidth, double.PositiveInfinity));
+            root.Arrange(new Rect(0, 0, clientWidth, root.DesiredSize.Height));
+            root.UpdateLayout();
+            // Runs the slider's deferred selection update.
+            w.Dispatcher.Invoke(() => { }, System.Windows.Threading.DispatcherPriority.ContextIdle);
+            root.UpdateLayout();
+        }
+
+        static Rect BoundsIn(SelectionSlider slider, ToggleButton toggle)
+        {
+            var part = (FrameworkElement)toggle.Template.FindName("Bd", toggle);
+            return part.TransformToAncestor(slider).TransformBounds(new Rect(part.RenderSize));
+        }
+
+        [Fact]
+        public void Selection_shape_follows_the_checked_segment() => Sta.Run(() =>
+        {
+            var w = Make();
+            LayOut(w);
+            var slider = Assert.IsType<SelectionSlider>(((FrameworkElement)w.ActShutdown.Parent).Parent);
+            Assert.True(slider.IndicatorShown);
+            Assert.Equal(BoundsIn(slider, w.ActShutdown), slider.IndicatorRect);
+
+            w.ActRestart.IsChecked = true;
+            LayOut(w);
+            Assert.Equal(BoundsIn(slider, w.ActRestart), slider.IndicatorTarget);
+            Assert.Equal(slider.IndicatorTarget, slider.IndicatorRect);
+            // The slider paints the accent; the checked segment itself stays see-through.
+            var bd = (Border)w.ActRestart.Template.FindName("Bd", w.ActRestart);
+            Assert.Equal(0, ((SolidColorBrush)bd.Background).Color.A);
+        });
+
+        [Fact]
+        public void Selection_shape_follows_the_matching_chip_and_hides_without_one() => Sta.Run(() =>
+        {
+            var w = Make(new Settings { Hours = 0, Minutes = 30 });
+            LayOut(w);
+            var slider = Assert.IsType<SelectionSlider>(w.Chips.Parent);
+            Assert.NotNull(slider.ItemFill);
+            var chip30 = w.Chips.Children.Cast<ToggleButton>().Single(c => AutomationProperties.GetAutomationId(c) == "Chip30");
+            Assert.True(slider.IndicatorShown);
+            Assert.Equal(BoundsIn(slider, chip30), slider.IndicatorRect);
+
+            w.DurMinutes.Value = 31;
+            LayOut(w);
+            Assert.False(slider.IndicatorShown);
         });
 
         [Theory]
@@ -532,13 +590,13 @@ namespace Shutdown.Tests
             Assert.Equal(Visibility.Collapsed, w.AppTimedNote.Visibility);
             w.ActHibernate.IsChecked = true;
             Assert.Equal(Visibility.Visible, w.AppTimedNote.Visibility);
-            Assert.Equal(Loc.I["AppTimedHibernate"], w.AppTimedText.Text);
+            Assert.Equal(Loc.I["AppTimedHibernate"] + "\n" + Loc.I["PendingKeepOpen"], UiWindowTests.InlineText(w.AppTimedText));
             w.ActSleep.IsEnabled = true;
             w.ActSleep.IsChecked = true;
             Assert.Equal(Visibility.Visible, w.AppTimedNote.Visibility);
-            Assert.Equal(Loc.I["AppTimedSleep"], w.AppTimedText.Text);
+            Assert.Equal(Loc.I["AppTimedSleep"] + "\n" + Loc.I["PendingKeepOpen"], UiWindowTests.InlineText(w.AppTimedText));
             Loc.I.Apply("de");
-            Assert.Equal(Loc.I["AppTimedSleep"], w.AppTimedText.Text);
+            Assert.Equal(Loc.I["AppTimedSleep"] + "\n" + Loc.I["PendingKeepOpen"], UiWindowTests.InlineText(w.AppTimedText));
             w.ActShutdown.IsChecked = true;
             Assert.Equal(Visibility.Collapsed, w.AppTimedNote.Visibility);
         });

@@ -285,7 +285,7 @@ namespace Shutdown
             StartIcon.Text = icon;
 
             AppTimedNote.Visibility = appTimed ? Visibility.Visible : Visibility.Collapsed;
-            AppTimedText.Text = appTimed ? L[action == PowerAction.Sleep ? "AppTimedSleep" : "AppTimedHibernate"] : "";
+            SetAppTimedNote(appTimed ? L[action == PowerAction.Sleep ? "AppTimedSleep" : "AppTimedHibernate"] : null);
             Chips.Visibility = SelectedMode == TimeMode.Countdown ? Visibility.Visible : Visibility.Collapsed;
             UpdatePresetChips();
 

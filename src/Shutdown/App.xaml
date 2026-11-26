@@ -246,8 +246,9 @@
       <Setter Property="Margin" Value="0,0,6,6"/>
     </Style>
 
+    <!-- Lives in a SelectionSlider: it paints the resting fill and the sliding accent behind the transparent chip. -->
     <Style x:Key="ChipToggle" TargetType="ToggleButton">
-      <Setter Property="Background" Value="{DynamicResource Control}"/>
+      <Setter Property="Background" Value="Transparent"/>
       <Setter Property="Foreground" Value="{DynamicResource Text}"/>
       <Setter Property="BorderBrush" Value="{DynamicResource ControlBorder}"/>
       <Setter Property="BorderThickness" Value="1"/>
@@ -276,7 +277,7 @@
                 <Setter Property="Foreground" Value="{DynamicResource ControlHoverText}"/>
               </Trigger>
               <Trigger Property="IsChecked" Value="True">
-                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Accent}"/>
+                <Setter TargetName="Bd" Property="Background" Value="Transparent"/>
                 <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource Accent}"/>
                 <Setter Property="Foreground" Value="{DynamicResource AccentText}"/>
               </Trigger>
@@ -290,7 +291,7 @@
       </Setter>
     </Style>
 
-    <!-- Segmented control item -->
+    <!-- Segmented control item; its SelectionSlider draws the accent that slides to the checked item. -->
     <Style x:Key="Segment" TargetType="RadioButton">
       <Setter Property="Foreground" Value="{DynamicResource Text}"/>
       <Setter Property="Background" Value="Transparent"/>
@@ -314,7 +315,7 @@
                 <Setter Property="Foreground" Value="{DynamicResource ControlHoverText}"/>
               </Trigger>
               <Trigger Property="IsChecked" Value="True">
-                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource Accent}"/>
+                <Setter TargetName="Bd" Property="Background" Value="Transparent"/>
                 <Setter Property="Foreground" Value="{DynamicResource AccentText}"/>
                 <Setter Property="FontWeight" Value="SemiBold"/>
               </Trigger>

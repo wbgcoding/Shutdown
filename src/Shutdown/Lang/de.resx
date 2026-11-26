@@ -41,8 +41,8 @@
   <data name="SpanSeconds" xml:space="preserve"><value>{0} Sek.</value></data>
   <data name="ClockDay" xml:space="preserve"><value>{0} Tag {1}</value></data>
   <data name="ClockDays" xml:space="preserve"><value>{0} Tage {1}</value></data>
-  <data name="AppTimedHibernate" xml:space="preserve"><value>Windows hat für den Ruhezustand keinen Timer, darum zählt Shutdown selbst herunter: Fenster offen lassen.</value></data>
-  <data name="AppTimedSleep" xml:space="preserve"><value>Windows hat für das Energiesparen keinen Timer, darum zählt Shutdown selbst herunter: Fenster offen lassen.</value></data>
+  <data name="AppTimedHibernate" xml:space="preserve"><value>Windows hat für den Ruhezustand keinen Timer, darum zählt Shutdown selbst herunter:</value></data>
+  <data name="AppTimedSleep" xml:space="preserve"><value>Windows hat für das Energiesparen keinen Timer, darum zählt Shutdown selbst herunter:</value></data>
   <data name="StartShutdown" xml:space="preserve"><value>Herunterfahren planen</value></data>
   <data name="StartTip" xml:space="preserve"><value>Plant die Aktion (Enter)</value></data>
   <data name="ShutdownComment" xml:space="preserve"><value>Geplant mit der App Shutdown.</value></data>

@@ -26,11 +26,13 @@ All notable changes to this project are documented here. The format follows Keep
 - Dates shown for the current day and the next day use Today and Tomorrow.
 - Action and timing choices have tooltips that explain what they do.
 - A badge explains when hibernation is unavailable and can be reached with the keyboard.
-- Sleep is available as a fourth action, with a countdown that runs in the app.
+- Sleep is available as a fourth action, with a countdown that runs in the app. The four actions sit in a 2×2 grid in a narrower window.
 - The command line can schedule or cancel an action, including when Shutdown is already open.
 - The taskbar jump list can schedule a shutdown in 30 minutes or 1 hour, or cancel it.
 - Minimizing moves Shutdown to the notification area, where its menu can reopen the window, add 15 minutes, cancel a schedule or exit.
 - Releases include a setup program for the current user or all users, with an option to copy a portable executable.
+- The highlight slides to the newly chosen action, timing mode or preset; with Windows animations turned off it moves at once.
+- The note for hibernation and sleep puts "Keep this window open" on its own line.
 
 ## [1.2.2] - 2026-11-21
 

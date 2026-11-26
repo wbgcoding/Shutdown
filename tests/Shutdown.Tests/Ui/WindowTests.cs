@@ -657,7 +657,7 @@ namespace Shutdown.Tests
             var w = Make();
             w.ActHibernate.IsChecked = true;
             Assert.Equal(Visibility.Visible, w.AppTimedNote.Visibility);
-            Assert.Equal(Loc.I["AppTimedHibernate"], w.AppTimedText.Text);
+            Assert.Equal(Loc.I["AppTimedHibernate"] + "\n" + Loc.I["PendingKeepOpen"], UiWindowTests.InlineText(w.AppTimedText));
             Click(w.StartButton);
             Assert.Equal(new[] { "/a" }, _runner.Calls);
             Assert.Equal("Hibernation scheduled", w.PendingTitle.Text);
@@ -677,7 +677,7 @@ namespace Shutdown.Tests
             w.ActSleep.IsEnabled = true;
             w.ActSleep.IsChecked = true;
             Assert.Equal(Visibility.Visible, w.AppTimedNote.Visibility);
-            Assert.Equal(Loc.I["AppTimedSleep"], w.AppTimedText.Text);
+            Assert.Equal(Loc.I["AppTimedSleep"] + "\n" + Loc.I["PendingKeepOpen"], UiWindowTests.InlineText(w.AppTimedText));
 
             Click(w.StartButton);
             Assert.Equal("Sleep scheduled", w.PendingTitle.Text);
