@@ -62,6 +62,7 @@ namespace Shutdown
             }
 
             trace.Mark("instance");
+            JumpListSetup.Register(this);
             var store = SettingsStore.Default();
             var settings = store.Load();
             trace.Mark("settings");

@@ -5,7 +5,9 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Windows.Shell;
 using Shutdown.Core;
+using Shutdown.Ui;
 using Xunit;
 
 namespace Shutdown.Tests
@@ -357,6 +359,36 @@ namespace Shutdown.Tests
     [Trait("Layer", "Logic")]
     public class LocTests
     {
+        [Theory]
+        [InlineData("en", "Shut down in 30 minutes", "Shut down in 1 hour", "Cancel schedule")]
+        [InlineData("de", "In 30 Minuten herunterfahren", "In 1 Stunde herunterfahren", "Planung abbrechen")]
+        public void Jump_list_has_three_localized_tasks(string language, string in30, string in60, string abort)
+        {
+            var loc = Loc.I;
+            var previousLanguage = loc.Language;
+            var exePath = typeof(App).Assembly.Location;
+            try
+            {
+                loc.Apply(language);
+                var list = JumpListSetup.Build(exePath);
+                Assert.Collection(list.JumpItems,
+                    item => CheckTask(item, in30, "--shutdown --in 30"),
+                    item => CheckTask(item, in60, "--shutdown --in 60"),
+                    item => CheckTask(item, abort, "--abort"));
+            }
+            finally { loc.Apply(previousLanguage); }
+
+            void CheckTask(JumpItem item, string title, string arguments)
+            {
+                var task = Assert.IsType<JumpTask>(item);
+                Assert.Equal(title, task.Title);
+                Assert.Equal(arguments, task.Arguments);
+                Assert.Equal(exePath, task.ApplicationPath);
+                Assert.Equal(exePath, task.IconResourcePath);
+                Assert.Equal(0, task.IconResourceIndex);
+            }
+        }
+
         [Theory]
         [InlineData("en", "Today", "Tomorrow")]
         [InlineData("de", "Heute", "Morgen")]

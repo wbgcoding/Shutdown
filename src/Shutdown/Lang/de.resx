@@ -54,6 +54,8 @@
   <data name="TitleMinimize" xml:space="preserve"><value>Minimieren</value></data>
   <data name="TitleClose" xml:space="preserve"><value>Schließen</value></data>
   <data name="Abort" xml:space="preserve"><value>Planung abbrechen</value></data>
+  <data name="JumpIn30" xml:space="preserve"><value>In 30 Minuten herunterfahren</value></data>
+  <data name="JumpIn60" xml:space="preserve"><value>In 1 Stunde herunterfahren</value></data>
   <data name="PendingShutdown" xml:space="preserve"><value>Herunterfahren geplant</value></data>
   <data name="PendingRestart" xml:space="preserve"><value>Neustart geplant</value></data>
   <data name="PendingHibernate" xml:space="preserve"><value>Ruhezustand geplant</value></data>
