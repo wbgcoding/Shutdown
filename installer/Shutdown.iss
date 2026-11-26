@@ -23,6 +23,8 @@ AllowNoIcons=yes
 DisableDirPage=no
 DisableProgramGroupPage=no
 DisableReadyPage=yes
+; Installing over an existing folder is always what the user wants (update, repair, portable copy).
+DirExistsWarning=no
 DisableWelcomePage=no
 PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog

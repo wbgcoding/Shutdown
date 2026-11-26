@@ -162,7 +162,7 @@ namespace Shutdown.Tests
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
-        public void German_action_segments_fit_on_one_row(bool available) => Sta.Run(() =>
+        public void German_action_segments_fit_the_two_by_two_grid(bool available) => Sta.Run(() =>
         {
             var w = Make();
             Loc.I.Apply("de");
@@ -171,13 +171,14 @@ namespace Shutdown.Tests
             if (available) w.ActSleep.IsChecked = true;
 
             var row = Assert.IsType<UniformGrid>(w.ActShutdown.Parent);
-            Assert.Equal(1, row.Rows);
+            Assert.Equal(2, row.Rows);
+            Assert.Equal(2, row.Columns);
             Assert.Equal(4, row.Children.Count);
             var root = Assert.IsAssignableFrom<FrameworkElement>(w.Content);
             double clientWidth = w.Width - w.BorderThickness.Left - w.BorderThickness.Right;
             root.Measure(new Size(clientWidth, double.PositiveInfinity));
             root.Arrange(new Rect(0, 0, clientWidth, root.DesiredSize.Height));
-            double cellWidth = row.ActualWidth / row.Children.Count;
+            double cellWidth = row.ActualWidth / row.Columns;
 
             double widest = 0;
             foreach (UIElement segment in row.Children)

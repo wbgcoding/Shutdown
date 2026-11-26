@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:core="clr-namespace:Shutdown.Core"
         xmlns:ui="clr-namespace:Shutdown.Ui"
-        Title="Shutdown" Width="630" SizeToContent="Height" ResizeMode="CanMinimize"
+        Title="Shutdown" Width="450" SizeToContent="Height" ResizeMode="CanMinimize"
         WindowStartupLocation="CenterScreen"
         Background="{DynamicResource Bg}" Foreground="{DynamicResource Text}"
         FontFamily="{StaticResource UiFont}" FontSize="13"
@@ -46,7 +46,7 @@
     <Border Style="{StaticResource CardStyle}" Margin="0,0,0,8">
       <StackPanel>
         <Border Style="{StaticResource SegmentHost}" Margin="0,0,0,8">
-          <UniformGrid Rows="1">
+          <UniformGrid Rows="2" Columns="2">
             <RadioButton x:Name="ActShutdown" GroupName="Action" Style="{StaticResource Segment}" Checked="OnInputChanged"
                          AutomationProperties.AutomationId="ActShutdown"
                          ToolTip="{Binding [TipShutdown], Source={x:Static core:Loc.I}}"
