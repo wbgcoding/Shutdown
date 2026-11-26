@@ -9,7 +9,8 @@ namespace Shutdown
     public partial class MainWindow
     {
         bool _updatingCountdown;
-        bool _countdownOverflow;
+
+        int MaxCountdownMinutes => Math.Min(DurHours.Maximum * 60 + DurMinutes.Maximum, Schedule.MaxSeconds / 60);
 
         sealed class PresetChip : ToggleButton
         {
@@ -46,7 +47,7 @@ namespace Shutdown
 
         void UpdatePresetChips()
         {
-            int duration = DurHours.Value * 60 + DurMinutes.Value;
+            int duration = DurHours.Value * 60 + DurMinutes.PendingValue;
             foreach (PresetChip chip in Chips.Children)
                 chip.IsChecked = chip.Minutes == duration;
         }
@@ -54,42 +55,56 @@ namespace Shutdown
         void InitializeCountdown(Settings settings)
         {
             DurHours.Value = settings.Hours;
-            SetCountdown(DurHours.Value, Math.Max(DurMinutes.Minimum, settings.Minutes));
+            long total = DurHours.Value * 60L + Math.Max(DurMinutes.Minimum, settings.Minutes);
+            SetCountdown(0, (int)Math.Min(total, MaxCountdownMinutes));
+            if (total > MaxCountdownMinutes) ShowInfo("ErrTooLong");
+
             DurHours.ValueChanged += OnCountdownChanged;
             DurMinutes.ValueChanged += OnCountdownChanged;
-            DurMinutes.Carry += OnMinuteCarry;
+            DurMinutes.PendingValueChanged += (s, e) => UpdateUi();
+            DurMinutes.Carry += (s, delta) => TryCarryMinutes(delta);
+            DurMinutes.TryCommitCarry = TryCarryMinutes;
         }
 
         void OnCountdownChanged(object sender, EventArgs e)
         {
-            if (!_updatingCountdown) SetCountdown(DurHours.Value, DurMinutes.Value);
+            if (!_updatingCountdown) OnInputChanged(sender, null);
         }
 
-        void OnMinuteCarry(object sender, int direction)
+        bool TryCarryMinutes(int delta)
         {
-            if (direction > 0) SetCountdown(DurHours.Value, DurMinutes.Maximum + 1);
-            else if (DurHours.Value > DurHours.Minimum) SetCountdown(DurHours.Value - 1, DurMinutes.Maximum);
+            int total = DurHours.Value * 60 + DurMinutes.Value + delta;
+            if (total > MaxCountdownMinutes)
+            {
+                UpdateUi();
+                if (_msgKind != MessageKind.Info || _msgKey != "ErrTooLong") ShowInfo("ErrTooLong");
+                return false;
+            }
+            SetCountdown(0, Math.Max(0, total));
+            return true;
         }
 
         void SetCountdown(int hours, int minutes)
         {
             hours += Math.DivRem(minutes, 60, out int remainingMinutes);
-            _countdownOverflow = hours > DurHours.Maximum;
-
             // Refresh and save once, after both fields show the new duration.
             _updatingCountdown = true;
             try
             {
-                if (DurHours.Value != hours) DurHours.Value = hours;
-                if (DurMinutes.Value != remainingMinutes) DurMinutes.Value = remainingMinutes;
+                DurHours.Value = hours;
+                DurMinutes.Value = remainingMinutes;
             }
             finally { _updatingCountdown = false; }
 
             OnInputChanged(this, null);
         }
 
-        ScheduleResult ComputeCountdown(DateTime now) => _countdownOverflow
-            ? ScheduleResult.Invalid("ErrTooLong")
-            : Schedule.FromCountdown(DurHours.Value, DurMinutes.Value, now);
+        ScheduleResult ComputeCountdown(DateTime now)
+        {
+            int minutes = DurMinutes.PendingValue;
+            return DurHours.Value * 60 + minutes > MaxCountdownMinutes
+                ? ScheduleResult.Invalid("ErrTooLong")
+                : Schedule.FromCountdown(DurHours.Value, minutes, now);
+        }
     }
 }

@@ -13,6 +13,7 @@ namespace Shutdown.Ui
     public partial class NumberSpinner : UserControl
     {
         int _value;
+        bool _rendering;
         public int Minimum { get; set; }
         public int Maximum { get; set; } = 99;
         public int? TypedMaximum { get; set; }
@@ -24,7 +25,9 @@ namespace Shutdown.Ui
         public int MaxLength { get => Box.MaxLength; set => Box.MaxLength = value; }
 
         public event EventHandler ValueChanged;
+        public event EventHandler PendingValueChanged;
         public event EventHandler<int> Carry;
+        internal Func<int, bool> TryCommitCarry { get; set; }
 
         public NumberSpinner()
         {
@@ -37,6 +40,10 @@ namespace Shutdown.Ui
             get => _value;
             set => SetValue(value, Maximum);
         }
+
+        public int PendingValue => int.TryParse(Box.Text, NumberStyles.None, CultureInfo.InvariantCulture, out int value)
+            ? Clamp(value, TypedMaximum ?? Maximum)
+            : _value;
 
         void SetValue(int value, int maximum)
         {
@@ -77,20 +84,23 @@ namespace Shutdown.Ui
         void Render()
         {
             string text = _value.ToString(new string('0', Math.Max(1, Digits)), CultureInfo.InvariantCulture);
-            if (Box.Text != text) Box.Text = text;
+            if (Box.Text == text) return;
+            _rendering = true;
+            try { Box.Text = text; }
+            finally { _rendering = false; }
         }
 
         void Step(int delta, bool commitText = false)
         {
-            if (commitText || TypedMaximum.HasValue) Commit();
+            if ((commitText || TypedMaximum.HasValue) && !Commit()) return;
 
-            if (CarryInsteadOfWrap && ((_value == Maximum && delta > 0) || (_value == Minimum && delta < 0)))
+            int v = _value + delta;
+            if (CarryInsteadOfWrap && (v < Minimum || v > Maximum))
             {
-                Carry?.Invoke(this, Math.Sign(delta));
+                Carry?.Invoke(this, delta);
                 return;
             }
 
-            int v = _value + delta;
             if (Wrap && !CarryInsteadOfWrap)
             {
                 int span = Maximum - Minimum + 1;
@@ -99,11 +109,16 @@ namespace Shutdown.Ui
             Value = v;
         }
 
-        void Commit()
+        internal bool Commit()
         {
-            if (int.TryParse(Box.Text, NumberStyles.None, CultureInfo.InvariantCulture, out int v))
-                SetValue(v, TypedMaximum ?? Maximum);
-            else Render();
+            int value = PendingValue;
+            if (TryCommitCarry != null && value > Maximum)
+            {
+                Render();
+                return TryCommitCarry(value - _value);
+            }
+            SetValue(value, TypedMaximum ?? Maximum);
+            return true;
         }
 
         void OnUp(object sender, RoutedEventArgs e) => Step(1);
@@ -142,20 +157,22 @@ namespace Shutdown.Ui
                 case Key.Down: Step(-1, commitText: true); e.Handled = true; break;
                 case Key.PageUp: Step(10, commitText: true); e.Handled = true; break;
                 case Key.PageDown: Step(-10, commitText: true); e.Handled = true; break;
-                case Key.Enter: Commit(); Box.SelectAll(); break;
+                case Key.Enter: e.Handled = !Commit(); Box.SelectAll(); break;
                 // Space raises no PreviewTextInput, so the digit filter never sees it.
                 case Key.Space: e.Handled = true; break;
             }
         }
 
-        // Typed digits count at once (clamped) so the summary follows; the field shows the clamped value on commit.
+        // Preview edits that can carry, and wait for commit before changing the other field.
         void OnTextChanged(object sender, TextChangedEventArgs e)
         {
-            if (!int.TryParse(Box.Text, NumberStyles.None, CultureInfo.InvariantCulture, out int v)) return;
-            // Leave room for more digits before committing a value that can carry into another field.
-            if (TypedMaximum.HasValue && v > Maximum) return;
-            v = Clamp(v, Maximum);
-            if (v == _value) return;
+            if (_rendering) return;
+            int v = PendingValue;
+            if (v > Maximum || v == _value)
+            {
+                if (TypedMaximum.HasValue) PendingValueChanged?.Invoke(this, EventArgs.Empty);
+                return;
+            }
             _value = v;
             ValueChanged?.Invoke(this, EventArgs.Empty);
         }

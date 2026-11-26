@@ -203,7 +203,6 @@ namespace Shutdown.Tests
         });
 
         [Theory]
-        [InlineData(5000, 75, 999, 15, "ErrTooLong")]
         [InlineData(-3, -1, 0, 0, "ErrTooShort")]
         [InlineData(999, 59, 999, 59, null)]
         [InlineData(2, 30, 2, 30, null)]
@@ -216,6 +215,16 @@ namespace Shutdown.Tests
             Assert.Equal(em, w.DurMinutes.Value);
             Assert.Equal(error == null, w.StartButton.IsEnabled);
             if (error != null) Assert.Equal(Loc.I[error], w.ResultText.Text);
+        });
+
+        [Fact]
+        public void An_oversized_stored_duration_loads_at_the_limit_with_info() => Sta.Run(() =>
+        {
+            var w = Make(new Settings { Hours = 5000, Minutes = 75 });
+            Assert.Equal(999, w.DurHours.Value);
+            Assert.Equal(59, w.DurMinutes.Value);
+            Assert.True(w.StartButton.IsEnabled);
+            Assert.Equal(Loc.I["ErrTooLong"], w.MessageText.Text);
         });
 
         [Theory]

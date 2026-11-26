@@ -242,25 +242,26 @@ namespace Shutdown.Tests
         });
 
         [Fact]
-        public void Carry_replaces_wrapping_when_stepping_from_a_limit() => Sta.Run(() =>
+        public void Carry_sends_the_full_step_when_crossing_a_limit() => Sta.Run(() =>
         {
             var s = Make(max: 59, wrap: true);
             s.TypedMaximum = 5999;
             s.CarryInsteadOfWrap = true;
             int carry = 0;
-            s.Carry += (sender, direction) => carry = direction;
+            s.Carry += (sender, delta) => carry = delta;
 
             s.Value = 55;
             Press(s, Key.PageUp);
+            Assert.Equal(55, s.Value);
+            Assert.Equal(10, carry);
+            s.Value = 59;
+            Wheel(s, 360);
             Assert.Equal(59, s.Value);
-            Assert.Equal(0, carry);
-            Wheel(s, 120);
-            Assert.Equal(59, s.Value);
-            Assert.Equal(1, carry);
+            Assert.Equal(3, carry);
             s.Value = 0;
-            Wheel(s, -120);
+            Wheel(s, -240);
             Assert.Equal(0, s.Value);
-            Assert.Equal(-1, carry);
+            Assert.Equal(-2, carry);
         });
 
         [Fact]

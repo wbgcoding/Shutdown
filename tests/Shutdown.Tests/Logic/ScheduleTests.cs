@@ -444,6 +444,24 @@ namespace Shutdown.Tests
             Assert.Equal(expected, Schedule.ArgsFor(a, seconds, "Example comment"));
         }
 
+        [Theory]
+        [InlineData("An \"example\" comment", "An example comment")]
+        [InlineData(@"left\right\\", @"left\right")]
+        public void Args_remove_quotes_and_trailing_backslashes_from_the_comment(string comment, string expected)
+        {
+            Assert.Equal("/s /f /t 90 /c \"" + expected + "\"", Schedule.ArgsFor(PowerAction.Shutdown, 90, comment));
+        }
+
+        [Theory]
+        [InlineData("x", 512)]
+        [InlineData("\\", 511)]
+        public void Args_limit_the_comment_to_512_characters(string atLimit, int expectedLength)
+        {
+            string comment = new string('x', 511) + atLimit + "suffix";
+            Assert.Equal("/r /f /t 90 /c \"" + new string('x', expectedLength) + "\"",
+                Schedule.ArgsFor(PowerAction.Restart, 90, comment));
+        }
+
         [Fact]
         public void Only_hibernate_is_timed_by_the_app()
         {

@@ -343,6 +343,7 @@ namespace Shutdown
         void OnStart(object sender, RoutedEventArgs e)
         {
             if (!Compute(Now()).Ok) { UpdateUi(); return; }
+            if (SelectedMode == TimeMode.Countdown && !DurMinutes.Commit()) return;
             ReplaceSchedule(SelectedAction, () => Compute(Now()));
         }
 
@@ -520,6 +521,7 @@ namespace Shutdown
                 if (IsInTray || WindowState == WindowState.Minimized) Dispatcher.BeginInvoke(new Action(BringToFront));
                 return;
             }
+            DurMinutes.Commit();
             Persist();
             base.OnClosing(e);
         }

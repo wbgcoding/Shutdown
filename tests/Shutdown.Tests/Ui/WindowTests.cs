@@ -1244,6 +1244,47 @@ namespace Shutdown.Tests
             Assert.Equal(minutes, saved.Minutes);
         });
 
+        [Fact]
+        public void Countdown_summary_previews_the_full_uncommitted_minutes() => Sta.Run(() =>
+        {
+            var w = Make(new Settings { Hours = 0, Minutes = 0 });
+            Assert.False(w.StartButton.IsEnabled);
+            w.DurMinutes.Box.Text = "9";
+            Assert.Equal("Today at " + Loc.I.TimeText(_now.AddMinutes(9)), w.ResultText.Text);
+            w.DurMinutes.Box.Text = "90";
+            Assert.Equal("Today at " + Loc.I.TimeText(_now.AddMinutes(90)), w.ResultText.Text);
+            Assert.True(w.StartButton.IsEnabled);
+            Assert.Equal("90", w.DurMinutes.Box.Text);
+            Assert.Equal(0, w.DurHours.Value);
+            Assert.Equal(9, w.DurMinutes.Value);
+        });
+
+        [Fact]
+        public void Closing_commits_and_saves_minutes_without_a_focus_change() => Sta.Run(() =>
+        {
+            var w = Make(new Settings { Hours = 0, Minutes = 9 });
+            w.DurMinutes.Box.Text = "90";
+            w.Close();
+            _windows.Remove(w);
+
+            var saved = _store.Load();
+            Assert.Equal(1, saved.Hours);
+            Assert.Equal(30, saved.Minutes);
+        });
+
+        [Fact]
+        public void Starting_commits_pending_minutes_without_a_focus_change() => Sta.Run(() =>
+        {
+            var w = Make(new Settings { Hours = 0, Minutes = 0 });
+            w.DurMinutes.Box.Text = "90";
+            Assert.True(w.StartButton.IsEnabled);
+            Click(w.StartButton);
+
+            Assert.Equal(1, w.DurHours.Value);
+            Assert.Equal(30, w.DurMinutes.Value);
+            Assert.Equal(new[] { "/a", "/s /f /t 5400 /c \"Scheduled with the Shutdown app.\"" }, _runner.Calls);
+        });
+
         [Theory]
         [InlineData(0, 59, true, 1, 0)]
         [InlineData(1, 0, false, 0, 59)]
@@ -1257,23 +1298,62 @@ namespace Shutdown.Tests
         });
 
         [Theory]
-        [InlineData(null, 0)]
-        [InlineData("90", 30)]
-        public void Minute_carry_past_the_hour_limit_shows_the_duration_error(string text, int minutes) => Sta.Run(() =>
+        [InlineData(0, 55, Key.PageUp, 1, 5)]
+        [InlineData(0, 59, Key.PageUp, 1, 9)]
+        [InlineData(1, 0, Key.PageDown, 0, 50)]
+        [InlineData(0, 5, Key.PageDown, 0, 0)]
+        public void Minute_page_keys_carry_or_borrow_the_full_step(int hours, int minutes, Key key, int expectedHours, int expectedMinutes) => Sta.Run(() =>
+        {
+            var w = Make(new Settings { Hours = hours, Minutes = minutes });
+            using (var source = new HwndSource(new HwndSourceParameters()))
+            {
+                var e = new KeyEventArgs(Keyboard.PrimaryDevice, source, 0, key) { RoutedEvent = Keyboard.PreviewKeyDownEvent };
+                w.DurMinutes.Box.RaiseEvent(e);
+                Assert.True(e.Handled);
+            }
+            Assert.Equal(expectedHours, w.DurHours.Value);
+            Assert.Equal(expectedMinutes, w.DurMinutes.Value);
+        });
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("90")]
+        public void Minute_carry_past_the_hour_limit_keeps_the_duration_and_shows_info(string text) => Sta.Run(() =>
         {
             var w = Make(new Settings { Hours = 999, Minutes = 59 });
+            string summary = w.ResultText.Text;
             if (text == null) Click(w.DurMinutes.UpButton);
-            else CommitMinutes(w, text);
+            else
+            {
+                w.DurMinutes.Box.Text = text;
+                Assert.False(w.StartButton.IsEnabled);
+                Assert.Equal(Loc.I["ErrTooLong"], w.ResultText.Text);
+                using (var source = new HwndSource(new HwndSourceParameters()))
+                {
+                    var enter = new KeyEventArgs(Keyboard.PrimaryDevice, source, 0, Key.Enter) { RoutedEvent = Keyboard.PreviewKeyDownEvent };
+                    w.DurMinutes.Box.RaiseEvent(enter);
+                    Assert.True(enter.Handled);
+                }
+            }
 
             Assert.Equal(999, w.DurHours.Value);
-            Assert.Equal(minutes, w.DurMinutes.Value);
-            Assert.Equal(Loc.I["ErrTooLong"], w.ResultText.Text);
-            Assert.False(w.StartButton.IsEnabled);
-            Click(w.StartButton);
+            Assert.Equal(59, w.DurMinutes.Value);
+            Assert.Equal("59", w.DurMinutes.Box.Text);
+            Assert.Equal(summary, w.ResultText.Text);
+            Assert.True(w.StartButton.IsEnabled);
+            Assert.Equal(Visibility.Visible, w.MessageCard.Visibility);
+            Assert.Equal(Loc.I["ErrTooLong"], w.MessageText.Text);
+            Assert.Equal(Visibility.Collapsed, w.CopyButton.Visibility);
             Assert.Empty(_runner.Calls);
 
-            Click(w.DurMinutes.DownButton);
-            Assert.True(w.StartButton.IsEnabled);
+            Click(w.DismissButton);
+            w.OnTick();
+            Assert.Equal(Visibility.Collapsed, w.MessageCard.Visibility);
+            w.Close();
+            _windows.Remove(w);
+            var saved = _store.Load();
+            Assert.Equal(999, saved.Hours);
+            Assert.Equal(59, saved.Minutes);
         });
 
         [Fact]

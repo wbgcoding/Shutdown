@@ -76,6 +76,10 @@ namespace Shutdown.Core
         {
             if (action == PowerAction.Sleep) throw new ArgumentException("Sleep cannot run through shutdown.exe.", nameof(action));
             if (action == PowerAction.Hibernate) return "/h /f";
+            const int maxCommentLength = 512;
+            comment = (comment ?? "").Replace("\"", "");
+            if (comment.Length > maxCommentLength) comment = comment.Substring(0, maxCommentLength);
+            comment = comment.TrimEnd('\\');
             return (action == PowerAction.Restart ? "/r" : "/s") + " /f /t " + seconds + " /c \"" + comment + "\"";
         }
 
