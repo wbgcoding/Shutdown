@@ -16,7 +16,7 @@ namespace Shutdown
             _ => "Text"
         };
 
-        void UpdatePending()
+        void UpdatePending(DateTime now)
         {
             var pending = _pending;
             TimeSpan? left = pending == null ? null : pending.Due - Uptime();
@@ -45,7 +45,7 @@ namespace Shutdown
             Title = L.F(titleKey, clock);
             PendingCard.Visibility = Visibility.Visible;
             PendingTitle.Text = L[pendingKey];
-            PendingWhen.Text = L.F("SummaryAt", L.DateText(pending.Target), L.TimeText(pending.Target));
+            PendingWhen.Text = L.F("SummaryAt", L.RelativeDateText(pending.Target, now), L.TimeText(pending.Target));
             PendingClock.Text = clock;
             SetBrush(PendingClock, ClockBrushKey(left.Value));
             AutomationProperties.SetName(PendingClock, L.F("PendingRemaining", clock));

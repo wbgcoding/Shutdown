@@ -353,9 +353,29 @@ namespace Shutdown.Tests
         }
     }
 
+    [Collection("window")]
     [Trait("Layer", "Logic")]
     public class LocTests
     {
+        [Theory]
+        [InlineData("en", "Today", "Tomorrow")]
+        [InlineData("de", "Heute", "Morgen")]
+        public void Relative_dates_use_local_calendar_days(string language, string today, string tomorrow)
+        {
+            var loc = Loc.I;
+            var previousLanguage = loc.Language;
+            var now = new DateTime(2026, 10, 31, 23, 59, 0);
+            var dayAfterTomorrow = now.Date.AddDays(2);
+            try
+            {
+                loc.Apply(language);
+                Assert.Equal(today, loc.RelativeDateText(now.Date, now));
+                Assert.Equal(tomorrow, loc.RelativeDateText(now.Date.AddDays(1), now));
+                Assert.Equal(loc.DateText(dayAfterTomorrow), loc.RelativeDateText(dayAfterTomorrow, now));
+            }
+            finally { loc.Apply(previousLanguage); }
+        }
+
         static string ProjectRoot()
         {
             var dir = AppDomain.CurrentDomain.BaseDirectory;

@@ -114,7 +114,7 @@ namespace Shutdown.Tests
             var w = Make();
             Assert.True(w.StartButton.IsEnabled);
             // Countdown mode shows the end time.
-            Assert.Equal(Loc.I.F("SummaryAt", Loc.I.DateText(_now.AddHours(1)), Loc.I.TimeText(_now.AddHours(1))), w.ResultText.Text);
+            Assert.Equal("Today at " + Loc.I.TimeText(_now.AddHours(1)), w.ResultText.Text);
             Click(w.StartButton);
             Assert.Equal(new[] { "/a", "/s /f /t 3600 /c \"Scheduled with the Shutdown app.\"" }, _runner.Calls);
             Assert.Equal(Visibility.Visible, w.PendingCard.Visibility);
@@ -141,7 +141,7 @@ namespace Shutdown.Tests
             Assert.Equal("0:40:00", w.PendingClock.Text);
             Assert.Equal(40d / 45, w.TaskbarItemInfo.ProgressValue, 8);
             var target = _now.AddMinutes(40);
-            Assert.Equal(Loc.I.F("SummaryAt", Loc.I.DateText(target), Loc.I.TimeText(target)), w.PendingWhen.Text);
+            Assert.Equal("Today at " + Loc.I.TimeText(target), w.PendingWhen.Text);
             Assert.Equal("Shutdown", s.PendingAction);
             Assert.Equal(Due(40), s.PendingDue);
         });
@@ -923,9 +923,9 @@ namespace Shutdown.Tests
         }
 
         [Theory]
-        [InlineData("90", 1, 30, "30")]
-        [InlineData("5999", 99, 59, "59")]
-        public void Typed_minutes_carry_into_hours_on_commit(string text, int hours, int minutes, string display) => Sta.Run(() =>
+        [InlineData("90", 1, 30, "30", true)]
+        [InlineData("5999", 99, 59, "59", false)]
+        public void Typed_minutes_carry_into_hours_on_commit(string text, int hours, int minutes, string display, bool today) => Sta.Run(() =>
         {
             var w = Make(new Settings { Hours = 0 });
             Assert.Equal(4, w.DurMinutes.Box.MaxLength);
@@ -934,7 +934,7 @@ namespace Shutdown.Tests
             Assert.Equal(minutes, w.DurMinutes.Value);
             Assert.Equal(display, w.DurMinutes.Box.Text);
             var end = _now.AddHours(hours).AddMinutes(minutes);
-            Assert.Equal(Loc.I.F("SummaryAt", Loc.I.DateText(end), Loc.I.TimeText(end)), w.ResultText.Text);
+            Assert.Equal((today ? "Today" : Loc.I.DateText(end)) + " at " + Loc.I.TimeText(end), w.ResultText.Text);
             var saved = _store.Load();
             Assert.Equal(hours, saved.Hours);
             Assert.Equal(minutes, saved.Minutes);

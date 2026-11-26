@@ -308,9 +308,9 @@ namespace Shutdown
             SetBrush(ResultText, r.Ok ? "Text" : "Danger");
             // Show what the inputs do not: the end time for a countdown, the time left for a date.
             ResultText.Text = !r.Ok ? L[r.ErrorKey] : SelectedMode == TimeMode.Countdown
-                ? L.F("SummaryAt", L.DateText(r.Target), L.TimeText(r.Target))
+                ? L.F("SummaryAt", L.RelativeDateText(r.Target, now), L.TimeText(r.Target))
                 : L.F("SummaryIn", L.Span(WholeMinutesUp(r.TargetUtc - now.ToUniversalTime())));
-            UpdatePending();
+            UpdatePending(now);
         }
 
         // Runs every second: a new resource reference only when the colour actually changes.

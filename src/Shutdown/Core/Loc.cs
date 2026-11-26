@@ -104,6 +104,13 @@ namespace Shutdown.Core
         // Day names follow the app language; date and time layout follow the regional format, as in Windows.
         public string DateText(DateTime d) => d.ToString("ddd", Culture) + ", " + d.ToString("d", CultureInfo.CurrentCulture);
 
+        public string RelativeDateText(DateTime target, DateTime now) => (target.Date - now.Date).Days switch
+        {
+            0 => this["Today"],
+            1 => this["Tomorrow"],
+            _ => DateText(target)
+        };
+
         public string TimeText(DateTime d) => d.ToString("t", CultureInfo.CurrentCulture);
     }
 }
