@@ -34,7 +34,7 @@ All notable changes to this project are documented here. The format follows Keep
 - The command line can schedule or cancel an action, including when Shutdown is already open.
 - The taskbar jump list can schedule a shutdown in 30 minutes or 1 hour, or cancel it.
 - Minimizing moves Shutdown to the notification area, where its menu can reopen the window, add 15 minutes, cancel a schedule or exit.
-- Releases include a setup program for the current user or all users, with an option to copy a portable executable.
+- Releases include a setup program for the current user or all users, with an option to copy a portable executable. Setup updates an installed copy in place and closes a running Shutdown by itself; it asks first only while hibernation or sleep is scheduled.
 - The highlight slides to the newly chosen action, timing mode or preset; with Windows animations turned off it moves at once.
 - The note for hibernation and sleep puts "Keep this window open" on its own line.
 - Uninstalling cancels a shutdown or restart that Shutdown scheduled. Deleting settings on uninstall removes only Shutdown's own files.

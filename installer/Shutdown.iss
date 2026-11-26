@@ -28,7 +28,8 @@ DirExistsWarning=no
 DisableWelcomePage=no
 PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
-UsePreviousPrivileges=no
+; An update keeps the scope of the installed copy without asking again.
+UsePreviousPrivileges=yes
 UsePreviousLanguage=yes
 ArchitecturesInstallIn64BitMode=x64os or arm64
 MinVersion=10.0.18362
@@ -38,7 +39,7 @@ Compression=lzma2/ultra64
 SolidCompression=yes
 SetupIconFile=..\src\Shutdown\Assets\Shutdown.ico
 UninstallDisplayIcon={app}\Shutdown.exe
-AppMutex=Local\BGCoding.Shutdown.Instance
+; A running copy is asked to close in PrepareToInstall and CurUninstallStepChanged, so no AppMutex prompt.
 CloseApplications=yes
 CloseApplicationsFilter=Shutdown.exe
 RestartApplications=no
@@ -84,14 +85,15 @@ const
   SWP_NOMOVE = $0002;
   SWP_NOSIZE = $0001;
   GWL_ID = -12;
+  EVENT_MODIFY_STATE = $0002;
+  InstanceMutex = 'Local\BGCoding.Shutdown.Instance';
+  QuitEvent = 'Local\BGCoding.Shutdown.Quit';
 
 var
-  ExistingPage: TInputOptionWizardPage;
   ExistingRoot: Integer;
-  ExistingComparison: Integer;
   PortableBox: TNewCheckBox;
   ManagedDir, PortableDir: String;
-  DeleteAppData, ExistingUninstalled: Boolean;
+  DeleteAppData: Boolean;
   PreviousWizardOnShow: TNotifyEvent;
 
 function AllowSetForegroundWindow(ProcessId: Cardinal): Boolean;
@@ -104,6 +106,13 @@ function SetWindowPos(Window, InsertAfter: HWND; X, Y, W, H: Integer; Flags: Car
   external 'SetWindowPos@user32.dll stdcall';
 function SetWindowLong(Window: HWND; Index, Value: Integer): Integer;
   external 'SetWindowLongW@user32.dll stdcall';
+
+function OpenEvent(Access: Cardinal; Inherit: Boolean; Name: String): THandle;
+  external 'OpenEventW@kernel32.dll stdcall';
+function SetEvent(Handle: THandle): Boolean;
+  external 'SetEvent@kernel32.dll stdcall';
+function CloseHandle(Handle: THandle): Boolean;
+  external 'CloseHandle@kernel32.dll stdcall';
 
 procedure RaiseWizard;
 var
@@ -208,6 +217,62 @@ begin
 #endif
 end;
 
+// A running exe cannot be opened for writing, so this tells when its process has really exited.
+function FileUnlocked(const Path: String): Boolean;
+var
+  Stream: TFileStream;
+begin
+  Result := True;
+  if not FileExists(Path) then
+    Exit;
+  try
+    Stream := TFileStream.Create(Path, fmOpenReadWrite or fmShareDenyNone);
+    Stream.Free;
+  except
+    Result := False;
+  end;
+end;
+
+function WaitUntilClosed(const Exe: String; Milliseconds: Integer): Boolean;
+var
+  Waited: Integer;
+begin
+  Waited := 0;
+  while (CheckForMutexes(InstanceMutex) or not FileUnlocked(Exe)) and (Waited < Milliseconds) do
+  begin
+    Sleep(100);
+    Waited := Waited + 100;
+  end;
+  Result := not CheckForMutexes(InstanceMutex) and FileUnlocked(Exe);
+end;
+
+// Asks a running Shutdown to close, the same way a newer version takes over. It stays open only while a hibernate
+// or sleep countdown needs it (or a schedule could not be saved); then the user decides whether to end it.
+function CloseRunningApp(const Exe: String): Boolean;
+var
+  Handle: THandle;
+  ResultCode: Integer;
+begin
+  Result := True;
+  if not CheckForMutexes(InstanceMutex) and FileUnlocked(Exe) then
+    Exit;
+  Handle := OpenEvent(EVENT_MODIFY_STATE, False, QuitEvent);
+  if Handle <> 0 then
+  begin
+    SetEvent(Handle);
+    CloseHandle(Handle);
+  end;
+  if WaitUntilClosed(Exe, 5000) then
+    Exit;
+  Result := SuppressibleMsgBox(CustomMessage('InstallerCloseAnyway'), mbConfirmation, MB_YESNO, IDNO) = IDYES;
+  if not Result then
+    Exit;
+  if not Exec(ExpandConstant('{sys}\taskkill.exe'), '/F /IM Shutdown.exe', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then
+    ResultCode := -1;
+  Log('taskkill exit code ' + IntToStr(ResultCode));
+  Result := WaitUntilClosed(Exe, 5000);
+end;
+
 function InitializeSetup: Boolean;
 var
   UserVersion, MachineVersion: String;
@@ -220,18 +285,13 @@ begin
   if not Result then
     Exit;
   if UserFound and (not MachineFound or not IsAdminInstallMode) then
-  begin
-    ExistingRoot := HKCU;
-    ExistingComparison := UserComparison;
-  end
+    ExistingRoot := HKCU
   else if MachineFound then
-  begin
     ExistingRoot := HKLM;
-    ExistingComparison := MachineComparison;
-  end;
 end;
 
-function RemoveExisting(Interactive: Boolean): Boolean;
+// Removes a copy installed for the other scope (all users or only me), so the two never sit side by side.
+function RemoveExisting: Boolean;
 var
   Command, Executable, Args: String;
   ExitCode: Integer;
@@ -243,9 +303,7 @@ begin
   if not FileExists(Executable) then
     Exit;
 
-  Args := '/NORESTART';
-  if not Interactive then
-    Args := '/VERYSILENT /SUPPRESSMSGBOXES ' + Args;
+  Args := '/VERYSILENT /SUPPRESSMSGBOXES /NORESTART';
 
   if (ExistingRoot = HKLM) and not IsAdmin then
     Result := ShellExec('runas', Executable, Args, '', SW_SHOWNORMAL, ewWaitUntilTerminated, ExitCode)
@@ -276,39 +334,18 @@ end;
 procedure InitializeWizard;
 var
   Description: TNewStaticText;
-  PageDescription: String;
 begin
   PreviousWizardOnShow := WizardForm.OnShow;
   WizardForm.OnShow := @WizardShown;
   WizardForm.BeveledLabel.Caption := '{#AppCopyright}';
   WizardForm.BeveledLabel.Visible := True;
-  // By default the label sits on the footer line, which then runs through the text: center it in the button row.
+  // By default the label sits on the footer line, which then runs through the text, and touches the left window edge:
+  // center it in the button row and line it up with the page content, at every display scale.
   WizardForm.BeveledLabel.Top := WizardForm.NextButton.Top +
     (WizardForm.NextButton.Height - WizardForm.BeveledLabel.Height) div 2;
+  WizardForm.BeveledLabel.Left := WizardForm.InnerNotebook.Left;
   WizardForm.WelcomeLabel1.Caption := FmtMessage(CustomMessage('InstallerWelcome'), ['{#AppVersion}']);
   WizardForm.WelcomeLabel2.Caption := CustomMessage('InstallerWelcomeDescription');
-
-  if (ExistingRoot <> 0) and not (WizardSilent or HasSwitch('/UPDATE')) then
-  begin
-    if ExistingComparison = 0 then
-      PageDescription := CustomMessage('InstallerSameVersion')
-    else
-      PageDescription := CustomMessage('InstallerReplaceVersion');
-    ExistingPage := CreateInputOptionPage(wpWelcome, CustomMessage('InstallerExisting'),
-      PageDescription, '', True, False);
-    SetWindowLong(ExistingPage.CheckListBox.Handle, GWL_ID, 1001);
-    if ExistingComparison = 0 then
-    begin
-      ExistingPage.Add(CustomMessage('InstallerReinstall'));
-      ExistingPage.Add(CustomMessage('InstallerUninstall'));
-    end
-    else
-    begin
-      ExistingPage.Add(CustomMessage('InstallerUninstallFirst'));
-      ExistingPage.Add(CustomMessage('InstallerKeepInstalled'));
-    end;
-    ExistingPage.Values[0] := True;
-  end;
 
   PortableDir := ExpandConstant('{src}');
   PortableBox := TNewCheckBox.Create(WizardForm);
@@ -347,47 +384,33 @@ begin
   Result := not IsManagedInstall and ((PageID = wpSelectProgramGroup) or (PageID = wpSelectTasks));
 end;
 
-function NextButtonClick(CurPageID: Integer): Boolean;
+function InstallRoot: Integer;
 begin
-  Result := True;
-  if ExistingPage = nil then
-    Exit;
-  if (CurPageID = ExistingPage.ID) and (ExistingComparison = 0) and ExistingPage.Values[1] then
-  begin
-    Result := False;
-    if RemoveExisting(True) then
-    begin
-      ExistingUninstalled := True;
-      WizardForm.Close;
-    end
-    else if RegKeyExists(ExistingRoot, UninstallKey) then
-      MsgBox(CustomMessage('InstallerPreviousUninstallFailed'), mbError, MB_OK);
-  end;
+  if IsAdminInstallMode then
+    Result := HKLM
+  else
+    Result := HKCU;
 end;
 
-procedure CancelButtonClick(CurPageID: Integer; var Cancel, Confirm: Boolean);
-begin
-  if ExistingUninstalled then
-    Confirm := False;
-end;
-
+// Runs once the user clicks Install: an update of the same scope simply replaces the files and keeps the settings.
 function PrepareToInstall(var NeedsRestart: Boolean): String;
 begin
   Result := '';
-  if ExistingPage = nil then
-    Exit;
-  if IsManagedInstall and (ExistingComparison <> 0) and ExistingPage.Values[0] and not ExistingUninstalled then
+  if not CloseRunningApp(ExpandConstant('{app}\Shutdown.exe')) then
   begin
-    // A per-user copy has a user-writable uninstaller; it never runs with admin rights, so say what to do instead.
-    if (ExistingRoot = HKCU) and IsAdmin then
-    begin
-      Result := CustomMessage('InstallerPerUserFirst');
-      Exit;
-    end;
-    ExistingUninstalled := RemoveExisting(False);
-    if not ExistingUninstalled then
-      Result := CustomMessage('InstallerPreviousUninstallFailed');
+    Result := CustomMessage('InstallerCloseFailed');
+    Exit;
   end;
+  if not IsManagedInstall or (ExistingRoot = 0) or (ExistingRoot = InstallRoot) then
+    Exit;
+  // A per-user copy has a user-writable uninstaller; it never runs with admin rights, so say what to do instead.
+  if ExistingRoot = HKCU then
+  begin
+    Result := CustomMessage('InstallerPerUserFirst');
+    Exit;
+  end;
+  if not RemoveExisting then
+    Result := CustomMessage('InstallerPreviousUninstallFailed');
 end;
 
 procedure DeleteDataFile(const Path: String; var Failed: Boolean);
@@ -418,6 +441,10 @@ var
   Failed: Boolean;
 begin
   DataDir := ExpandConstant('{userappdata}\Shutdown');
+  if CurUninstallStep = usUninstall then
+    // The files cannot be removed while the app runs. Setup has already closed it before a silent uninstall.
+    if not CloseRunningApp(ExpandConstant('{app}\Shutdown.exe')) then
+      MsgBox(CustomMessage('InstallerCloseFailed'), mbError, MB_OK);
   if (CurUninstallStep = usUninstall) and not UninstallSilent then
   begin
     CancelPendingTimer(DataDir);
