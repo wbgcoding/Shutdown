@@ -346,19 +346,19 @@ namespace Shutdown.Tests
 
             _now = start.AddMinutes(50);
             w.OnTick();
-            Assert.Equal("Shutdown: 0:10:00", w.Title);
+            Assert.Equal("Shut down: 0:10:00", w.Title);
             Assert.Equal(TaskbarItemProgressState.Normal, w.TaskbarItemInfo.ProgressState);
             Assert.Equal(10d / 60, w.TaskbarItemInfo.ProgressValue, 8);
 
             _now = start.AddMinutes(56);
             w.OnTick();
-            Assert.Equal("Shutdown: 0:04:00", w.Title);
+            Assert.Equal("Shut down: 0:04:00", w.Title);
             Assert.Equal(TaskbarItemProgressState.Paused, w.TaskbarItemInfo.ProgressState);
             Assert.Equal(4d / 60, w.TaskbarItemInfo.ProgressValue, 8);
 
             _now = start.AddSeconds(3570);
             w.OnTick();
-            Assert.Equal("Shutdown: 0:00:30", w.Title);
+            Assert.Equal("Shut down: 0:00:30", w.Title);
             Assert.Equal(TaskbarItemProgressState.Error, w.TaskbarItemInfo.ProgressState);
             Assert.Equal(30d / 3600, w.TaskbarItemInfo.ProgressValue, 8);
 
@@ -943,7 +943,7 @@ namespace Shutdown.Tests
             w.ApplyCommand(CommandLine.Parse(new[] { "--other" }));
 
             Assert.Equal(Visibility.Visible, w.MessageCard.Visibility);
-            Assert.Equal("The command line could not be read.", w.MessageText.Text);
+            Assert.Equal("The command line contains invalid arguments.", w.MessageText.Text);
             Assert.Equal(CommandLine.Usage, w.MessageDetail.Text);
             Assert.Equal(Visibility.Collapsed, w.OpenLogButton.Visibility);
             Assert.Empty(_runner.Calls);

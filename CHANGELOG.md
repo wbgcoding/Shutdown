@@ -17,7 +17,7 @@ All notable changes to this project are documented here. The format follows Keep
 - The schedule button fills its row, with Cancel schedule on the pending card.
 - The schedule button shows Reschedule while a schedule is pending.
 - You can add 15 minutes or 1 hour to a schedule from its pending card.
-- The window title shows the action and the time left (for example "Shutdown: 0:10:00"), and the taskbar button shows the countdown progress.
+- The window title shows the action and the time left (for example "Shut down: 0:10:00"), and the taskbar button shows the countdown progress.
 - In the last minute, the window comes into view and flashes without taking keyboard focus.
 - Windows names Shutdown in its warning for a scheduled shutdown or restart.
 - Countdown minutes carry into hours as you step or type, and the target time updates while you type.

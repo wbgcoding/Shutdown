@@ -59,7 +59,7 @@ Name: "de"; MessagesFile: "compiler:Languages\German.isl"
 [Messages]
 ; The ready page is off, so the tasks page starts the install: its text names that button.
 en.SelectTasksLabel2=Select the additional tasks you would like Setup to perform while installing [name], then click Install.
-de.SelectTasksLabel2=Wählen Sie die zusätzlichen Aufgaben aus, die das Setup während der Installation von [name] ausführen soll, und klicken Sie danach auf "Installieren".
+de.SelectTasksLabel2=Wählen Sie die zusätzlichen Aufgaben aus, die das Setup während der Installation von [name] ausführen soll, und klicken Sie danach auf „Installieren“.
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"

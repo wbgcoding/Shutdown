@@ -22,7 +22,7 @@
 - **See when it will happen** above the time fields. Once scheduled, the card and window title show the time left, and the taskbar shows progress.
 - **Extend or cancel** a pending schedule from its card. Add 15 minutes or an hour with one click.
 - Minimizing moves the window to the **notification area**. Click the tray icon to reopen the window or right-click for a menu with Open, Exit and, while a schedule is pending, +15 min and Cancel schedule.
-- The **taskbar jump list** offers shutdown in 30 minutes, shutdown in 1 hour and Cancel schedule when you right-click the taskbar icon.
+- The **taskbar jump list** offers **Shut down in 30 minutes**, **Shut down in 1 hour** and **Cancel schedule** when you right-click the taskbar icon.
 - **Fits into Windows:** English or German from the Windows display language, light or dark mode and the accent colour from your Windows settings.
 - Runs as **a single executable** with no network access or telemetry.
 
@@ -35,7 +35,7 @@ Choose an installer or a portable copy from the [latest release](../../releases/
 
 Requires Windows 10 (version 1903 or newer) or Windows 11. The .NET Framework 4.8 it needs is already part of Windows.
 
-The exe is not code signed, so Windows SmartScreen may warn before the first start. Click **More info**, then **Run anyway**. You can compare the file with `SHA256SUMS.txt` from the release:
+The exe is not code signed, so Windows SmartScreen may warn before the first start. Click **More info**, then **Run anyway**. To check the download, compare its SHA-256 hash with the matching line in `SHA256SUMS.txt` from the release:
 
 ```bat
 certutil -hashfile Shutdown-<version>-windows.exe SHA256

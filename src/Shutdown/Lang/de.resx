@@ -9,7 +9,7 @@
   <data name="ActHibernate" xml:space="preserve"><value>Ruhezustand</value></data>
   <data name="ActSleep" xml:space="preserve"><value>Energie sparen</value></data>
   <data name="HibernateUnavailable" xml:space="preserve"><value>Ruhezustand ist auf diesem PC deaktiviert.</value></data>
-  <data name="SleepUnavailable" xml:space="preserve"><value>Energie sparen ist auf diesem PC nicht verfügbar.</value></data>
+  <data name="SleepUnavailable" xml:space="preserve"><value>„Energie sparen“ ist auf diesem PC nicht verfügbar.</value></data>
   <data name="ModeCountdown" xml:space="preserve"><value>Zeitspanne</value></data>
   <data name="ModeAt" xml:space="preserve"><value>Datum und Uhrzeit</value></data>
   <data name="TipShutdown" xml:space="preserve"><value>Schaltet den PC aus. Offene Programme werden ohne Nachfrage beendet.</value></data>
@@ -42,7 +42,7 @@
   <data name="ClockDay" xml:space="preserve"><value>{0} Tag {1}</value></data>
   <data name="ClockDays" xml:space="preserve"><value>{0} Tage {1}</value></data>
   <data name="AppTimedHibernate" xml:space="preserve"><value>Windows hat für den Ruhezustand keinen Timer, darum zählt Shutdown selbst herunter:</value></data>
-  <data name="AppTimedSleep" xml:space="preserve"><value>Windows hat für das Energiesparen keinen Timer, darum zählt Shutdown selbst herunter:</value></data>
+  <data name="AppTimedSleep" xml:space="preserve"><value>Windows hat für „Energie sparen“ keinen Timer, darum zählt Shutdown selbst herunter:</value></data>
   <data name="StartShutdown" xml:space="preserve"><value>Herunterfahren planen</value></data>
   <data name="StartTip" xml:space="preserve"><value>Plant die Aktion (Enter)</value></data>
   <data name="ShutdownComment" xml:space="preserve"><value>Geplant mit der App Shutdown.</value></data>
@@ -76,20 +76,20 @@
   <data name="ErrPast" xml:space="preserve"><value>Dieser Zeitpunkt liegt in der Vergangenheit.</value></data>
   <data name="ErrTooSoon" xml:space="preserve"><value>Wähle einen Zeitpunkt, der mindestens 1 Minute in der Zukunft liegt.</value></data>
   <data name="ErrRunFailed" xml:space="preserve"><value>Windows hat den Befehl abgelehnt.</value></data>
-  <data name="ErrAccessDenied" xml:space="preserve"><value>Dieses Konto darf den PC nicht herunterfahren. Frag einen Administrator nach der Berechtigung.</value></data>
+  <data name="ErrAccessDenied" xml:space="preserve"><value>Dieses Konto darf diese Aktion nicht ausführen. Frag einen Administrator nach der Berechtigung.</value></data>
   <data name="ErrTimeout" xml:space="preserve"><value>shutdown.exe hat nicht reagiert.</value></data>
   <data name="ErrStart" xml:space="preserve"><value>shutdown.exe konnte nicht gestartet werden.</value></data>
-  <data name="ErrCommandLine" xml:space="preserve"><value>Die Befehlszeile konnte nicht gelesen werden.</value></data>
+  <data name="ErrCommandLine" xml:space="preserve"><value>Die Befehlszeile enthält ungültige Angaben.</value></data>
   <data name="ErrUnexpected" xml:space="preserve"><value>Etwas ist schiefgelaufen. Details stehen im Protokoll.</value></data>
   <data name="Copy" xml:space="preserve"><value>Kopieren</value></data>
   <data name="OpenLog" xml:space="preserve"><value>Protokollordner öffnen</value></data>
   <data name="Dismiss" xml:space="preserve"><value>Ausblenden</value></data>
-  <data name="CloseGuard" xml:space="preserve"><value>Shutdown zählt in diesem Fenster herunter. Schließen bricht das ab.</value></data>
+  <data name="CloseGuard" xml:space="preserve"><value>Shutdown zählt in diesem Fenster herunter. Wenn du es schließt, wird die Aktion abgebrochen.</value></data>
   <data name="CloseAnyway" xml:space="preserve"><value>Trotzdem schließen</value></data>
   <data name="KeepOpen" xml:space="preserve"><value>Offen lassen</value></data>
-  <data name="NewerBuildWaits" xml:space="preserve"><value>Eine neuere Version wurde gestartet. Dieses Fenster bleibt offen, weil eine zeitgesteuerte Aktion es braucht.</value></data>
+  <data name="NewerBuildWaits" xml:space="preserve"><value>Eine neuere Version wurde gestartet. Dieses Fenster bleibt offen, damit die geplante Aktion ausgeführt wird.</value></data>
   <data name="NewerBuildWaitsUnsaved" xml:space="preserve"><value>Eine neuere Version von Shutdown wurde gestartet. Die Planung in diesem Fenster konnte nicht gespeichert werden, die neue Version würde sie daher nicht anzeigen. Starte die neue Version erneut, sobald diese Planung abgebrochen wurde.</value></data>
-  <data name="MsgOldCancelled" xml:space="preserve"><value>Die bisherige Planung wurde abgebrochen, eine neue wurde nicht gesetzt.</value></data>
+  <data name="MsgOldCancelled" xml:space="preserve"><value>Die bisherige Planung wurde abgebrochen. Es wurde keine neue Aktion geplant.</value></data>
   <data name="ErrInvalidTime" xml:space="preserve"><value>Diese Uhrzeit gibt es an diesem Tag wegen der Zeitumstellung nicht.</value></data>
   <data name="ExitCodeFmt" xml:space="preserve"><value>Rückgabecode {0}</value></data>
   <data name="MsgNotSaved" xml:space="preserve"><value>Die Planung ist aktiv, konnte aber nicht gespeichert werden. Nach dem Schließen zeigt Shutdown sie nicht mehr an.</value></data>
@@ -101,21 +101,21 @@
   <data name="InstallerWelcomeDescription" xml:space="preserve"><value>Das Setup installiert Shutdown, einen Timer für Herunterfahren, Neustart, Ruhezustand und Energie sparen.</value></data>
   <data name="InstallerExisting" xml:space="preserve"><value>Vorhandene Installation erkannt</value></data>
   <data name="InstallerSameVersion" xml:space="preserve"><value>Diese Version von Shutdown ist bereits installiert.</value></data>
-  <data name="InstallerReplaceVersion" xml:space="preserve"><value>Wähle aus, was mit der installierten Version von Shutdown geschehen soll.</value></data>
+  <data name="InstallerReplaceVersion" xml:space="preserve"><value>Wählen Sie aus, was mit der installierten Version von Shutdown geschehen soll.</value></data>
   <data name="InstallerReinstall" xml:space="preserve"><value>Hinzufügen oder neu installieren</value></data>
   <data name="InstallerUninstall" xml:space="preserve"><value>Deinstallieren</value></data>
   <data name="InstallerUninstallFirst" xml:space="preserve"><value>Vor der Installation deinstallieren</value></data>
   <data name="InstallerKeepInstalled" xml:space="preserve"><value>Installiert lassen</value></data>
   <data name="InstallerDowngrade" xml:space="preserve"><value>Shutdown %1 ist bereits installiert. Das Setup kann diese Version nicht durch %2 ersetzen.</value></data>
-  <data name="InstallerPreviousUninstallFailed" xml:space="preserve"><value>Die vorhandene Installation konnte nicht entfernt werden. Schließe Shutdown und deinstalliere es in den Windows-Einstellungen.</value></data>
+  <data name="InstallerPreviousUninstallFailed" xml:space="preserve"><value>Die vorhandene Installation konnte nicht entfernt werden. Schließen Sie Shutdown und deinstallieren Sie es in den Windows-Einstellungen.</value></data>
   <data name="InstallerPortable" xml:space="preserve"><value>Portable Installation</value></data>
   <data name="InstallerPortableDescription" xml:space="preserve"><value>Kopiert nur Shutdown.exe in den gewählten Ordner.</value></data>
   <data name="InstallerRun" xml:space="preserve"><value>Shutdown starten</value></data>
   <data name="InstallerDeleteAppData" xml:space="preserve"><value>Auch Einstellungen und Protokolle löschen</value></data>
   <data name="InstallerDeleteAppDataFailed" xml:space="preserve"><value>Einige Einstellungen oder Protokolle konnten nicht gelöscht werden.</value></data>
-  <data name="InstallerCompilerMissing" xml:space="preserve"><value>Der Inno Setup 6-Compiler (ISCC.exe) wurde nicht gefunden.</value></data>
+  <data name="InstallerCompilerMissing" xml:space="preserve"><value>Der Compiler von Inno Setup 6 (ISCC.exe) wurde nicht gefunden.</value></data>
   <data name="InstallerCompileFailed" xml:space="preserve"><value>Das Installationsprogramm für Shutdown konnte nicht erstellt werden.</value></data>
-  <data name="InstallerCloseFailed" xml:space="preserve"><value>Shutdown läuft noch. Schließe das Programm und versuche es erneut.</value></data>
+  <data name="InstallerCloseFailed" xml:space="preserve"><value>Shutdown läuft noch. Schließen Sie das Programm und versuchen Sie es erneut.</value></data>
   <data name="InstallerInstallFailed" xml:space="preserve"><value>Shutdown konnte nicht installiert werden.</value></data>
   <data name="InstallerStartFailed" xml:space="preserve"><value>Die installierte Version von Shutdown konnte nicht gestartet werden.</value></data>
 </root>
