@@ -9,11 +9,28 @@ All notable changes to this project are documented here. The format follows Keep
 - A settings file that is only locked for a moment (for example by a virus scanner) is no longer replaced with defaults, so a saved schedule stays.
 - Starting Shutdown while a copy already runs as administrator now says so instead of doing nothing.
 - A hanging shutdown.exe blocks the window for at most 5 seconds instead of 15.
-- A start that takes longer than 1 second is written to the log with the time of each step, so a slow start can be traced.
+- When startup takes more than one second, the log shows how long each step took through the first frame.
 
 ### Changed
 - Dark mode looks like Windows 11 itself: buttons and number fields stand out by a slightly lighter fill instead of bright outlines. Light mode is less glaring, with clearly outlined controls set slightly darker than their panel.
 - Icons such as the stopwatch and the restart arrow are drawn smoothly instead of with a jagged, flattened bottom edge.
+- The schedule button fills its row, with Cancel schedule on the pending card.
+- The schedule button shows Reschedule while a schedule is pending.
+- You can add 15 minutes or 1 hour to a schedule from its pending card.
+- The window title shows the time left, and the taskbar button shows the countdown progress.
+- In the last minute, the window comes into view and flashes without taking keyboard focus.
+- Windows names Shutdown in its warning for a scheduled shutdown or restart.
+- Countdown minutes carry into hours as you step or type, and the target time updates while you type.
+- Press Enter to schedule the selected action.
+- The preset that matches the countdown stays highlighted.
+- Dates shown for the current day and the next day use Today and Tomorrow.
+- Action and timing choices have tooltips that explain what they do.
+- A badge explains when hibernation is unavailable and can be reached with the keyboard.
+- Sleep is available as a fourth action, with a countdown that runs in the app.
+- The command line can schedule or cancel an action, including when Shutdown is already open.
+- The taskbar jump list can schedule a shutdown in 30 minutes or 1 hour, or cancel it.
+- Minimizing moves Shutdown to the notification area, where its menu can reopen the window, add 15 minutes, cancel a schedule or exit.
+- Releases include a setup program for the current user or all users, with an option to copy a portable executable.
 
 ## [1.2.2] - 2026-11-21
 

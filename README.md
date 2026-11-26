@@ -1,7 +1,7 @@
 <h1 align="center">Shutdown</h1>
 
 <p align="center">
-  A tiny portable Windows tool that schedules a shutdown, restart or hibernate.<br>
+  A small Windows tool that schedules shutdown, restart, hibernation or sleep.<br>
   No more seconds math for <code>shutdown /s /t 5400</code>.
 </p>
 
@@ -18,18 +18,20 @@
 
 ## Features
 
-- **Shut down, restart or hibernate** after a countdown (hours and minutes, quick picks from 15 minutes to 3 hours) or at an exact date and time.
-- **Always know what happens:** right above the time fields you see the exact end time of a countdown, or the time left until a chosen date, and a live countdown runs once scheduled.
-- **Cancel with one click** whatever the app scheduled.
+- **Shut down, restart, hibernate or sleep** after a countdown with presets from 15 minutes to 3 hours, or at a chosen date and time.
+- **See when it will happen** above the time fields. Once scheduled, the card and window title show the time left, and the taskbar shows progress.
+- **Extend or cancel** a pending schedule from its card. Add 15 minutes or an hour with one click.
+- Minimizing moves the window to the **notification area**. Click the tray icon to reopen the window or right-click for a menu with Open, Exit and, while a schedule is pending, +15 min and Cancel schedule.
+- The **taskbar jump list** offers shutdown in 30 minutes, shutdown in 1 hour and Cancel schedule when you right-click the taskbar icon.
 - **Fits into Windows:** English or German from the Windows display language, light or dark mode and the accent colour from your Windows settings.
-- **Small and private:** one small `.exe` (about 110 KB) to run from any folder, or a setup if you prefer; no network access, no telemetry.
+- Runs as **a single executable** with no network access or telemetry.
 
-## Download
+## Install
 
 Choose an installer or a portable copy from the [latest release](../../releases/latest).
 
-- Run `Shutdown-Setup-<version>.exe` to install for your Windows account or for all users. Setup follows the Windows display language by default. Pass `/LANG=en` or `/LANG=de` to select English or German.
-- Put `Shutdown-<version>-windows.exe` in any folder and run it directly.
+- Run `Shutdown-Setup-<version>.exe` to **install for your Windows account or all users**. Setup creates a Start menu shortcut and offers a desktop shortcut. Pass `/LANG=en` or `/LANG=de` to override the setup language.
+- Put the **portable executable** `Shutdown-<version>-windows.exe` in any folder and run it directly. You can also choose **Portable installation** in Setup to copy `Shutdown.exe` to a folder of your choice.
 
 Requires Windows 10 (version 1903 or newer) or Windows 11. The .NET Framework 4.8 it needs is already part of Windows.
 
@@ -45,10 +47,24 @@ certutil -hashfile Shutdown-<version>-windows.exe SHA256
 |---|---|---|
 | Shut down or restart | Windows itself: `shutdown /s /f /t <seconds>` (`/r` for restart) | Yes |
 | Hibernate | The app counts down, then runs `shutdown /h /f` | No, keep it open |
+| Sleep | The app counts down, then puts Windows to sleep | No, keep it open |
 
-Shutting down or restarting always closes open apps, even with unsaved work: Windows forces this whenever a timeout is set. Windows has no timer for hibernation, so the app times it itself. Closing the window then asks first, and the PC is kept from going to sleep on its own until the time is up. If you put the PC to sleep by hand and it wakes more than two minutes after the target time, nothing runs and the app tells you so.
+Shutting down or restarting always closes open apps, even with unsaved work. For hibernation and sleep, Shutdown keeps the PC awake during the countdown and asks before closing the app. If you put the PC to sleep by hand and it wakes more than two minutes after the target time, the app skips the action and tells you it was missed.
 
 Starting the app a second time brings the open window to the front.
+
+## Command line
+
+Use `Shutdown.exe` or the filename of your portable copy. An action switch on its own selects that action in the window. A time switch schedules the selected action immediately, using the saved selection if you omit the action switch. If Shutdown is already open, it brings the window forward and applies the command there.
+
+| Switch | Effect |
+|---|---|
+| `--shutdown`, `--restart`, `--hibernate`, `--sleep` | Select one action. |
+| `--in <minutes>` or `--in <h:mm>` | Schedule a countdown, for example `--in 90` or `--in 1:30`. |
+| `--at <hh:mm>` | Schedule at a local time on the 24-hour clock, for example `--at 22:30`. Uses today if that time is ahead, or tomorrow if it has passed. |
+| `--abort` | Cancel the schedule set by Shutdown. Use this switch alone. |
+
+Switch names are case-insensitive and also accept a `/` prefix, as in `/sleep /in 30`. Scheduling requires at least one minute of lead time.
 
 ## Files
 
