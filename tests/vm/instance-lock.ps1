@@ -38,6 +38,52 @@ Start-Process $Exe | Out-Null
 Start-Sleep -Milliseconds 3000
 $all = @(Get-Process -Name $name -ErrorAction SilentlyContinue)
 "running instance: $($all.Count) process(es) after a second start"
+
+# The guest's original window should display the timer sent by the next launch.
+function Send-Command([string[]]$CommandArgs) {
+    $sender = Start-Process -FilePath $Exe -ArgumentList $CommandArgs -WindowStyle Hidden -PassThru
+    if (-not $sender.WaitForExit(8000)) {
+        Stop-Process -Id $sender.Id -Force -ErrorAction SilentlyContinue
+        throw "Command launcher did not exit: $CommandArgs"
+    }
+    if ($sender.ExitCode -ne 0) { throw "Command launcher failed: $CommandArgs" }
+}
+
+function HasPendingCard {
+    $p.Refresh()
+    $root = [Windows.Automation.AutomationElement]::FromHandle($p.MainWindowHandle)
+    $abort = $root.FindFirst([Windows.Automation.TreeScope]::Descendants, $pendingAbortId)
+    return $null -ne $abort -and -not $abort.Current.IsOffscreen
+}
+
+function WaitPendingCard([bool]$Visible) {
+    $sw = [Diagnostics.Stopwatch]::StartNew()
+    while ($sw.ElapsedMilliseconds -lt 3000) {
+        if ((HasPendingCard) -eq $Visible) { return $true }
+        Start-Sleep -Milliseconds 50
+    }
+    return $false
+}
+
+if (-not $p -or $all.Count -ne 1 -or $all[0].Id -ne $p.Id) { throw "The original instance did not stay open." }
+Add-Type -AssemblyName UIAutomationClient, UIAutomationTypes
+$pendingAbortId = [Windows.Automation.PropertyCondition]::new(
+    [Windows.Automation.AutomationElement]::AutomationIdProperty, 'Abort')
+if (HasPendingCard) { throw "The guest already has a pending schedule." }
+Send-Command @('--shutdown')
+try {
+    Send-Command @('--in', '30')
+    if (-not (WaitPendingCard $true)) { throw "The original window did not show the pending card." }
+    Send-Command @('--abort')
+    if (-not (WaitPendingCard $false)) { throw "The original window did not clear the pending card." }
+    "command handover: original window showed and cleared the pending card"
+}
+finally {
+    # Cancel the guest timer even if the acknowledgement or card check failed.
+    $shutdownExe = Join-Path ([Environment]::SystemDirectory) 'shutdown.exe'
+    Start-Process -FilePath $shutdownExe -ArgumentList '/a' -WindowStyle Hidden -Wait
+}
+
 Get-Process -Name $name -ErrorAction SilentlyContinue | Stop-Process -Force
 Start-Sleep -Milliseconds 500
 

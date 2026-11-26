@@ -734,6 +734,106 @@ namespace Shutdown.Tests
         });
 
         [Fact]
+        public void Command_applies_restart_and_normalizes_90_minutes() => Sta.Run(() =>
+        {
+            var w = Make(new Settings { Mode = "At" });
+            w.ApplyCommand(CommandLine.Parse(new[] { "--restart", "--in", "90" }));
+
+            Assert.True(w.ActRestart.IsChecked);
+            Assert.True(w.ModeCountdown.IsChecked);
+            Assert.Equal(1, w.DurHours.Value);
+            Assert.Equal(30, w.DurMinutes.Value);
+            Assert.Equal(new[] { "/a", "/r /f /t 5400 /c \"Scheduled with the Shutdown app.\"" }, _runner.Calls);
+            Assert.Equal(Visibility.Visible, w.PendingCard.Visibility);
+        });
+
+        [Fact]
+        public void Command_countdown_uses_the_saved_action_and_supports_the_windows_limit() => Sta.Run(() =>
+        {
+            var w = Make(new Settings { Action = "Restart" });
+            w.ApplyCommand(CommandLine.Parse(new[] { "--in", "87600:00" }));
+
+            Assert.True(w.ActRestart.IsChecked);
+            Assert.Equal(87600, w.DurHours.Value);
+            Assert.Equal(0, w.DurMinutes.Value);
+            Assert.Equal(new[] { "/a", $"/r /f /t {Schedule.MaxSeconds} /c \"Scheduled with the Shutdown app.\"" }, _runner.Calls);
+        });
+
+        [Theory]
+        [InlineData("13:00", 13, 0, 3600)]
+        [InlineData("11:00", 11, 1, 82800)]
+        public void Command_at_sets_the_date_and_schedules_immediately(string time, int hour, int days, int seconds) => Sta.Run(() =>
+        {
+            var w = Make();
+            w.ApplyCommand(CommandLine.Parse(new[] { "--at", time }));
+
+            Assert.True(w.ModeAt.IsChecked);
+            Assert.Equal(hour, w.AtHour.Value);
+            Assert.Equal(0, w.AtMinute.Value);
+            Assert.Equal(Loc.I.DateText(_now.Date.AddDays(days)), w.DateLabel.Text);
+            Assert.Equal(new[] { "/a", $"/s /f /t {seconds} /c \"Scheduled with the Shutdown app.\"" }, _runner.Calls);
+        });
+
+        [Fact]
+        public void Command_action_without_a_time_only_selects_the_action() => Sta.Run(() =>
+        {
+            var w = Make();
+            w.ApplyCommand(CommandLine.Parse(new[] { "--restart" }));
+
+            Assert.True(w.ActRestart.IsChecked);
+            Assert.Empty(_runner.Calls);
+        });
+
+        [Fact]
+        public void Command_abort_calls_the_runner_and_clears_pending() => Sta.Run(() =>
+        {
+            var w = Make(new Settings { PendingAction = "Shutdown", PendingDue = Due(30), PendingBoot = Marker });
+            w.ApplyCommand(CommandLine.Parse(new[] { "--abort" }));
+
+            Assert.Equal(new[] { "/a" }, _runner.Calls);
+            Assert.Equal(Visibility.Collapsed, w.PendingCard.Visibility);
+        });
+
+        [Theory]
+        [InlineData("--hibernate", "HibernateUnavailable")]
+        [InlineData("--sleep", "SleepUnavailable")]
+        public void Unavailable_command_shows_the_action_error_without_scheduling(string option, string error) => Sta.Run(() =>
+        {
+            var hibernateAllowed = MainWindow.HibernateAllowed;
+            var sleepAllowed = MainWindow.SleepAllowed;
+            try
+            {
+                MainWindow.HibernateAllowed = () => false;
+                MainWindow.SleepAllowed = () => false;
+                var w = Make();
+                w.ApplyCommand(CommandLine.Parse(new[] { option, "--in", "30" }));
+
+                Assert.Equal(Visibility.Visible, w.MessageCard.Visibility);
+                Assert.Equal(Loc.I[error], w.MessageText.Text);
+                Assert.True(w.ActShutdown.IsChecked);
+                Assert.Empty(_runner.Calls);
+            }
+            finally
+            {
+                MainWindow.HibernateAllowed = hibernateAllowed;
+                MainWindow.SleepAllowed = sleepAllowed;
+            }
+        });
+
+        [Fact]
+        public void Invalid_command_shows_the_localized_error_and_usage() => Sta.Run(() =>
+        {
+            var w = Make();
+            w.ApplyCommand(CommandLine.Parse(new[] { "--other" }));
+
+            Assert.Equal(Visibility.Visible, w.MessageCard.Visibility);
+            Assert.Equal("The command line could not be read.", w.MessageText.Text);
+            Assert.Equal(CommandLine.Usage, w.MessageDetail.Text);
+            Assert.Equal(Visibility.Collapsed, w.OpenLogButton.Visibility);
+            Assert.Empty(_runner.Calls);
+        });
+
+        [Fact]
         public void Closing_with_app_timed_countdown_asks_first() => Sta.Run(() =>
         {
             var w = Make();

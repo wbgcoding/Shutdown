@@ -1,4 +1,5 @@
 using System;
+using System.IO.MemoryMappedFiles;
 using System.Threading;
 using System.Windows;
 using System.Windows.Threading;
@@ -18,6 +19,8 @@ namespace Shutdown
         const string AckName = @"Local\BGCoding.Shutdown.Activated";
         const string QuitName = @"Local\BGCoding.Shutdown.Quit";
         const string InfoName = @"Local\BGCoding.Shutdown.Build";
+        const string CommandName = @"Local\BGCoding.Shutdown.Command";
+        const string RequestName = @"Local\BGCoding.Shutdown.Request";
         static readonly TimeSpan AckTimeout = TimeSpan.FromMilliseconds(400);
         static readonly TimeSpan RetryWait = TimeSpan.FromMilliseconds(200);
         static readonly TimeSpan ClaimTimeout = TimeSpan.FromSeconds(5);
@@ -27,7 +30,8 @@ namespace Shutdown
         EventWaitHandle _activate;
         EventWaitHandle _ack;
         EventWaitHandle _quit;
-        System.IO.MemoryMappedFiles.MemoryMappedFile _info;
+        MemoryMappedFile _info;
+        MemoryMappedFile _commands;
         readonly ManualResetEvent _stopListening = new ManualResetEvent(false);
 
         // Lets the running instance take the foreground: Windows only allows it when the process that the
@@ -51,7 +55,7 @@ namespace Shutdown
             Loc.I.Apply("system");
             trace.Mark("language");
 
-            if (!ClaimSingleInstance())
+            if (!ClaimSingleInstance(e.Args))
             {
                 Shutdown();
                 return;
@@ -70,15 +74,23 @@ namespace Shutdown
             trace.Mark("window");
             MainWindow = w;
             w.Closed += (s, a) => ReleaseInstance();
-            w.Loaded += (s, a) => trace.Mark("loaded");
+            w.Loaded += OnLoaded;
             w.ContentRendered += (s, a) => trace.Done("first frame");
             w.Show();
+
+            void OnLoaded(object sender, RoutedEventArgs args)
+            {
+                w.Loaded -= OnLoaded;
+                trace.Mark("loaded");
+                new Thread(Listen) { IsBackground = true, Name = "activate" }.Start();
+                if (e.Args.Length != 0) w.ApplyCommand(CommandLine.Parse(e.Args));
+            }
         }
 
         // A closing instance can still own the lock for a moment after its window is gone, so a quick
         // restart would only signal a process that is about to exit. The running instance acknowledges
         // each activation; without an acknowledgement the new start keeps trying to take the lock.
-        bool ClaimSingleInstance()
+        bool ClaimSingleInstance(string[] args)
         {
             try
             {
@@ -86,6 +98,17 @@ namespace Shutdown
                 _activate = new EventWaitHandle(false, EventResetMode.AutoReset, ActivateName);
                 _ack = new EventWaitHandle(false, EventResetMode.AutoReset, AckName);
                 _quit = new EventWaitHandle(false, EventResetMode.AutoReset, QuitName);
+                using (var request = new Mutex(false, RequestName))
+                {
+                    // Launchers share the inbox and the reply event.
+                    if (!TryOwnMutex(request, ClaimTimeout))
+                    {
+                        Log.Write("instance request still in progress");
+                        return false;
+                    }
+                    try { return ClaimOrNotify(args); }
+                    finally { request.ReleaseMutex(); }
+                }
             }
             catch (UnauthorizedAccessException)
             {
@@ -94,10 +117,14 @@ namespace Shutdown
                 MessageBox.Show(Loc.I["ElevatedRunning"], "Shutdown", MessageBoxButton.OK, MessageBoxImage.Information);
                 return false;
             }
+        }
+
+        bool ClaimOrNotify(string[] args)
+        {
             var self = BuildId.Current();
             bool takeoverTried = false;
             var deadline = DateTime.UtcNow + ClaimTimeout;
-            while (!TryOwnMutex(TimeSpan.Zero))
+            while (!TryOwnMutex(_mutex, TimeSpan.Zero))
             {
                 var running = BuildId.ReadPublished(InfoName, out int runningPid);
                 // Only the running instance gets the right; a release that published nothing gets it the old way.
@@ -106,16 +133,29 @@ namespace Shutdown
                 {
                     takeoverTried = true;
                     var result = TakeOver();
-                    if (result == Takeover.Done) break;
-                    // Declined: the running window came to the front and says why.
-                    if (result == Takeover.Declined) return false;
-                    // No answer: one last activation round, the deadline has passed by now.
-                    continue;
+                    if (result == Reply.Acquired) break;
+                    if (result == Reply.Acknowledged && args.Length == 0) return false;
                 }
+
                 _ack.Reset();
-                _activate.Set();
-                if (_ack.WaitOne(AckTimeout)) return false;
-                if (TryOwnMutex(RetryWait)) break;
+                var post = args.Length == 0 ? CommandInbox.PostResult.Unavailable : CommandInbox.Post(CommandName, args);
+                if (post == CommandInbox.PostResult.Posted)
+                {
+                    _activate.Set();
+                    var result = WaitForReply(ClaimTimeout);
+                    if (result == Reply.Acquired) break;
+                    if (result == Reply.TimedOut) Log.Write("running instance did not acknowledge the command");
+                    return false;
+                }
+
+                // An owner may still be creating its inbox. A build that published without one can still be activated.
+                if (args.Length == 0 || (post == CommandInbox.PostResult.Unavailable &&
+                    (running.HasValue || DateTime.UtcNow >= deadline)))
+                {
+                    _activate.Set();
+                    if (_ack.WaitOne(AckTimeout)) return false;
+                }
+                if (TryOwnMutex(_mutex, RetryWait)) break;
                 if (DateTime.UtcNow > deadline)
                 {
                     Log.Write("running instance did not answer");
@@ -125,9 +165,10 @@ namespace Shutdown
             _activate.Reset();
             _quit.Reset();
             _owned = true;
+            try { _commands = CommandInbox.Create(CommandName); }
+            catch (Exception ex) { Log.Write("command inbox not created", ex); }
             try { _info = self.Publish(InfoName, System.Diagnostics.Process.GetCurrentProcess().Id); }
             catch (Exception ex) { Log.Write("build info not published", ex); }
-            new Thread(Listen) { IsBackground = true, Name = "activate" }.Start();
             return true;
         }
 
@@ -135,31 +176,36 @@ namespace Shutdown
         /// Asks an older running build to close and waits for its lock. It declines (and comes to the front
         /// instead) while a timed action needs it open. In that case this start only activates it.
         /// </summary>
-        Takeover TakeOver()
+        Reply TakeOver()
         {
             _ack.Reset();
             _quit.Set();
-            try
-            {
-                int i = WaitHandle.WaitAny(new WaitHandle[] { _mutex, _ack }, ClaimTimeout);
-                if (i == 0) return Takeover.Done;
-                _quit.Reset();
-                if (i == 1)
-                {
-                    Log.Write("running instance declined to close");
-                    return Takeover.Declined;
-                }
-                Log.Write("running instance did not close");
-                return Takeover.NoAnswer;
-            }
-            catch (AbandonedMutexException ex) when (ex.MutexIndex == 0) { return Takeover.Done; }
+            var result = WaitForReply(ClaimTimeout);
+            if (result == Reply.Acquired) return result;
+            _quit.Reset();
+            Log.Write(result == Reply.Acknowledged ? "running instance declined to close" : "running instance did not close");
+            return result;
         }
 
-        enum Takeover { Done, Declined, NoAnswer }
-
-        bool TryOwnMutex(TimeSpan wait)
+        Reply WaitForReply(TimeSpan wait)
         {
-            try { return _mutex.WaitOne(wait); }
+            try
+            {
+                return WaitHandle.WaitAny(new WaitHandle[] { _mutex, _ack }, wait) switch
+                {
+                    0 => Reply.Acquired,
+                    1 => Reply.Acknowledged,
+                    _ => Reply.TimedOut
+                };
+            }
+            catch (AbandonedMutexException ex) when (ex.MutexIndex == 0) { return Reply.Acquired; }
+        }
+
+        enum Reply { Acquired, Acknowledged, TimedOut }
+
+        static bool TryOwnMutex(Mutex mutex, TimeSpan wait)
+        {
+            try { return mutex.WaitOne(wait); }
             catch (AbandonedMutexException) { return true; }
         }
 
@@ -179,6 +225,11 @@ namespace Shutdown
                     // gives up soon, so closing now could leave no window at all. The margin covers closing the window.
                     bool stale = DateTime.UtcNow - signalled > ClaimTimeout - CloseMargin;
                     if (quit && !stale && w.CloseForNewerBuild()) return;
+                    if (!quit)
+                    {
+                        var command = CommandInbox.Take(_commands);
+                        if (command != null) w.ApplyCommand(command);
+                    }
                     w.BringToFront();
                     _ack.Set();
                 }));
@@ -191,6 +242,8 @@ namespace Shutdown
             if (!_owned) return;
             _owned = false;
             _stopListening.Set();
+            _commands?.Dispose();
+            _commands = null;
             _info?.Dispose();
             _info = null;
             try { _mutex.ReleaseMutex(); } catch (ApplicationException) { }

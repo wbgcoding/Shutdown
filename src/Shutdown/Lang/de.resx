@@ -74,6 +74,7 @@
   <data name="ErrAccessDenied" xml:space="preserve"><value>Dieses Konto darf den PC nicht herunterfahren. Frag einen Administrator nach der Berechtigung.</value></data>
   <data name="ErrTimeout" xml:space="preserve"><value>shutdown.exe hat nicht reagiert.</value></data>
   <data name="ErrStart" xml:space="preserve"><value>shutdown.exe konnte nicht gestartet werden.</value></data>
+  <data name="ErrCommandLine" xml:space="preserve"><value>Die Befehlszeile konnte nicht gelesen werden.</value></data>
   <data name="ErrUnexpected" xml:space="preserve"><value>Etwas ist schiefgelaufen. Details stehen im Protokoll.</value></data>
   <data name="Copy" xml:space="preserve"><value>Kopieren</value></data>
   <data name="OpenLog" xml:space="preserve"><value>Protokollordner öffnen</value></data>

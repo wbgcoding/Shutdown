@@ -74,6 +74,7 @@
   <data name="ErrAccessDenied" xml:space="preserve"><value>This account may not shut down the PC. Ask an administrator for permission.</value></data>
   <data name="ErrTimeout" xml:space="preserve"><value>shutdown.exe did not respond.</value></data>
   <data name="ErrStart" xml:space="preserve"><value>shutdown.exe could not be started.</value></data>
+  <data name="ErrCommandLine" xml:space="preserve"><value>The command line could not be read.</value></data>
   <data name="ErrUnexpected" xml:space="preserve"><value>Something went wrong. Details are in the log.</value></data>
   <data name="Copy" xml:space="preserve"><value>Copy</value></data>
   <data name="OpenLog" xml:space="preserve"><value>Open log folder</value></data>
