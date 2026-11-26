@@ -49,6 +49,7 @@
   <data name="TitlePendingRestart" xml:space="preserve"><value>Neustart in {0}</value></data>
   <data name="TitlePendingHibernate" xml:space="preserve"><value>Ruhezustand in {0}</value></data>
   <data name="PendingRemaining" xml:space="preserve"><value>noch {0}</value></data>
+  <data name="LastMinute" xml:space="preserve"><value>Noch weniger als eine Minute.</value></data>
   <data name="PendingKeepOpen" xml:space="preserve"><value>Fenster offen lassen.</value></data>
   <data name="MsgMissed" xml:space="preserve"><value>Der geplante Zeitpunkt ist verstrichen, während der PC im Energiesparmodus oder Ruhezustand war. Es wurde nichts ausgeführt.</value></data>
   <data name="ErrTooShort" xml:space="preserve"><value>Wähle mindestens 1 Minute.</value></data>

@@ -23,6 +23,8 @@ namespace Shutdown.Tests
         internal static void Init()
         {
             ShutdownRunner.BlockedForTests = true;
+            MainWindow.Flash = _ => { };
+            MainWindow.ShowNoActivate = _ => { };
             Log.Dir = Path.Combine(Path.GetTempPath(), "ShutdownTestLog");
         }
     }

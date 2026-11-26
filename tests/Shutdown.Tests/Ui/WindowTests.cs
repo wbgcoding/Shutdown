@@ -151,6 +151,71 @@ namespace Shutdown.Tests
             Assert.Same(w.FindResource("Urgent"), w.PendingClock.Foreground);
         });
 
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void Last_minute_warns_once_and_postponing_rearms_it(bool appTimed) => Sta.Run(() =>
+        {
+            var previousFlash = MainWindow.Flash;
+            var previousShow = MainWindow.ShowNoActivate;
+            var flashes = new List<Window>();
+            var restores = new List<Window>();
+            MainWindow.Flash = flashes.Add;
+            MainWindow.ShowNoActivate = window =>
+            {
+                restores.Add(window);
+                window.WindowState = WindowState.Normal;
+            };
+
+            try
+            {
+                var w = Make(new Settings { Hours = 0, Minutes = 2 });
+                w.ActHibernate.IsChecked = appTimed;
+                Click(w.StartButton);
+                var due = _now.AddMinutes(2);
+                w.WindowState = WindowState.Minimized;
+                Assert.Equal(AutomationLiveSetting.Assertive, AutomationProperties.GetLiveSetting(w.PendingClock));
+
+                _now = due.AddSeconds(-61);
+                w.OnTick();
+                Assert.Empty(flashes);
+                Assert.Empty(restores);
+                Assert.False(w.Topmost);
+
+                _now = due.AddSeconds(-59);
+                w.OnTick();
+                Assert.Same(w, Assert.Single(flashes));
+                Assert.Same(w, Assert.Single(restores));
+                Assert.True(w.Topmost);
+                Assert.Equal("Less than a minute left.", AutomationProperties.GetName(w.PendingClock));
+
+                _now = due.AddSeconds(-58);
+                w.OnTick();
+                Assert.Single(flashes);
+                Assert.Single(restores);
+                Assert.True(w.Topmost);
+                Assert.Equal(Loc.I.F("PendingRemaining", w.PendingClock.Text), AutomationProperties.GetName(w.PendingClock));
+
+                Click(w.Extend15Button);
+                Assert.False(w.Topmost);
+
+                _now = due.AddMinutes(14);
+                w.OnTick();
+                Assert.Equal(new Window[] { w, w }, flashes);
+                Assert.Single(restores);
+                Assert.True(w.Topmost);
+
+                Click(w.AbortButton);
+                Assert.False(w.Topmost);
+                Assert.False(w.IsVisible);
+            }
+            finally
+            {
+                MainWindow.Flash = previousFlash;
+                MainWindow.ShowNoActivate = previousShow;
+            }
+        });
+
         [Fact]
         public void Pending_countdown_updates_the_window_title_and_taskbar_until_aborted() => Sta.Run(() =>
         {

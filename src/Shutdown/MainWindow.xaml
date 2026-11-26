@@ -187,7 +187,7 @@
         </StackPanel>
         <TextBlock x:Name="PendingClock" Grid.Column="1" FontFamily="{StaticResource DisplayFont}" FontSize="22"
                    FontWeight="SemiBold" Foreground="{DynamicResource Text}" VerticalAlignment="Center"
-                   Margin="10,0,0,0" AutomationProperties.AutomationId="PendingClock"/>
+                   Margin="10,0,0,0" AutomationProperties.AutomationId="PendingClock" AutomationProperties.LiveSetting="Assertive"/>
         <DockPanel Grid.Row="1" Grid.ColumnSpan="2" Margin="0,8,0,0">
           <Button x:Name="Extend15Button" DockPanel.Dock="Left" Style="{StaticResource ChipButton}" Margin="0,0,6,0"
                   Click="OnExtend15" AutomationProperties.AutomationId="Extend15"

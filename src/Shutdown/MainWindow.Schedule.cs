@@ -38,6 +38,7 @@ namespace Shutdown
                 pending.TargetUtc = targetUtc;
                 pending.Due += span;
                 pending.Total += span;
+                if (pending.Due - Uptime() > LastMinuteThreshold) ResetLastMinuteWarning();
                 UpdateUi();
                 return;
             }

@@ -49,6 +49,7 @@
   <data name="TitlePendingRestart" xml:space="preserve"><value>Restarting in {0}</value></data>
   <data name="TitlePendingHibernate" xml:space="preserve"><value>Hibernating in {0}</value></data>
   <data name="PendingRemaining" xml:space="preserve"><value>{0} left</value></data>
+  <data name="LastMinute" xml:space="preserve"><value>Less than a minute left.</value></data>
   <data name="PendingKeepOpen" xml:space="preserve"><value>Keep this window open.</value></data>
   <data name="MsgMissed" xml:space="preserve"><value>The scheduled time passed while the PC was asleep or hibernating. Nothing was run.</value></data>
   <data name="ErrTooShort" xml:space="preserve"><value>Choose at least 1 minute.</value></data>

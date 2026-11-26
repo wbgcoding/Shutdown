@@ -23,6 +23,7 @@ namespace Shutdown
             public TimeSpan Total;
             public DateTime Target => TargetUtc.ToLocalTime();
             public bool AppTimed;
+            public bool WarnedLastMinute;
         }
 
         enum MessageKind { None, Info, Error, CloseGuard }
@@ -198,8 +199,11 @@ namespace Shutdown
             if (WindowState == WindowState.Minimized) WindowState = WindowState.Normal;
             Show();
             // Topmost for a moment lifts the window above others even where Windows refuses the focus.
-            Topmost = true;
-            Topmost = false;
+            if (!Topmost)
+            {
+                Topmost = true;
+                Topmost = false;
+            }
             Activate();
         }
 
@@ -344,7 +348,6 @@ namespace Shutdown
 
         internal void OnTick()
         {
-            var now = Now();
             // A schedule handed to Windows stays until aborted or replaced: Windows counts its own timer and may fire later than this clock.
             // Uptime, not the wall clock: a clock change seen before its TimeChanged event must not fire early.
             if (_pending?.AppTimed == true && Uptime() >= _pending.Due)
@@ -356,6 +359,7 @@ namespace Shutdown
                 else Execute(Schedule.ArgsFor(p.Action, 0));
             }
             UpdateUi();
+            WarnLastMinute();
         }
 
         void OnStart(object sender, RoutedEventArgs e)
@@ -395,6 +399,7 @@ namespace Shutdown
 
         void ClearPending()
         {
+            ResetLastMinuteWarning();
             _pending = null;
             SyncKeepAwake();
             // The close warning and the note for a newer copy are about the countdown that just ended.
