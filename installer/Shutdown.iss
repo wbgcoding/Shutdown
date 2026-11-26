@@ -267,10 +267,16 @@ begin
   Result := SuppressibleMsgBox(CustomMessage('InstallerCloseAnyway'), mbConfirmation, MB_YESNO, IDNO) = IDYES;
   if not Result then
     Exit;
-  if not Exec(ExpandConstant('{sys}\taskkill.exe'), '/F /IM Shutdown.exe', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then
+  // Only this account's copies: an elevated setup must not end Shutdown in another user's session.
+  if not Exec(ExpandConstant('{sys}\taskkill.exe'), '/F /IM Shutdown.exe /FI "USERNAME eq ' + GetUserNameString + '"',
+    '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then
     ResultCode := -1;
   Log('taskkill exit code ' + IntToStr(ResultCode));
   Result := WaitUntilClosed(Exe, 5000);
+  // A schedule the app could not save would otherwise keep its Windows timer with nothing left to show or cancel it,
+  // so it is cancelled as the message box said.
+  if Result then
+    Exec(ExpandConstant('{sys}\shutdown.exe'), '/a', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
 end;
 
 function InitializeSetup: Boolean;
@@ -435,16 +441,20 @@ begin
     Exec(ExpandConstant('{sys}\shutdown.exe'), '/a', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
 end;
 
+// The files cannot be removed while the app runs, so close it before anything is removed or stop here.
+function InitializeUninstall: Boolean;
+begin
+  Result := CloseRunningApp(ExpandConstant('{app}\Shutdown.exe'));
+  if not Result then
+    SuppressibleMsgBox(CustomMessage('InstallerCloseFailed'), mbError, MB_OK, IDOK);
+end;
+
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
 var
   DataDir: String;
   Failed: Boolean;
 begin
   DataDir := ExpandConstant('{userappdata}\Shutdown');
-  if CurUninstallStep = usUninstall then
-    // The files cannot be removed while the app runs. Setup has already closed it before a silent uninstall.
-    if not CloseRunningApp(ExpandConstant('{app}\Shutdown.exe')) then
-      MsgBox(CustomMessage('InstallerCloseFailed'), mbError, MB_OK);
   if (CurUninstallStep = usUninstall) and not UninstallSilent then
   begin
     CancelPendingTimer(DataDir);
