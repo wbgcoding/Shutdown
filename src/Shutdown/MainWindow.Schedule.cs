@@ -68,7 +68,7 @@ namespace Shutdown
             }
 
             bool appTimed = Schedule.IsAppTimed(action);
-            if (appTimed || Execute(Schedule.ArgsFor(action, result.Seconds), out bool maybeScheduled) || maybeScheduled)
+            if (appTimed || Execute(Schedule.ArgsFor(action, result.Seconds, Loc.I["ShutdownComment"]), out bool maybeScheduled) || maybeScheduled)
             {
                 var uptime = Uptime();
                 var remaining = result.TargetUtc - NowUtc();

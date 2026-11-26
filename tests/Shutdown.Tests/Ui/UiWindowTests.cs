@@ -326,6 +326,21 @@ namespace Shutdown.Tests
             Assert.Equal(text, AutomationProperties.GetName(w.StartButton));
         });
 
+        [Theory]
+        [InlineData("en", "Scheduled with the Shutdown app.")]
+        [InlineData("de", "Geplant mit der App Shutdown.")]
+        public void Shutdown_warning_uses_the_localized_comment(string language, string expected) => Sta.Run(() =>
+        {
+            var w = Make();
+            Loc.I.Apply(language);
+            string comment = Loc.I["ShutdownComment"];
+            Assert.Equal(expected, comment);
+            Assert.DoesNotContain("\"", comment);
+
+            Click(w.StartButton);
+            Assert.Equal(new[] { "/a", "/s /f /t 3600 /c \"" + expected + "\"" }, _runner.Calls);
+        });
+
         [Fact]
         public void Start_button_offers_to_reschedule_the_selected_action() => Sta.Run(() =>
         {
@@ -550,9 +565,9 @@ namespace Shutdown.Tests
             _runner.Result = a => a == "/a" ? 0 : code;
             var w = Make();
             Click(w.StartButton);
-            Assert.Equal(new[] { "/a", "/s /f /t 3600" }, _runner.Calls);
+            Assert.Equal(new[] { "/a", "/s /f /t 3600 /c \"Scheduled with the Shutdown app.\"" }, _runner.Calls);
             Assert.Equal(Loc.I[key], w.MessageText.Text);
-            Assert.Equal("shutdown /s /f /t 3600: exit code " + code, w.MessageDetail.Text);
+            Assert.Equal("shutdown /s /f /t 3600 /c \"Scheduled with the Shutdown app.\": exit code " + code, w.MessageDetail.Text);
             Assert.Equal(Visibility.Collapsed, w.OpenLogButton.Visibility);
             Assert.Equal(Visibility.Collapsed, w.PendingCard.Visibility);
         });

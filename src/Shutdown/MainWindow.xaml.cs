@@ -356,7 +356,7 @@ namespace Shutdown
                 var late = Uptime() - p.Due;
                 ClearPending();
                 if (late > MissedGrace) ShowInfo("MsgMissed");
-                else Execute(Schedule.ArgsFor(p.Action, 0));
+                else Execute(Schedule.ArgsFor(p.Action, 0, Loc.I["ShutdownComment"]));
             }
             UpdateUi();
             WarnLastMinute();

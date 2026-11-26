@@ -75,7 +75,7 @@ namespace Shutdown.Tests
             // Countdown mode shows the end time.
             Assert.Equal(Loc.I.F("SummaryAt", Loc.I.DateText(_now.AddHours(1)), Loc.I.TimeText(_now.AddHours(1))), w.ResultText.Text);
             Click(w.StartButton);
-            Assert.Equal(new[] { "/a", "/s /f /t 3600" }, _runner.Calls);
+            Assert.Equal(new[] { "/a", "/s /f /t 3600 /c \"Scheduled with the Shutdown app.\"" }, _runner.Calls);
             Assert.Equal(Visibility.Visible, w.PendingCard.Visibility);
             Assert.Equal("Shutdown scheduled", w.PendingTitle.Text);
             Assert.Equal("1:00:00", w.PendingClock.Text);
@@ -95,7 +95,7 @@ namespace Shutdown.Tests
             Assert.Equal(25d / 30, w.TaskbarItemInfo.ProgressValue, 8);
             Click(w.Extend15Button);
 
-            Assert.Equal(new[] { "/a", "/s /f /t 2400" }, _runner.Calls);
+            Assert.Equal(new[] { "/a", "/s /f /t 2400 /c \"Scheduled with the Shutdown app.\"" }, _runner.Calls);
             Assert.Equal(Visibility.Visible, w.PendingCard.Visibility);
             Assert.Equal("0:40:00", w.PendingClock.Text);
             Assert.Equal(40d / 45, w.TaskbarItemInfo.ProgressValue, 8);
@@ -277,7 +277,7 @@ namespace Shutdown.Tests
             w.ModeAt.IsChecked = true;
             _runner.Result = a => { if (a == "/a") _now = _now.AddSeconds(10); return 0; };
             Click(w.StartButton);
-            Assert.Equal(new[] { "/a", "/s /f /t 3590" }, _runner.Calls);
+            Assert.Equal(new[] { "/a", "/s /f /t 3590 /c \"Scheduled with the Shutdown app.\"" }, _runner.Calls);
         });
 
         [Fact]
@@ -293,7 +293,7 @@ namespace Shutdown.Tests
             w.AtHour.Value = 12;
             w.AtMinute.Value = 2;
             Click(w.StartButton);
-            Assert.Equal(new[] { "/a", "/s /f /t 3590", "/a" }, _runner.Calls);
+            Assert.Equal(new[] { "/a", "/s /f /t 3590 /c \"Scheduled with the Shutdown app.\"", "/a" }, _runner.Calls);
             Assert.Equal(Visibility.Collapsed, w.PendingCard.Visibility);
             Assert.Equal(Loc.I["MsgOldCancelled"], w.MessageText.Text);
             Assert.Null(_store.Load().PendingAction);
@@ -447,10 +447,10 @@ namespace Shutdown.Tests
             var w = Make();
             _runner.Result = a => a == "/a" ? ShutdownRunner.ErrorNoShutdownInProgress : ShutdownRunner.TimeoutCode;
             Click(w.StartButton);
-            Assert.Equal(new[] { "/a", "/s /f /t 3600", "/a" }, _runner.Calls);
+            Assert.Equal(new[] { "/a", "/s /f /t 3600 /c \"Scheduled with the Shutdown app.\"", "/a" }, _runner.Calls);
             Assert.Equal(Visibility.Collapsed, w.PendingCard.Visibility);
             Assert.Equal(Loc.I["ErrTimeout"], w.MessageText.Text);
-            Assert.Equal("shutdown /s /f /t 3600", w.MessageDetail.Text);
+            Assert.Equal("shutdown /s /f /t 3600 /c \"Scheduled with the Shutdown app.\"", w.MessageDetail.Text);
         });
 
         [Fact]
@@ -526,7 +526,7 @@ namespace Shutdown.Tests
             Click(w.StartButton);
             Assert.Equal(Visibility.Collapsed, w.PendingCard.Visibility);
             Assert.Equal(Loc.I["ErrAccessDenied"], w.MessageText.Text);
-            Assert.Equal("shutdown /s /f /t 3600: exit code 5", w.MessageDetail.Text);
+            Assert.Equal("shutdown /s /f /t 3600 /c \"Scheduled with the Shutdown app.\": exit code 5", w.MessageDetail.Text);
             Assert.Equal(Visibility.Visible, w.CopyButton.Visibility);
         });
 
@@ -647,7 +647,7 @@ namespace Shutdown.Tests
             w.ActRestart.IsChecked = true;
             Assert.Equal(Visibility.Collapsed, w.AppTimedNote.Visibility);
             Click(w.StartButton);
-            Assert.Equal(new[] { "/a", "/r /f /t 3600" }, _runner.Calls);
+            Assert.Equal(new[] { "/a", "/r /f /t 3600 /c \"Scheduled with the Shutdown app.\"" }, _runner.Calls);
             Assert.Equal(Visibility.Collapsed, w.PendingKeepOpen.Visibility);
         });
 
@@ -776,7 +776,7 @@ namespace Shutdown.Tests
             // The first /a (before scheduling) finds nothing; the take-back /a fails.
             _runner.Result = a => a != "/a" ? ShutdownRunner.TimeoutCode : aborts++ == 0 ? ShutdownRunner.ErrorNoShutdownInProgress : 1;
             Click(w.StartButton);
-            Assert.Equal(new[] { "/a", "/s /f /t 3600", "/a" }, _runner.Calls);
+            Assert.Equal(new[] { "/a", "/s /f /t 3600 /c \"Scheduled with the Shutdown app.\"", "/a" }, _runner.Calls);
             Assert.Equal(Loc.I["ErrTimeout"], w.MessageText.Text);
             Assert.Equal(Visibility.Visible, w.PendingCard.Visibility);
             Assert.Equal("Shutdown", _store.Load().PendingAction);

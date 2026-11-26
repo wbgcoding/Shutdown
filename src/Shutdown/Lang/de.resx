@@ -35,6 +35,7 @@
   <data name="ClockDays" xml:space="preserve"><value>{0} Tage {1}</value></data>
   <data name="AppTimedHibernate" xml:space="preserve"><value>Windows hat für den Ruhezustand keinen Timer, darum zählt Shutdown selbst herunter: Fenster offen lassen.</value></data>
   <data name="StartShutdown" xml:space="preserve"><value>Herunterfahren planen</value></data>
+  <data name="ShutdownComment" xml:space="preserve"><value>Geplant mit der App Shutdown.</value></data>
   <data name="StartRestart" xml:space="preserve"><value>Neustart planen</value></data>
   <data name="StartHibernate" xml:space="preserve"><value>Ruhezustand planen</value></data>
   <data name="StartReschedule" xml:space="preserve"><value>Neu planen</value></data>

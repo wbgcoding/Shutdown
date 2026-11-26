@@ -272,27 +272,26 @@ namespace Shutdown.Tests
         }
 
         [Theory]
-        [InlineData(PowerAction.Shutdown, 60, "/s /f /t 60")]
-        [InlineData(PowerAction.Shutdown, 0, "/s /f /t 0")]
-        [InlineData(PowerAction.Shutdown, 315360000, "/s /f /t 315360000")]
-        [InlineData(PowerAction.Restart, 61, "/r /f /t 61")]
-        [InlineData(PowerAction.Restart, 315360000, "/r /f /t 315360000")]
+        [InlineData(PowerAction.Shutdown, 60, "/s /f /t 60 /c \"Example comment\"")]
+        [InlineData(PowerAction.Shutdown, 0, "/s /f /t 0 /c \"Example comment\"")]
+        [InlineData(PowerAction.Shutdown, 315360000, "/s /f /t 315360000 /c \"Example comment\"")]
+        [InlineData(PowerAction.Restart, 61, "/r /f /t 61 /c \"Example comment\"")]
+        [InlineData(PowerAction.Restart, 315360000, "/r /f /t 315360000 /c \"Example comment\"")]
         [InlineData(PowerAction.Hibernate, 0, "/h /f")]
         [InlineData(PowerAction.Hibernate, 3600, "/h /f")]
         [InlineData(PowerAction.Hibernate, 315360000, "/h /f")]
         public void Args_for_every_action(PowerAction a, int seconds, string expected)
         {
-            Assert.Equal(expected, Schedule.ArgsFor(a, seconds));
+            Assert.Equal(expected, Schedule.ArgsFor(a, seconds, "Example comment"));
         }
 
         [Fact]
-        public void Args_are_always_forced_and_carry_no_comment_or_reason()
+        public void Args_are_always_forced_and_carry_no_reason()
         {
             foreach (PowerAction a in Enum.GetValues(typeof(PowerAction)))
             {
-                var args = Schedule.ArgsFor(a, 90);
+                var args = Schedule.ArgsFor(a, 90, "Example comment");
                 Assert.Contains("/f", args.Split(' '));
-                Assert.DoesNotContain("/c", args);
                 Assert.DoesNotContain("/d", args);
             }
         }
@@ -304,7 +303,7 @@ namespace Shutdown.Tests
             try
             {
                 CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("de-DE");
-                Assert.Equal("/s /f /t 1234567", Schedule.ArgsFor(PowerAction.Shutdown, 1234567));
+                Assert.Equal("/s /f /t 1234567 /c \"Example comment\"", Schedule.ArgsFor(PowerAction.Shutdown, 1234567, "Example comment"));
             }
             finally { CultureInfo.CurrentCulture = old; }
         }
@@ -436,12 +435,12 @@ namespace Shutdown.Tests
         }
 
         [Theory]
-        [InlineData(PowerAction.Shutdown, 90, "/s /f /t 90")]
-        [InlineData(PowerAction.Restart, 90, "/r /f /t 90")]
+        [InlineData(PowerAction.Shutdown, 90, "/s /f /t 90 /c \"Example comment\"")]
+        [InlineData(PowerAction.Restart, 90, "/r /f /t 90 /c \"Example comment\"")]
         [InlineData(PowerAction.Hibernate, 0, "/h /f")]
         public void Args_match_the_action(PowerAction a, int seconds, string expected)
         {
-            Assert.Equal(expected, Schedule.ArgsFor(a, seconds));
+            Assert.Equal(expected, Schedule.ArgsFor(a, seconds, "Example comment"));
         }
 
         [Fact]

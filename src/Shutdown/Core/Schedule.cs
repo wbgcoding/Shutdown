@@ -72,9 +72,9 @@ namespace Shutdown.Core
         /// Always forced: shutdown.exe implies /f for any /t above 0 anyway. Shutdown and restart hand
         /// the timer to Windows; hibernate takes no /t and runs when the app's countdown ends.
         /// </summary>
-        public static string ArgsFor(PowerAction action, int seconds) =>
+        public static string ArgsFor(PowerAction action, int seconds, string comment) =>
             action == PowerAction.Hibernate ? "/h /f" :
-            (action == PowerAction.Restart ? "/r" : "/s") + " /f /t " + seconds;
+            (action == PowerAction.Restart ? "/r" : "/s") + " /f /t " + seconds + " /c \"" + comment + "\"";
 
         public const string AbortArgs = "/a";
     }
