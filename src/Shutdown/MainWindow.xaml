@@ -49,6 +49,8 @@
           <UniformGrid Rows="1">
             <RadioButton x:Name="ActShutdown" GroupName="Action" Style="{StaticResource Segment}" Checked="OnInputChanged"
                          AutomationProperties.AutomationId="ActShutdown"
+                         ToolTip="{Binding [TipShutdown], Source={x:Static core:Loc.I}}"
+                         AutomationProperties.HelpText="{Binding [TipShutdown], Source={x:Static core:Loc.I}}"
                          AutomationProperties.Name="{Binding [ActShutdown], Source={x:Static core:Loc.I}}">
               <StackPanel Orientation="Horizontal">
                 <ui:PowerGlyph Margin="0,0,5,0"/>
@@ -57,15 +59,29 @@
             </RadioButton>
             <RadioButton x:Name="ActRestart" GroupName="Action" Style="{StaticResource Segment}" Checked="OnInputChanged"
                          AutomationProperties.AutomationId="ActRestart"
+                         ToolTip="{Binding [TipRestart], Source={x:Static core:Loc.I}}"
+                         AutomationProperties.HelpText="{Binding [TipRestart], Source={x:Static core:Loc.I}}"
                          AutomationProperties.Name="{Binding [ActRestart], Source={x:Static core:Loc.I}}">
               <StackPanel Orientation="Horizontal">
                 <ui:IconGlyph Style="{StaticResource Icon}" Text="&#xE72C;" FontSize="13" Margin="0,0,5,0"/>
                 <TextBlock Text="{Binding [ActRestart], Source={x:Static core:Loc.I}}"/>
               </StackPanel>
             </RadioButton>
-            <RadioButton x:Name="ActHibernate" GroupName="Action" Style="{StaticResource Segment}" Checked="OnInputChanged"
+            <RadioButton x:Name="ActHibernate" GroupName="Action" Checked="OnInputChanged"
                          AutomationProperties.AutomationId="ActHibernate"
                          AutomationProperties.Name="{Binding [ActHibernate], Source={x:Static core:Loc.I}}">
+              <RadioButton.Style>
+                <Style TargetType="RadioButton" BasedOn="{StaticResource Segment}">
+                  <Setter Property="ToolTip" Value="{Binding [TipHibernate], Source={x:Static core:Loc.I}}"/>
+                  <Setter Property="AutomationProperties.HelpText" Value="{Binding [TipHibernate], Source={x:Static core:Loc.I}}"/>
+                  <Style.Triggers>
+                    <Trigger Property="IsEnabled" Value="False">
+                      <Setter Property="ToolTip" Value="{Binding [HibernateUnavailable], Source={x:Static core:Loc.I}}"/>
+                      <Setter Property="AutomationProperties.HelpText" Value="{Binding [HibernateUnavailable], Source={x:Static core:Loc.I}}"/>
+                    </Trigger>
+                  </Style.Triggers>
+                </Style>
+              </RadioButton.Style>
               <StackPanel Orientation="Horizontal">
                 <ui:IconGlyph Style="{StaticResource Icon}" Text="&#xE708;" FontSize="13" Margin="0,0,5,0"/>
                 <TextBlock Text="{Binding [ActHibernate], Source={x:Static core:Loc.I}}"/>
@@ -78,6 +94,8 @@
           <UniformGrid Rows="1">
             <RadioButton x:Name="ModeCountdown" GroupName="Mode" Style="{StaticResource Segment}" Checked="OnInputChanged"
                          AutomationProperties.AutomationId="ModeCountdown"
+                         ToolTip="{Binding [TipCountdown], Source={x:Static core:Loc.I}}"
+                         AutomationProperties.HelpText="{Binding [TipCountdown], Source={x:Static core:Loc.I}}"
                          AutomationProperties.Name="{Binding [ModeCountdown], Source={x:Static core:Loc.I}}">
               <StackPanel Orientation="Horizontal">
                 <ui:IconGlyph Style="{StaticResource Icon}" Text="&#xE916;" FontSize="13" Margin="0,0,5,0"/>
@@ -86,6 +104,8 @@
             </RadioButton>
             <RadioButton x:Name="ModeAt" GroupName="Mode" Style="{StaticResource Segment}" Checked="OnInputChanged"
                          AutomationProperties.AutomationId="ModeAt"
+                         ToolTip="{Binding [TipAt], Source={x:Static core:Loc.I}}"
+                         AutomationProperties.HelpText="{Binding [TipAt], Source={x:Static core:Loc.I}}"
                          AutomationProperties.Name="{Binding [ModeAt], Source={x:Static core:Loc.I}}">
               <StackPanel Orientation="Horizontal">
                 <ui:IconGlyph Style="{StaticResource Icon}" Text="&#xE787;" FontSize="13" Margin="0,0,5,0"/>

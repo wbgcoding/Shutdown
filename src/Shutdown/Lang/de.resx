@@ -10,6 +10,11 @@
   <data name="HibernateUnavailable" xml:space="preserve"><value>Ruhezustand ist auf diesem PC deaktiviert.</value></data>
   <data name="ModeCountdown" xml:space="preserve"><value>Zeitspanne</value></data>
   <data name="ModeAt" xml:space="preserve"><value>Datum und Uhrzeit</value></data>
+  <data name="TipShutdown" xml:space="preserve"><value>Schaltet den PC aus. Offene Programme werden ohne Nachfrage beendet.</value></data>
+  <data name="TipRestart" xml:space="preserve"><value>Startet den PC neu. Offene Programme werden ohne Nachfrage beendet.</value></data>
+  <data name="TipHibernate" xml:space="preserve"><value>Speichert die Sitzung auf der Festplatte und schaltet den PC aus. Beim nächsten Start ist alles wieder wie vorher.</value></data>
+  <data name="TipCountdown" xml:space="preserve"><value>Läuft nach Ablauf der eingestellten Zeit.</value></data>
+  <data name="TipAt" xml:space="preserve"><value>Läuft zu einem festen Datum und einer Uhrzeit.</value></data>
   <data name="Hours" xml:space="preserve"><value>Stunden</value></data>
   <data name="Minutes" xml:space="preserve"><value>Minuten</value></data>
   <data name="Hour" xml:space="preserve"><value>Stunde</value></data>

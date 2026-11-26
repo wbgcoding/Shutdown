@@ -291,6 +291,46 @@ namespace Shutdown.Tests
 
         // ---- texts and controls per state ----
 
+        [Theory]
+        [InlineData("en",
+            "Turns the PC off. Open programs are closed without asking.",
+            "Restarts the PC. Open programs are closed without asking.",
+            "Saves the session to disk and turns the PC off. On the next start everything is as it was.",
+            "Runs once the set time has passed.",
+            "Runs at a set date and time.",
+            "Hibernation is turned off on this PC.")]
+        [InlineData("de",
+            "Schaltet den PC aus. Offene Programme werden ohne Nachfrage beendet.",
+            "Startet den PC neu. Offene Programme werden ohne Nachfrage beendet.",
+            "Speichert die Sitzung auf der Festplatte und schaltet den PC aus. Beim nächsten Start ist alles wieder wie vorher.",
+            "Läuft nach Ablauf der eingestellten Zeit.",
+            "Läuft zu einem festen Datum und einer Uhrzeit.",
+            "Ruhezustand ist auf diesem PC deaktiviert.")]
+        public void Action_and_mode_tooltips_match_accessible_help(string language, string shutdown, string restart,
+            string hibernate, string countdown, string at, string hibernateUnavailable) => Sta.Run(() =>
+        {
+            var w = Make();
+            Loc.I.Apply(language);
+
+            void AssertHelp(RadioButton button, string expected)
+            {
+                Assert.Equal(expected, button.ToolTip);
+                Assert.Equal(expected, AutomationProperties.GetHelpText(button));
+            }
+
+            AssertHelp(w.ActShutdown, shutdown);
+            AssertHelp(w.ActRestart, restart);
+            AssertHelp(w.ModeCountdown, countdown);
+            AssertHelp(w.ModeAt, at);
+            AssertHelp(w.ActHibernate, w.ActHibernate.IsEnabled ? hibernate : hibernateUnavailable);
+
+            w.ActHibernate.IsEnabled = true;
+            AssertHelp(w.ActHibernate, hibernate);
+            w.ActHibernate.IsEnabled = false;
+            AssertHelp(w.ActHibernate, hibernateUnavailable);
+            Assert.True(ToolTipService.GetShowOnDisabled(w.ActHibernate));
+        });
+
         [Fact]
         public void Start_has_its_own_row_and_abort_is_only_shown_in_the_pending_card() => Sta.Run(() =>
         {

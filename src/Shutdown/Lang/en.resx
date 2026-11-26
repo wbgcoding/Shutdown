@@ -10,6 +10,11 @@
   <data name="HibernateUnavailable" xml:space="preserve"><value>Hibernation is turned off on this PC.</value></data>
   <data name="ModeCountdown" xml:space="preserve"><value>Countdown</value></data>
   <data name="ModeAt" xml:space="preserve"><value>Date and time</value></data>
+  <data name="TipShutdown" xml:space="preserve"><value>Turns the PC off. Open programs are closed without asking.</value></data>
+  <data name="TipRestart" xml:space="preserve"><value>Restarts the PC. Open programs are closed without asking.</value></data>
+  <data name="TipHibernate" xml:space="preserve"><value>Saves the session to disk and turns the PC off. On the next start everything is as it was.</value></data>
+  <data name="TipCountdown" xml:space="preserve"><value>Runs once the set time has passed.</value></data>
+  <data name="TipAt" xml:space="preserve"><value>Runs at a set date and time.</value></data>
   <data name="Hours" xml:space="preserve"><value>Hours</value></data>
   <data name="Minutes" xml:space="preserve"><value>Minutes</value></data>
   <data name="Hour" xml:space="preserve"><value>Hour</value></data>

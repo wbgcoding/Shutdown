@@ -86,12 +86,7 @@ namespace Shutdown
             _runner = runner;
             InitializeComponent();
 
-            if (!HibernateAllowed())
-            {
-                ActHibernate.IsEnabled = false;
-                ToolTipService.SetShowOnDisabled(ActHibernate, true);
-                ActHibernate.SetBinding(ToolTipProperty, new System.Windows.Data.Binding("[HibernateUnavailable]") { Source = Loc.I });
-            }
+            if (!HibernateAllowed()) ActHibernate.IsEnabled = false;
 
             // TryParse also takes any number; only named actions count.
             var action = Enum.TryParse(settings.Action, out PowerAction a) && Enum.IsDefined(typeof(PowerAction), a) ? a : PowerAction.Shutdown;
