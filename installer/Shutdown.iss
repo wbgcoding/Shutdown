@@ -54,6 +54,11 @@ Name: "de"; MessagesFile: "compiler:Languages\German.isl"
 
 #include "..\dist\installer-messages.iss"
 
+[Messages]
+; The ready page is off, so the tasks page starts the install: its text names that button.
+en.SelectTasksLabel2=Select the additional tasks you would like Setup to perform while installing [name], then click Install.
+de.SelectTasksLabel2=Wählen Sie die zusätzlichen Aufgaben aus, die das Setup während der Installation von [name] ausführen soll, und klicken Sie danach auf "Installieren".
+
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"
 
@@ -329,7 +334,8 @@ end;
 
 procedure CurPageChanged(CurPageID: Integer);
 begin
-  if (CurPageID = wpSelectDir) and not IsManagedInstall then
+  // Without a ready page the last page before copying starts the install, so its button says so.
+  if ((CurPageID = wpSelectDir) and not IsManagedInstall) or (CurPageID = wpSelectTasks) then
     WizardForm.NextButton.Caption := SetupMessage(msgButtonInstall);
   RaiseWizard;
 end;
