@@ -390,50 +390,6 @@ begin
   end;
 end;
 
-function InitializeUninstall: Boolean;
-var
-  Dialog: TSetupForm;
-  DeleteBox: TNewCheckBox;
-  ConfirmButton, CancelButton: TNewButton;
-begin
-  Result := True;
-  if UninstallSilent then
-    Exit;
-
-  Dialog := CreateCustomForm(ScaleX(350), ScaleY(84), False, False);
-  try
-    Dialog.Caption := CustomMessage('InstallerUninstall');
-    Dialog.Position := poScreenCenter;
-
-    DeleteBox := TNewCheckBox.Create(Dialog);
-    DeleteBox.Parent := Dialog;
-    DeleteBox.SetBounds(ScaleX(16), ScaleY(12), ScaleX(318), ScaleY(22));
-    DeleteBox.Caption := CustomMessage('InstallerDeleteAppData');
-    SetWindowLong(DeleteBox.Handle, GWL_ID, 1003);
-
-    ConfirmButton := TNewButton.Create(Dialog);
-    ConfirmButton.Parent := Dialog;
-    ConfirmButton.SetBounds(ScaleX(144), ScaleY(46), ScaleX(92), ScaleY(24));
-    ConfirmButton.Caption := CustomMessage('InstallerUninstall');
-    ConfirmButton.Default := True;
-    ConfirmButton.ModalResult := mrOk;
-    SetWindowLong(ConfirmButton.Handle, GWL_ID, 1004);
-
-    CancelButton := TNewButton.Create(Dialog);
-    CancelButton.Parent := Dialog;
-    CancelButton.SetBounds(ScaleX(244), ScaleY(46), ScaleX(90), ScaleY(24));
-    CancelButton.Caption := SetupMessage(msgButtonCancel);
-    CancelButton.Cancel := True;
-    CancelButton.ModalResult := mrCancel;
-    SetWindowLong(CancelButton.Handle, GWL_ID, 1005);
-
-    Result := Dialog.ShowModal = mrOk;
-    DeleteAppData := Result and DeleteBox.Checked;
-  finally
-    Dialog.Free;
-  end;
-end;
-
 procedure DeleteDataFile(const Path: String; var Failed: Boolean);
 begin
   if FileExists(Path) and not DeleteFile(Path) then
@@ -463,7 +419,11 @@ var
 begin
   DataDir := ExpandConstant('{userappdata}\Shutdown');
   if (CurUninstallStep = usUninstall) and not UninstallSilent then
+  begin
     CancelPendingTimer(DataDir);
+    // Asked after the standard confirmation, which Inno Setup always shows; data stays unless the user opts in.
+    DeleteAppData := MsgBox(CustomMessage('InstallerDeleteAppData'), mbConfirmation, MB_YESNO or MB_DEFBUTTON2) = IDYES;
+  end;
   if (CurUninstallStep <> usPostUninstall) or not DeleteAppData then
     Exit;
   // Only the app's own files: the folder name is generic, so anything else in it stays.

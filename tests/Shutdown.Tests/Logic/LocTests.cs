@@ -468,8 +468,8 @@ namespace Shutdown.Tests
         }
 
         [Theory]
-        [InlineData("en", "Also delete settings and logs")]
-        [InlineData("de", "Auch Einstellungen und Protokolle löschen")]
+        [InlineData("en", "Also delete the Shutdown settings and logs?")]
+        [InlineData("de", "Auch die Einstellungen und Protokolle von Shutdown löschen?")]
         public void Installer_displays_the_expected_uninstall_opt_in(string language, string caption)
         {
             Assert.Equal(caption, Loc.LoadTable(language)["InstallerDeleteAppData"]);

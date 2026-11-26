@@ -113,7 +113,7 @@
   <data name="InstallerPortable" xml:space="preserve"><value>Portable Installation</value></data>
   <data name="InstallerPortableDescription" xml:space="preserve"><value>Kopiert nur Shutdown.exe in den gewählten Ordner.</value></data>
   <data name="InstallerRun" xml:space="preserve"><value>Shutdown starten</value></data>
-  <data name="InstallerDeleteAppData" xml:space="preserve"><value>Auch Einstellungen und Protokolle löschen</value></data>
+  <data name="InstallerDeleteAppData" xml:space="preserve"><value>Auch die Einstellungen und Protokolle von Shutdown löschen?</value></data>
   <data name="InstallerDeleteAppDataFailed" xml:space="preserve"><value>Einige Einstellungen oder Protokolle konnten nicht gelöscht werden.</value></data>
   <data name="InstallerCompilerMissing" xml:space="preserve"><value>Der Compiler von Inno Setup 6 (ISCC.exe) wurde nicht gefunden.</value></data>
   <data name="InstallerCompileFailed" xml:space="preserve"><value>Das Installationsprogramm für Shutdown konnte nicht erstellt werden.</value></data>

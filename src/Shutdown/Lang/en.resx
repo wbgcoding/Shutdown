@@ -113,7 +113,7 @@
   <data name="InstallerPortable" xml:space="preserve"><value>Portable installation</value></data>
   <data name="InstallerPortableDescription" xml:space="preserve"><value>Copies only Shutdown.exe to the selected folder.</value></data>
   <data name="InstallerRun" xml:space="preserve"><value>Run Shutdown</value></data>
-  <data name="InstallerDeleteAppData" xml:space="preserve"><value>Also delete settings and logs</value></data>
+  <data name="InstallerDeleteAppData" xml:space="preserve"><value>Also delete the Shutdown settings and logs?</value></data>
   <data name="InstallerDeleteAppDataFailed" xml:space="preserve"><value>Some settings or logs could not be deleted.</value></data>
   <data name="InstallerCompilerMissing" xml:space="preserve"><value>Inno Setup 6 compiler (ISCC.exe) was not found.</value></data>
   <data name="InstallerCompileFailed" xml:space="preserve"><value>Could not compile the Shutdown installer.</value></data>
