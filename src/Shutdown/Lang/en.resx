@@ -98,8 +98,8 @@
   <data name="MenuPaste" xml:space="preserve"><value>Paste</value></data>
   <data name="MenuSelectAll" xml:space="preserve"><value>Select all</value></data>
   <data name="ElevatedRunning" xml:space="preserve"><value>Shutdown is already running as administrator. Switch to its window, or close it and start Shutdown again.</value></data>
-  <data name="InstallerWelcome" xml:space="preserve"><value>Shutdown %1 Setup</value></data>
-  <data name="InstallerWelcomeDescription" xml:space="preserve"><value>Setup installs Shutdown, which schedules shutdown, restart, hibernate or sleep.</value></data>
+  <data name="InstallerWelcome" xml:space="preserve"><value>Welcome to Shutdown</value></data>
+  <data name="InstallerWelcomeDescription" xml:space="preserve"><value>Shutdown lets you choose when your PC shuts down, restarts, hibernates or goes to sleep.%n%nThis wizard installs version %1 in a few steps. Click Next to get started.</value></data>
   <data name="InstallerDowngrade" xml:space="preserve"><value>Shutdown %1 is already installed. Setup cannot replace it with %2.</value></data>
   <data name="InstallerPreviousUninstallFailed" xml:space="preserve"><value>The existing installation could not be removed. Close Shutdown and uninstall it from Windows Settings before continuing.</value></data>
   <data name="InstallerPerUserFirst" xml:space="preserve"><value>Shutdown is already installed for your account only. Uninstall that copy from Windows Settings first, then run Setup again.</value></data>

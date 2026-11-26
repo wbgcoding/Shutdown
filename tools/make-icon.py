@@ -20,23 +20,9 @@ GAP_DEG = 42  # ring opening either side of the top, measured to the centre of t
 SMALL = {16: (5.5, 2.0), 20: (7.0, 2.0), 24: (8.0, 2.0), 32: (11.0, 3.0)}
 
 
-def frame(s):
-    ro, w = SMALL.get(s, (s * 0.34, s * 0.095))
-    radius = max(3.0, s * 0.2)
-    cx = s / 2
-    # The symbol spans from the stem tip (1.2 ro above the ring centre) to the ring bottom; centre that span.
-    cy = s / 2 + 0.1 * ro
+def power_symbol(x, y, cx, cy, ro, w):
+    """Mask of the power symbol: ring radius ro (outer edge) and stroke w, centred on cx, cy."""
     rm = ro - w / 2
-
-    n = s * SS
-    c = (np.arange(n) + 0.5) / SS
-    x, y = np.meshgrid(c, c)
-
-    # Rounded tile.
-    qx = np.maximum(np.maximum(radius - x, x - (s - radius)), 0)
-    qy = np.maximum(np.maximum(radius - y, y - (s - radius)), 0)
-    tile = qx * qx + qy * qy <= radius * radius
-
     # Ring with an opening at the top and round ends.
     ang = np.degrees(np.arctan2(x - cx, cy - y))  # 0 at the top, +-180 at the bottom
     ring = (np.abs(np.hypot(x - cx, y - cy) - rm) <= w / 2) & (np.abs(ang) >= GAP_DEG)
@@ -50,7 +36,26 @@ def frame(s):
     stem = (np.abs(x - cx) <= w / 2) & (y >= top) & (y <= bottom)
     for ey in (top, bottom):
         stem |= np.hypot(x - cx, y - ey) <= w / 2
-    glyph = (ring | stem) & tile
+    return ring | stem
+
+
+def frame(s):
+    ro, w = SMALL.get(s, (s * 0.34, s * 0.095))
+    radius = max(3.0, s * 0.2)
+    cx = s / 2
+    # The symbol spans from the stem tip (1.2 ro above the ring centre) to the ring bottom; centre that span.
+    cy = s / 2 + 0.1 * ro
+
+    n = s * SS
+    c = (np.arange(n) + 0.5) / SS
+    x, y = np.meshgrid(c, c)
+
+    # Rounded tile.
+    qx = np.maximum(np.maximum(radius - x, x - (s - radius)), 0)
+    qy = np.maximum(np.maximum(radius - y, y - (s - radius)), 0)
+    tile = qx * qx + qy * qy <= radius * radius
+
+    glyph = power_symbol(x, y, cx, cy, ro, w) & tile
 
     t = (y / s)[..., None]
     rgb = TOP * (1 - t) + BOTTOM * t

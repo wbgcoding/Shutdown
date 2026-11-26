@@ -18,14 +18,19 @@ AppSupportURL={#AppUrl}/issues
 AppUpdatesURL={#AppUrl}/releases
 VersionInfoVersion={#AppVersion}
 DefaultDirName={autopf}\Shutdown
-DefaultGroupName=Shutdown
-AllowNoIcons=yes
 DisableDirPage=no
-DisableProgramGroupPage=no
+; One shortcut goes straight into the Start menu, no folder of its own (Windows guideline for a single app).
+DisableProgramGroupPage=yes
 DisableReadyPage=yes
 ; Installing over an existing folder is always what the user wants (update, repair, portable copy).
 DirExistsWarning=no
 DisableWelcomePage=no
+WizardStyle=modern dynamic windows11
+WizardImageFile=WizardImage-100.png,WizardImage-125.png,WizardImage-150.png,WizardImage-175.png,WizardImage-200.png,WizardImage-225.png,WizardImage-250.png
+WizardSmallImageFile=WizardSmallImage-100.png,WizardSmallImage-125.png,WizardSmallImage-150.png,WizardSmallImage-175.png,WizardSmallImage-200.png,WizardSmallImage-225.png,WizardSmallImage-250.png
+; The same blue images suit the light and the dark appearance.
+WizardImageFileDynamicDark=WizardImage-100.png,WizardImage-125.png,WizardImage-150.png,WizardImage-175.png,WizardImage-200.png,WizardImage-225.png,WizardImage-250.png
+WizardSmallImageFileDynamicDark=WizardSmallImage-100.png,WizardSmallImage-125.png,WizardSmallImage-150.png,WizardSmallImage-175.png,WizardSmallImage-200.png,WizardSmallImage-225.png,WizardSmallImage-250.png
 PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
 ; An update keeps the scope of the installed copy without asking again.
@@ -65,11 +70,16 @@ de.SelectTasksLabel2=Wählen Sie die zusätzlichen Aufgaben aus, die das Setup w
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"
 
+[InstallDelete]
+; Older versions put the shortcut into a Start menu folder of its own.
+Type: files; Name: "{autoprograms}\Shutdown\Shutdown.lnk"; Check: IsManagedInstall
+Type: dirifempty; Name: "{autoprograms}\Shutdown"; Check: IsManagedInstall
+
 [Files]
 Source: "..\dist\Shutdown.exe"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
-Name: "{group}\Shutdown"; Filename: "{app}\Shutdown.exe"; WorkingDir: "{app}"; Check: IsManagedInstall
+Name: "{autoprograms}\Shutdown"; Filename: "{app}\Shutdown.exe"; WorkingDir: "{app}"; Check: IsManagedInstall
 Name: "{autodesktop}\Shutdown"; Filename: "{app}\Shutdown.exe"; WorkingDir: "{app}"; Tasks: desktopicon; Check: IsManagedInstall
 
 [Run]
@@ -350,8 +360,8 @@ begin
   WizardForm.BeveledLabel.Top := WizardForm.NextButton.Top +
     (WizardForm.NextButton.Height - WizardForm.BeveledLabel.Height) div 2;
   WizardForm.BeveledLabel.Left := WizardForm.InnerNotebook.Left;
-  WizardForm.WelcomeLabel1.Caption := FmtMessage(CustomMessage('InstallerWelcome'), ['{#AppVersion}']);
-  WizardForm.WelcomeLabel2.Caption := CustomMessage('InstallerWelcomeDescription');
+  WizardForm.WelcomeLabel1.Caption := CustomMessage('InstallerWelcome');
+  WizardForm.WelcomeLabel2.Caption := FmtMessage(CustomMessage('InstallerWelcomeDescription'), ['{#AppVersion}']);
 
   PortableDir := ExpandConstant('{src}');
   PortableBox := TNewCheckBox.Create(WizardForm);
@@ -387,7 +397,7 @@ end;
 
 function ShouldSkipPage(PageID: Integer): Boolean;
 begin
-  Result := not IsManagedInstall and ((PageID = wpSelectProgramGroup) or (PageID = wpSelectTasks));
+  Result := not IsManagedInstall and (PageID = wpSelectTasks);
 end;
 
 function InstallRoot: Integer;
