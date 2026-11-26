@@ -1,5 +1,5 @@
 @echo off
-rem Builds the release files: dist\release\Shutdown-<version>-windows.exe and SHA256SUMS.txt.
+rem Builds the portable exe, the installer and SHA256SUMS.txt in dist\release.
 rem The version comes from src\Shutdown\Shutdown.csproj. Publishing stays a manual step.
 setlocal
 cd /d "%~dp0"
@@ -14,23 +14,29 @@ if not defined VERSION (
   exit /b 1
 )
 
-set OUT=dist\release
-if exist %OUT% rmdir /s /q %OUT%
-mkdir %OUT%
-set NAME=Shutdown-%VERSION%-windows.exe
-copy /y dist\Shutdown.exe %OUT%\%NAME% >nul
+set "OUT=dist\release"
+rem Start empty so no file of an older version is shipped by mistake.
+if exist "%OUT%" rmdir /s /q "%OUT%"
+mkdir "%OUT%"
+if errorlevel 1 exit /b 1
+set "NAME=Shutdown-%VERSION%-windows.exe"
+set "SETUP=Shutdown-Setup-%VERSION%.exe"
+copy /y dist\Shutdown.exe "%OUT%\%NAME%" >nul
 if errorlevel 1 exit /b 1
 
 rem The shipped exe must not carry a debug path from the build machine.
-findstr /m /i /c:".pdb" %OUT%\%NAME% >nul
+findstr /m /i /c:".pdb" "%OUT%\%NAME%" >nul
 if not errorlevel 1 (
   echo %NAME% contains a .pdb path. Check DebugType in Shutdown.csproj.
   exit /b 1
 )
 
-powershell -NoProfile -Command "$h =(Get-FileHash '%OUT%\%NAME%' -Algorithm SHA256).Hash.ToLower(); [IO.File]::WriteAllText('%OUT%\SHA256SUMS.txt', \"$h  %NAME%`n\")"
+powershell -NoProfile -ExecutionPolicy RemoteSigned -File "%~dp0tools\build-installer.ps1" -AppVersion "%VERSION%"
+if errorlevel 1 exit /b 1
+
+powershell -NoProfile -Command "$ErrorActionPreference='Stop'; $lines = foreach ($name in '%NAME%', '%SETUP%') { (Get-FileHash -LiteralPath ('%OUT%\' + $name) -Algorithm SHA256).Hash.ToLowerInvariant() + '  ' + $name }; Set-Content -LiteralPath '%OUT%\SHA256SUMS.txt' -Value $lines -Encoding ASCII"
 if errorlevel 1 exit /b 1
 
 echo Release files in %OUT%:
-type %OUT%\SHA256SUMS.txt
+type "%OUT%\SHA256SUMS.txt"
 exit /b 0

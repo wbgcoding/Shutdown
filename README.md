@@ -22,12 +22,14 @@
 - **Always know what happens:** right above the time fields you see the exact end time of a countdown, or the time left until a chosen date, and a live countdown runs once scheduled.
 - **Cancel with one click** whatever the app scheduled.
 - **Fits into Windows:** English or German from the Windows display language, light or dark mode and the accent colour from your Windows settings.
-- **Portable and private:** one small `.exe` (about 110 KB), no installer, no network access, no telemetry.
+- **Small and private:** one small `.exe` (about 110 KB) to run from any folder, or a setup if you prefer; no network access, no telemetry.
 
 ## Download
 
-1. Get `Shutdown-<version>-windows.exe` from the [latest release](../../releases/latest).
-2. Put it in any folder (rename it if you like) and run it.
+Choose an installer or a portable copy from the [latest release](../../releases/latest).
+
+- Run `Shutdown-Setup-<version>.exe` to install for your Windows account or for all users. Setup follows the Windows display language by default. Pass `/LANG=en` or `/LANG=de` to select English or German.
+- Put `Shutdown-<version>-windows.exe` in any folder and run it directly.
 
 Requires Windows 10 (version 1903 or newer) or Windows 11. The .NET Framework 4.8 it needs is already part of Windows.
 
@@ -50,7 +52,7 @@ Starting the app a second time brings the open window to the front.
 
 ## Files
 
-Settings (`Shutdown.settings.json`) and a small log (rotated at 512 KB, one old copy kept) live in `%APPDATA%\Shutdown`. Nothing is written next to the exe. To remove the app, delete the exe and that folder.
+Settings (`Shutdown.settings.json`) and a small log (rotated at 512 KB, one old copy kept) live in `%APPDATA%\Shutdown`. For an installed copy, use Windows Settings to uninstall Shutdown and optionally delete that data. For a portable copy, delete the exe and optionally delete the data folder.
 
 ## Build from source
 
@@ -62,7 +64,7 @@ build.bat
 
 This builds `dist\Shutdown.exe` without starting it. Set `NOPAUSE=1` to never wait for a key on errors. A second run with nothing changed reports "up to date" and builds nothing; `build.bat --force` or `FORCE=1` rebuilds.
 
-`release.bat` builds the release files (`dist\release\Shutdown-<version>-windows.exe` and `SHA256SUMS.txt`).
+`release.bat` uses Inno Setup 6 to build `Shutdown-Setup-<version>.exe`. It writes the installer, portable exe and `SHA256SUMS.txt` to `dist\release`.
 
 Run the tests:
 
