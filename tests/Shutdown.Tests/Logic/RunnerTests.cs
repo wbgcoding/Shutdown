@@ -62,5 +62,33 @@ namespace Shutdown.Tests
             ISuspendRunner runner = new SuspendRunner();
             Assert.Throws<InvalidOperationException>(runner.Run);
         }
+
+        [Theory]
+        [InlineData(false, false, false)]
+        [InlineData(false, true, true)]
+        [InlineData(true, false, true)]
+        public void Sleep_is_allowed_for_either_power_model(bool suspendAllowed, bool modernStandby, bool expected)
+        {
+            Assert.Equal(expected, SuspendRunner.IsSleepAllowed(() => suspendAllowed, () => modernStandby));
+        }
+
+        [Fact]
+        public void Sleep_stays_enabled_if_the_power_capability_query_throws()
+        {
+            Assert.True(SuspendRunner.IsSleepAllowed(() => false, () => throw new EntryPointNotFoundException()));
+        }
+
+        [Theory]
+        [InlineData(false, true, 1, 0)]
+        [InlineData(false, false, 1, 1)]
+        [InlineData(true, true, 0, 1)]
+        public void Sleep_picks_the_power_path(bool modernStandby, bool canSuspend, int expectedSuspend, int expectedDisplayOff)
+        {
+            int suspend = 0;
+            int displayOff = 0;
+            SuspendRunner.Run(modernStandby, () => { suspend++; return canSuspend; }, () => displayOff++);
+            Assert.Equal(expectedSuspend, suspend);
+            Assert.Equal(expectedDisplayOff, displayOff);
+        }
     }
 }

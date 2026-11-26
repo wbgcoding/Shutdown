@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
+using System.Runtime.InteropServices;
+using System.Threading;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
@@ -839,6 +841,43 @@ namespace Shutdown.Tests
             Assert.Equal(Visibility.Collapsed, w.PendingCard.Visibility);
         });
 
+        [Fact]
+        public void Command_abort_without_pending_shows_info_without_calling_the_runner() => Sta.Run(() =>
+        {
+            var w = Make();
+            w.ApplyCommand(CommandLine.Parse(new[] { "--abort" }));
+
+            Assert.Empty(_runner.Calls);
+            Assert.Equal(Visibility.Visible, w.MessageCard.Visibility);
+            Assert.Equal(Visibility.Collapsed, w.CopyButton.Visibility);
+            Assert.Equal("Nothing is scheduled.", w.MessageText.Text);
+            Loc.I.Apply("de");
+            Assert.Equal("Es ist nichts geplant.", w.MessageText.Text);
+        });
+
+        [Fact]
+        public void A_command_acknowledgement_wins_when_the_owner_has_also_released_the_mutex()
+        {
+            using var mutex = new Mutex();
+            using var ack = new AutoResetEvent(true);
+            Assert.Equal(App.Reply.Acknowledged, App.WaitForReply(mutex, ack, TimeSpan.Zero));
+            Assert.False(ack.WaitOne(0));
+            Assert.Throws<ApplicationException>(() => mutex.ReleaseMutex());
+        }
+
+        [Fact]
+        public void A_jump_list_shell_failure_is_caught_during_registration() => Sta.Run(() =>
+        {
+            var app = Assert.IsType<App>(Application.Current);
+            bool attempted = false;
+            app.RegisterJumpList(_ =>
+            {
+                attempted = true;
+                throw new COMException("Shell unavailable");
+            });
+            Assert.True(attempted);
+        });
+
         [Theory]
         [InlineData("--hibernate", "HibernateUnavailable")]
         [InlineData("--sleep", "SleepUnavailable")]
@@ -1008,6 +1047,61 @@ namespace Shutdown.Tests
             finally
             {
                 MainWindow.ShowNoActivate = previousShow;
+            }
+        });
+
+        [Theory]
+        [InlineData(false, "ErrAccessDenied")]
+        [InlineData(true, "MsgMissed")]
+        public void Tray_errors_and_missed_actions_restore_without_focus_and_flash(bool missed, string message) => Sta.Run(() =>
+        {
+            var previousShow = MainWindow.ShowNoActivate;
+            var previousFlash = MainWindow.Flash;
+            var flashes = new List<Window>();
+            MainWindow.ShowNoActivate = MainWindow.ShowWithoutFocus;
+            MainWindow.Flash = flashes.Add;
+            try
+            {
+                var w = missed ? Make(new Settings { Hours = 0, Minutes = 2 }) :
+                    Make(new Settings { PendingAction = "Shutdown", PendingDue = Due(30), PendingBoot = Marker });
+                var tray = new FakeTray();
+                w.CreateTrayIcon = tray.Create;
+                w.ShowActivated = false;
+                w.Show();
+                w.ShowActivated = true;
+                if (missed)
+                {
+                    w.ActSleep.IsEnabled = true;
+                    w.ActSleep.IsChecked = true;
+                    Click(w.StartButton);
+                }
+                w.WindowState = WindowState.Minimized;
+                Assert.True(tray.Visible);
+
+                if (missed)
+                {
+                    _now = _now.AddMinutes(10);
+                    w.OnTick();
+                    Assert.Equal(0, _suspendRunner.Calls);
+                }
+                else
+                {
+                    _runner.Result = _ => ShutdownRunner.ErrorAccessDenied;
+                    ClickTrayItem(tray.CreateMenu(), "TrayAbort");
+                }
+
+                Assert.Equal(Loc.I[message], w.MessageText.Text);
+                Assert.Same(w, Assert.Single(flashes));
+                Assert.True(w.IsVisible);
+                Assert.Equal(WindowState.Normal, w.WindowState);
+                Assert.False(w.IsActive);
+                Assert.False(w.IsInTray);
+                Assert.False(tray.Visible);
+            }
+            finally
+            {
+                MainWindow.ShowNoActivate = previousShow;
+                MainWindow.Flash = previousFlash;
             }
         });
 

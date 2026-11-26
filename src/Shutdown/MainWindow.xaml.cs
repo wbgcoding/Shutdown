@@ -442,6 +442,11 @@ namespace Shutdown
         {
             _msgKind = kind; _msgKey = key; _msgDetail = detail; _msgShowLog = showLog;
             RenderMessage();
+            if (IsInTray && (kind == MessageKind.Error || (kind == MessageKind.Info && key == "MsgMissed")))
+            {
+                RestoreWithoutFocus();
+                Flash(this);
+            }
             // Without a listener (no screen reader) there is nothing to raise, and no peer to create.
             if (kind != MessageKind.None && AutomationPeer.ListenerExists(AutomationEvents.LiveRegionChanged))
                 // FromElement is null until a client asked for the peer, as for a card that was just collapsed.

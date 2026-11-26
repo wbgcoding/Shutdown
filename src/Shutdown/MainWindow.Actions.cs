@@ -19,14 +19,15 @@ namespace Shutdown
             try { return IsPwrHibernateAllowed(); } catch { return true; }
         };
 
-        internal static Func<bool> SleepAllowed = SuspendRunner.IsPwrSuspendAllowed;
+        internal static Func<bool> SleepAllowed = SuspendRunner.IsSleepAllowed;
 
         void InitializeAction(string stored)
         {
             ActHibernate.IsEnabled = HibernateAllowed();
             ActSleep.IsEnabled = SleepAllowed();
 
-            var button = Enum.TryParse(stored, out PowerAction action) ? ActionButton(action) : ActShutdown;
+            var button = Enum.TryParse(stored, out PowerAction action) && Enum.IsDefined(typeof(PowerAction), stored.Trim())
+                ? ActionButton(action) : ActShutdown;
             (button.IsEnabled ? button : ActShutdown).IsChecked = true;
         }
 

@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using Shutdown.Core;
 using Xunit;
 
@@ -137,23 +138,42 @@ namespace Shutdown.Tests
         }
 
         [Fact]
-        public void Inbox_needs_an_owner_and_clears_the_command_after_reading()
+        public void Inbox_signals_even_when_busy_and_clears_the_command_after_reading()
         {
             string name = NewMapName();
             var args = new[] { "--restart", "/in", "1:30" };
-            Assert.Equal(CommandInbox.PostResult.Unavailable, CommandInbox.Post(name, args));
+            using var activate = new AutoResetEvent(false);
+            Assert.Equal(CommandInbox.PostResult.Unavailable, CommandInbox.Post(name, args, activate));
+            Assert.False(activate.WaitOne(0));
             using (var map = CommandInbox.Create(name))
             {
-                Assert.Equal(CommandInbox.PostResult.Posted, CommandInbox.Post(name, args));
-                Assert.Equal(CommandInbox.PostResult.Busy, CommandInbox.Post(name, new[] { "--abort" }));
-                var command = CommandInbox.Take(map);
+                Assert.Equal(CommandInbox.PostResult.Posted, CommandInbox.Post(name, args, activate));
+                Assert.True(activate.WaitOne(0));
+                Assert.Equal(CommandInbox.PostResult.Busy, CommandInbox.Post(name, new[] { "--abort" }, activate));
+                Assert.True(activate.WaitOne(0));
+                var command = CommandInbox.Take(name, map);
                 Assert.Equal(PowerAction.Restart, command.Action);
                 Assert.Equal(90, command.CountdownMinutes);
-                Assert.Null(CommandInbox.Take(map));
-                Assert.Equal(CommandInbox.PostResult.Posted, CommandInbox.Post(name, new[] { "--abort" }));
-                Assert.True(CommandInbox.Take(map).Abort);
+                Assert.Null(CommandInbox.Take(name, map));
+                Assert.Equal(CommandInbox.PostResult.Posted, CommandInbox.Post(name, new[] { "--abort" }, activate));
+                Assert.True(CommandInbox.Take(name, map).Abort);
             }
-            Assert.Equal(CommandInbox.PostResult.Unavailable, CommandInbox.Post(name, args));
+            Assert.Equal(CommandInbox.PostResult.Unavailable, CommandInbox.Post(name, args, activate));
+        }
+
+        [Fact]
+        public void Withdrawn_command_cannot_be_replayed_on_the_next_activation()
+        {
+            string name = NewMapName();
+            using var map = CommandInbox.Create(name);
+            using var activate = new AutoResetEvent(false);
+            Assert.Equal(CommandInbox.PostResult.Posted, CommandInbox.Post(name, new[] { "--abort" }, activate));
+
+            CommandInbox.Withdraw(name);
+
+            Assert.Null(CommandInbox.Take(name, map));
+            Assert.Equal(CommandInbox.PostResult.Posted, CommandInbox.Post(name, new[] { "--restart" }, activate));
+            Assert.Equal(PowerAction.Restart, CommandInbox.Take(name, map).Action);
         }
 
         [Fact]
@@ -162,12 +182,13 @@ namespace Shutdown.Tests
             string name = NewMapName();
             using (var map = CommandInbox.Create(name))
             {
+                using var activate = new AutoResetEvent(false);
                 string value = new string('0', 504) + "1";
-                Assert.Equal(CommandInbox.PostResult.Posted, CommandInbox.Post(name, new[] { "--in", value }));
-                Assert.Equal(1, CommandInbox.Take(map).CountdownMinutes);
-                Assert.Equal(CommandInbox.PostResult.Posted, CommandInbox.Post(name, new[] { "--in", value + "0" }));
-                Assert.Equal(CommandLine.Usage, CommandInbox.Take(map).Error);
-                Assert.Null(CommandInbox.Take(map));
+                Assert.Equal(CommandInbox.PostResult.Posted, CommandInbox.Post(name, new[] { "--in", value }, activate));
+                Assert.Equal(1, CommandInbox.Take(name, map).CountdownMinutes);
+                Assert.Equal(CommandInbox.PostResult.Posted, CommandInbox.Post(name, new[] { "--in", value + "0" }, activate));
+                Assert.Equal(CommandLine.Usage, CommandInbox.Take(name, map).Error);
+                Assert.Null(CommandInbox.Take(name, map));
             }
         }
 

@@ -62,7 +62,7 @@ namespace Shutdown
             }
 
             trace.Mark("instance");
-            JumpListSetup.Register(this);
+            RegisterJumpList(JumpListSetup.Register);
             var store = SettingsStore.Default();
             var settings = store.Load();
             trace.Mark("settings");
@@ -86,6 +86,12 @@ namespace Shutdown
                 new Thread(Listen) { IsBackground = true, Name = "activate" }.Start();
                 if (e.Args.Length != 0) w.ApplyCommand(CommandLine.Parse(e.Args));
             }
+        }
+
+        internal void RegisterJumpList(Action<Application> register)
+        {
+            try { register(this); }
+            catch (Exception ex) { Log.Write("jump list not registered", ex); }
         }
 
         // A closing instance can still own the lock for a moment after its window is gone, so a quick
@@ -139,19 +145,22 @@ namespace Shutdown
                 }
 
                 _ack.Reset();
-                var post = args.Length == 0 ? CommandInbox.PostResult.Unavailable : CommandInbox.Post(CommandName, args);
-                if (post == CommandInbox.PostResult.Posted)
+                var post = args.Length == 0 ? CommandInbox.PostResult.Unavailable : CommandInbox.Post(CommandName, args, _activate);
+                if (post != CommandInbox.PostResult.Unavailable)
                 {
-                    _activate.Set();
-                    var result = WaitForReply(ClaimTimeout);
+                    var result = WaitForReply(_mutex, _ack, ClaimTimeout);
                     if (result == Reply.Acquired) break;
-                    if (result == Reply.TimedOut) Log.Write("running instance did not acknowledge the command");
+                    if (post == CommandInbox.PostResult.Busy) Log.Write("command inbox busy, command not posted");
+                    else if (result == Reply.TimedOut)
+                    {
+                        CommandInbox.Withdraw(CommandName);
+                        Log.Write("running instance did not acknowledge the command");
+                    }
                     return false;
                 }
 
                 // An owner may still be creating its inbox. A build that published without one can still be activated.
-                if (args.Length == 0 || (post == CommandInbox.PostResult.Unavailable &&
-                    (running.HasValue || DateTime.UtcNow >= deadline)))
+                if (args.Length == 0 || running.HasValue || DateTime.UtcNow >= deadline)
                 {
                     _activate.Set();
                     if (_ack.WaitOne(AckTimeout)) return false;
@@ -181,28 +190,31 @@ namespace Shutdown
         {
             _ack.Reset();
             _quit.Set();
-            var result = WaitForReply(ClaimTimeout);
+            var result = WaitForReply(_mutex, _ack, ClaimTimeout);
             if (result == Reply.Acquired) return result;
             _quit.Reset();
             Log.Write(result == Reply.Acknowledged ? "running instance declined to close" : "running instance did not close");
             return result;
         }
 
-        Reply WaitForReply(TimeSpan wait)
+        internal static Reply WaitForReply(Mutex mutex, EventWaitHandle ack, TimeSpan wait)
         {
+            int index;
             try
             {
-                return WaitHandle.WaitAny(new WaitHandle[] { _mutex, _ack }, wait) switch
-                {
-                    0 => Reply.Acquired,
-                    1 => Reply.Acknowledged,
-                    _ => Reply.TimedOut
-                };
+                index = WaitHandle.WaitAny(new WaitHandle[] { mutex, ack }, wait);
             }
-            catch (AbandonedMutexException ex) when (ex.MutexIndex == 0) { return Reply.Acquired; }
+            catch (AbandonedMutexException ex) when (ex.MutexIndex == 0) { index = 0; }
+            if (index == 1) return Reply.Acknowledged;
+            if (index != 0) return Reply.TimedOut;
+
+            // The owner can acknowledge and release before the sender wakes up.
+            if (!ack.WaitOne(0)) return Reply.Acquired;
+            mutex.ReleaseMutex();
+            return Reply.Acknowledged;
         }
 
-        enum Reply { Acquired, Acknowledged, TimedOut }
+        internal enum Reply { Acquired, Acknowledged, TimedOut }
 
         static bool TryOwnMutex(Mutex mutex, TimeSpan wait)
         {
@@ -228,7 +240,7 @@ namespace Shutdown
                     if (quit && !stale && w.CloseForNewerBuild()) return;
                     if (!quit)
                     {
-                        var command = CommandInbox.Take(_commands);
+                        var command = CommandInbox.Take(CommandName, _commands);
                         if (command != null) w.ApplyCommand(command);
                     }
                     w.BringToFront();

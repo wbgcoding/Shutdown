@@ -23,10 +23,7 @@ namespace Shutdown
 
             pending.WarnedLastMinute = true;
             if (WindowState == WindowState.Minimized || IsInTray)
-            {
-                ShowNoActivate(this);
-                if (IsVisible) HideTrayIcon();
-            }
+                RestoreWithoutFocus();
             Topmost = true;
             Flash(this);
 

@@ -14,7 +14,8 @@ namespace Shutdown
             }
             if (command.Abort)
             {
-                OnAbort(this, null);
+                if (_pending == null) ShowInfo("NothingScheduled");
+                else OnAbort(this, null);
                 return;
             }
 

@@ -34,6 +34,12 @@ namespace Shutdown
             _trayIcon.Hide();
         }
 
+        void RestoreWithoutFocus()
+        {
+            ShowNoActivate(this);
+            if (IsVisible) HideTrayIcon();
+        }
+
         void DisposeTrayIcon()
         {
             IsInTray = false;
@@ -64,7 +70,6 @@ namespace Shutdown
         {
             if (_pending == null) return;
             action();
-            if (_msgKind == MessageKind.Error) BringToFront();
         }
 
         static MenuItem TrayMenuItem(string id, string header, Action click)

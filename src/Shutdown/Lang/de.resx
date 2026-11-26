@@ -70,6 +70,7 @@
   <data name="LastMinute" xml:space="preserve"><value>Noch weniger als eine Minute.</value></data>
   <data name="PendingKeepOpen" xml:space="preserve"><value>Fenster offen lassen.</value></data>
   <data name="MsgMissed" xml:space="preserve"><value>Der geplante Zeitpunkt ist verstrichen, während der PC im Energiesparmodus oder Ruhezustand war. Es wurde nichts ausgeführt.</value></data>
+  <data name="NothingScheduled" xml:space="preserve"><value>Es ist nichts geplant.</value></data>
   <data name="ErrTooShort" xml:space="preserve"><value>Wähle mindestens 1 Minute.</value></data>
   <data name="ErrTooLong" xml:space="preserve"><value>Wähle höchstens 10 Jahre.</value></data>
   <data name="ErrPast" xml:space="preserve"><value>Dieser Zeitpunkt liegt in der Vergangenheit.</value></data>

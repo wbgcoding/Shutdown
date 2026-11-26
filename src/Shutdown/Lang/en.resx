@@ -70,6 +70,7 @@
   <data name="LastMinute" xml:space="preserve"><value>Less than a minute left.</value></data>
   <data name="PendingKeepOpen" xml:space="preserve"><value>Keep this window open.</value></data>
   <data name="MsgMissed" xml:space="preserve"><value>The scheduled time passed while the PC was asleep or hibernating. Nothing was run.</value></data>
+  <data name="NothingScheduled" xml:space="preserve"><value>Nothing is scheduled.</value></data>
   <data name="ErrTooShort" xml:space="preserve"><value>Choose at least 1 minute.</value></data>
   <data name="ErrTooLong" xml:space="preserve"><value>Choose at most 10 years.</value></data>
   <data name="ErrPast" xml:space="preserve"><value>This time is in the past.</value></data>

@@ -14,10 +14,23 @@ namespace Shutdown.Core
         const uint WmSysCommand = 0x0112;
         static readonly IntPtr ScMonitorPower = new IntPtr(0xf170);
         static readonly IntPtr MonitorOff = new IntPtr(2);
+        const uint SmtoAbortIfHung = 0x0002;
+        const uint DisplayOffTimeoutMs = 2000;
+
+        // SYSTEM_POWER_CAPABILITIES uses one-byte fields through AoAc.
+        [StructLayout(LayoutKind.Explicit, Size = 76)]
+        struct PowerCapabilities
+        {
+            [FieldOffset(20)] public byte AoAc;
+        }
 
         [DllImport("powrprof.dll")]
         [return: MarshalAs(UnmanagedType.U1)]
-        internal static extern bool IsPwrSuspendAllowed();
+        static extern bool IsPwrSuspendAllowed();
+
+        [DllImport("powrprof.dll")]
+        [return: MarshalAs(UnmanagedType.U1)]
+        static extern bool GetPwrCapabilities(out PowerCapabilities capabilities);
 
         [DllImport("powrprof.dll")]
         [return: MarshalAs(UnmanagedType.U1)]
@@ -25,18 +38,44 @@ namespace Shutdown.Core
             [MarshalAs(UnmanagedType.U1)] bool forceCritical, [MarshalAs(UnmanagedType.U1)] bool disableWakeEvent);
 
         [DllImport("user32.dll", CharSet = CharSet.Unicode)]
-        static extern IntPtr SendMessage(IntPtr window, uint message, IntPtr wParam, IntPtr lParam);
+        static extern IntPtr SendMessageTimeout(IntPtr window, uint message, IntPtr wParam, IntPtr lParam,
+            uint flags, uint timeout, out UIntPtr result);
 
         internal static bool BlockedForTests { get; set; }
+
+        internal static bool IsSleepAllowed() => IsSleepAllowed(IsPwrSuspendAllowed, IsModernStandby);
+
+        internal static bool IsSleepAllowed(Func<bool> suspendAllowed, Func<bool> modernStandby)
+        {
+            try { return suspendAllowed() || modernStandby(); } catch { return true; }
+        }
+
+        static bool IsModernStandby() => GetPwrCapabilities(out var capabilities) && capabilities.AoAc != 0;
 
         public void Run()
         {
             if (BlockedForTests) throw new InvalidOperationException("Sleep is blocked in tests.");
-            if (SetSuspendState(false, false, false)) return;
-
-            // Turning the display off lets Modern Standby devices enter their idle state.
-            Log.Write("SetSuspendState returned false. Turning off the display.");
-            SendMessage(HwndBroadcast, WmSysCommand, ScMonitorPower, MonitorOff);
+            bool modernStandby;
+            try { modernStandby = IsModernStandby(); }
+            catch (Exception ex)
+            {
+                Log.Write("power capabilities unavailable", ex);
+                modernStandby = false;
+            }
+            Run(modernStandby, () => SetSuspendState(false, false, false), TurnDisplayOff);
         }
+
+        internal static void Run(bool modernStandby, Func<bool> suspend, Action turnDisplayOff)
+        {
+            if (!modernStandby)
+            {
+                if (suspend()) return;
+                Log.Write("SetSuspendState returned false. Turning off the display.");
+            }
+            turnDisplayOff();
+        }
+
+        static void TurnDisplayOff() => SendMessageTimeout(HwndBroadcast, WmSysCommand, ScMonitorPower,
+            MonitorOff, SmtoAbortIfHung, DisplayOffTimeoutMs, out _);
     }
 }

@@ -28,7 +28,7 @@ namespace Shutdown.Ui
             _restore = restore;
             _createMenu = createMenu;
             using (var stream = typeof(TrayIcon).Assembly.GetManifestResourceStream("Shutdown.TrayIcon.ico"))
-                _image = new Icon(stream, 16, 16);
+                _image = new Icon(stream, Forms.SystemInformation.SmallIconSize);
             // NotifyIcon registers for TaskbarCreated and re-adds a visible icon after Explorer restarts.
             _icon = new Forms.NotifyIcon { Icon = _image };
             _icon.MouseClick += OnMouseClick;
