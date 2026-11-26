@@ -190,6 +190,24 @@ namespace Shutdown.Tests
         });
 
         [Theory]
+        [InlineData("de")]
+        [InlineData("en")]
+        public void Preset_chips_fit_on_one_row(string language) => Sta.Run(() =>
+        {
+            var w = Make();
+            Loc.I.Apply(language);
+            var root = Assert.IsAssignableFrom<FrameworkElement>(w.Content);
+            double clientWidth = w.Width - w.BorderThickness.Left - w.BorderThickness.Right;
+            root.Measure(new Size(clientWidth, double.PositiveInfinity));
+            root.Arrange(new Rect(0, 0, clientWidth, root.DesiredSize.Height));
+
+            var tops = w.Chips.Children.Cast<FrameworkElement>()
+                .Select(c => c.TranslatePoint(new Point(0, 0), w.Chips).Y).Distinct().ToList();
+            Assert.True(w.Chips.Children.Count >= 5);
+            Assert.Single(tops);
+        });
+
+        [Theory]
         [InlineData("At", true)]
         [InlineData("Countdown", false)]
         [InlineData("Bogus", false)]

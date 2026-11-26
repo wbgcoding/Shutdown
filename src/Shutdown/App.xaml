@@ -92,6 +92,8 @@
       <Setter Property="FontWeight" Value="SemiBold"/>
       <Setter Property="VerticalAlignment" Value="Center"/>
       <Setter Property="Foreground" Value="{DynamicResource Text}"/>
+      <!-- A long countdown title ("Energie sparen: noch 12 Tage …") must not run under the caption buttons. -->
+      <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
       <Style.Triggers>
         <DataTrigger Binding="{Binding IsActive, RelativeSource={RelativeSource AncestorType=Window}}" Value="False">
           <Setter Property="Foreground" Value="{DynamicResource TextSub}"/>
