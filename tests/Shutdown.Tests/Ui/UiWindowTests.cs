@@ -107,6 +107,39 @@ namespace Shutdown.Tests
         });
 
         [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void Hibernate_info_is_available_only_when_hibernate_is_disabled(bool allowed) => Sta.Run(() =>
+        {
+            var previous = MainWindow.HibernateAllowed;
+            MainWindow.HibernateAllowed = () => allowed;
+            try
+            {
+                var w = Make();
+                var info = ById<Button>(w, "HibernateInfo");
+                Assert.Equal(allowed, w.ActHibernate.IsEnabled);
+                Assert.Equal(allowed ? Visibility.Collapsed : Visibility.Visible, info.Visibility);
+                if (allowed) return;
+
+                Assert.True(info.IsEnabled);
+                Assert.True(info.Focusable);
+                Assert.True(info.IsTabStop);
+                Assert.Equal(Loc.I["HibernateUnavailable"], AutomationProperties.GetName(info));
+                Assert.True(info.Width >= 24 && info.Height >= 24);
+                var tip = Assert.IsType<ToolTip>(info.ToolTip);
+                Assert.Equal(Loc.I["HibernateUnavailable"], tip.Content);
+
+                try
+                {
+                    Click(info);
+                    Assert.True(tip.IsOpen);
+                }
+                finally { tip.IsOpen = false; }
+            }
+            finally { MainWindow.HibernateAllowed = previous; }
+        });
+
+        [Theory]
         [InlineData("At", true)]
         [InlineData("Countdown", false)]
         [InlineData("Bogus", false)]

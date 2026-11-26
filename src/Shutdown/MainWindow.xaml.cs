@@ -49,11 +49,6 @@ namespace Shutdown
         string _msgKey, _msgDetail;
         bool _msgShowLog;
 
-        // Returns a one-byte BOOLEAN; the default four-byte BOOL marshalling reads garbage.
-        [DllImport("powrprof.dll")]
-        [return: MarshalAs(UnmanagedType.U1)]
-        static extern bool IsPwrHibernateAllowed();
-
         [DllImport("kernel32.dll")]
         static extern ulong GetTickCount64();
 
@@ -164,11 +159,6 @@ namespace Shutdown
             _unwatchTheme();
             SystemEvents.TimeChanged -= OnTimeChanged;
             base.OnClosed(e);
-        }
-
-        static bool HibernateAllowed()
-        {
-            try { return IsPwrHibernateAllowed(); } catch { return true; }
         }
 
         static bool OnScreen(double left, double top) =>
