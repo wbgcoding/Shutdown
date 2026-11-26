@@ -430,6 +430,23 @@ namespace Shutdown.Tests
         });
 
         [Fact]
+        public void A_click_saves_after_a_pause_and_closing_saves_at_once() => Sta.Run(() =>
+        {
+            var before = MainWindow.InputSaveDelay;
+            try
+            {
+                MainWindow.InputSaveDelay = TimeSpan.FromHours(1);
+                var w = Make();
+                w.ActRestart.IsChecked = true;
+                Assert.NotEqual("Restart", _store.Load().Action);
+                w.Close();
+                _windows.Remove(w);
+                Assert.Equal("Restart", _store.Load().Action);
+            }
+            finally { MainWindow.InputSaveDelay = before; }
+        });
+
+        [Fact]
         public void A_started_schedule_without_a_boot_marker_is_stored_as_unknown() => Sta.Run(() =>
         {
             _marker = null;

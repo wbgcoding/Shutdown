@@ -62,10 +62,10 @@
   <data name="PendingRestart" xml:space="preserve"><value>Restart scheduled</value></data>
   <data name="PendingHibernate" xml:space="preserve"><value>Hibernation scheduled</value></data>
   <data name="PendingSleep" xml:space="preserve"><value>Sleep scheduled</value></data>
-  <data name="TitlePendingShutdown" xml:space="preserve"><value>Shutting down in {0}</value></data>
-  <data name="TitlePendingRestart" xml:space="preserve"><value>Restarting in {0}</value></data>
-  <data name="TitlePendingHibernate" xml:space="preserve"><value>Hibernating in {0}</value></data>
-  <data name="TitlePendingSleep" xml:space="preserve"><value>Going to sleep in {0}</value></data>
+  <data name="TitlePendingShutdown" xml:space="preserve"><value>Shutdown: {0}</value></data>
+  <data name="TitlePendingRestart" xml:space="preserve"><value>Restart: {0}</value></data>
+  <data name="TitlePendingHibernate" xml:space="preserve"><value>Hibernate: {0}</value></data>
+  <data name="TitlePendingSleep" xml:space="preserve"><value>Sleep: {0}</value></data>
   <data name="PendingRemaining" xml:space="preserve"><value>{0} left</value></data>
   <data name="LastMinute" xml:space="preserve"><value>Less than a minute left.</value></data>
   <data name="PendingKeepOpen" xml:space="preserve"><value>Keep this window open.</value></data>

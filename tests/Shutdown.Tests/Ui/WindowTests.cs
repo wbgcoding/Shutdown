@@ -346,19 +346,19 @@ namespace Shutdown.Tests
 
             _now = start.AddMinutes(50);
             w.OnTick();
-            Assert.Equal("Shutting down in 0:10:00", w.Title);
+            Assert.Equal("Shutdown: 0:10:00", w.Title);
             Assert.Equal(TaskbarItemProgressState.Normal, w.TaskbarItemInfo.ProgressState);
             Assert.Equal(10d / 60, w.TaskbarItemInfo.ProgressValue, 8);
 
             _now = start.AddMinutes(56);
             w.OnTick();
-            Assert.Equal("Shutting down in 0:04:00", w.Title);
+            Assert.Equal("Shutdown: 0:04:00", w.Title);
             Assert.Equal(TaskbarItemProgressState.Paused, w.TaskbarItemInfo.ProgressState);
             Assert.Equal(4d / 60, w.TaskbarItemInfo.ProgressValue, 8);
 
             _now = start.AddSeconds(3570);
             w.OnTick();
-            Assert.Equal("Shutting down in 0:00:30", w.Title);
+            Assert.Equal("Shutdown: 0:00:30", w.Title);
             Assert.Equal(TaskbarItemProgressState.Error, w.TaskbarItemInfo.ProgressState);
             Assert.Equal(30d / 3600, w.TaskbarItemInfo.ProgressValue, 8);
 
@@ -372,11 +372,11 @@ namespace Shutdown.Tests
         public void Restored_restart_title_follows_the_active_language() => Sta.Run(() =>
         {
             var w = Make(new Settings { PendingAction = "Restart", PendingDue = Due(10), PendingBoot = Marker });
-            Assert.Equal("Restarting in 0:10:00", w.Title);
+            Assert.Equal("Restart: 0:10:00", w.Title);
             try
             {
                 Loc.I.Apply("de");
-                Assert.Equal("Neustart: noch 0:10:00", w.Title);
+                Assert.Equal("Neustart: 0:10:00", w.Title);
             }
             finally { Loc.I.Apply("en"); }
         });
@@ -681,7 +681,7 @@ namespace Shutdown.Tests
 
             Click(w.StartButton);
             Assert.Equal("Sleep scheduled", w.PendingTitle.Text);
-            Assert.Equal("Going to sleep in 1:00:00", w.Title);
+            Assert.Equal("Sleep: 1:00:00", w.Title);
             Assert.Equal(Visibility.Visible, w.PendingKeepOpen.Visibility);
             Assert.Equal(new[] { true }, _awake);
             var saved = _store.Load();
@@ -717,7 +717,7 @@ namespace Shutdown.Tests
 
             Assert.Empty(_runner.Calls);
             Assert.Equal("2:00:00", w.PendingClock.Text);
-            Assert.Equal("Hibernating in 2:00:00", w.Title);
+            Assert.Equal("Hibernate: 2:00:00", w.Title);
             Assert.Null(_store.Load().PendingDue);
 
             _now = _now.AddHours(1);
@@ -1018,17 +1018,17 @@ namespace Shutdown.Tests
             w.Show();
             Click(w.StartButton);
             w.WindowState = WindowState.Minimized;
-            Assert.Equal("Hibernating in 1:00:00", tray.Tooltip);
+            Assert.Equal("Hibernate: 1:00:00", tray.Tooltip);
 
             _now = _now.AddMinutes(5);
             w.OnTick();
-            Assert.Equal("Hibernating in 0:55:00", tray.Tooltip);
+            Assert.Equal("Hibernate: 0:55:00", tray.Tooltip);
             var menu = tray.CreateMenu();
             Assert.Equal(w.Extend15Button.Content, Assert.IsType<MenuItem>(menu.Items[1]).Header);
             Assert.Equal(Loc.I["Abort"], Assert.IsType<MenuItem>(menu.Items[2]).Header);
             ClickTrayItem(menu, "TrayExtend15");
             Assert.True(w.IsInTray);
-            Assert.Equal("Hibernating in 1:10:00", tray.Tooltip);
+            Assert.Equal("Hibernate: 1:10:00", tray.Tooltip);
 
             ClickTrayItem(menu, "TrayExit");
             FlushDispatcher();

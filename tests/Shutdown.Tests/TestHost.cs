@@ -32,6 +32,7 @@ namespace Shutdown.Tests
             SuspendRunner.BlockedForTests = true;
             MainWindow.Flash = _ => { };
             MainWindow.ShowNoActivate = _ => { };
+            MainWindow.InputSaveDelay = TimeSpan.Zero;
             Log.Dir = Path.Combine(Path.GetTempPath(), "ShutdownTestLog");
         }
     }

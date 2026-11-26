@@ -15,6 +15,10 @@ namespace Shutdown.Ui
     /// bounds and corner radius. <see cref="ItemFill"/> paints the resting background of each item underneath the
     /// accent shape, for items that are separate pills rather than parts of one segmented bar.
     /// </summary>
+    /// <remarks>
+    /// The shape is drawn once with animation clocks attached to its rectangle and opacity, so a slide only sends
+    /// new values to the renderer each frame: no OnRender, layout or property change runs while it moves.
+    /// </remarks>
     public sealed class SelectionSlider : Decorator
     {
         public static readonly DependencyProperty IndicatorBrushProperty = DependencyProperty.Register(
@@ -25,23 +29,23 @@ namespace Shutdown.Ui
             nameof(ItemFill), typeof(Brush), typeof(SelectionSlider),
             new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsRender));
 
-        static readonly DependencyProperty IndicatorRectProperty = DependencyProperty.Register(
-            "IndicatorRect", typeof(Rect), typeof(SelectionSlider),
-            new FrameworkPropertyMetadata(Rect.Empty, FrameworkPropertyMetadataOptions.AffectsRender));
-
-        static readonly DependencyProperty IndicatorOpacityProperty = DependencyProperty.Register(
-            "IndicatorOpacity", typeof(double), typeof(SelectionSlider),
-            new FrameworkPropertyMetadata(0.0, FrameworkPropertyMetadataOptions.AffectsRender));
-
-        static readonly Duration SlideTime = new Duration(TimeSpan.FromMilliseconds(180));
+        static readonly Duration SlideTime = new Duration(TimeSpan.FromMilliseconds(200));
         static readonly IEasingFunction Ease = Freeze(new CubicEase { EasingMode = EasingMode.EaseOut });
 
-        /// <summary>Off in the window tests, so the shape is at its target at once.</summary>
+        /// <summary>Off in tests that need the shape at its target at once.</summary>
         internal static bool Animations = true;
 
         readonly List<Rect> _itemRects = new List<Rect>();
+        readonly List<Rect> _scan = new List<Rect>();
         double _radius;
         Rect _target = Rect.Empty;
+        bool _selectionPending;
+
+        // Each value is the end state plus an optional running clock that moves from a start value towards it.
+        Rect _rect = Rect.Empty, _rectFrom;
+        AnimationClock _rectClock;
+        double _opacity, _opacityFrom;
+        AnimationClock _opacityClock;
 
         public SelectionSlider()
         {
@@ -51,15 +55,14 @@ namespace Shutdown.Ui
             LayoutUpdated += (s, e) => { if (!_selectionPending) Update(false); };
         }
 
-        bool _selectionPending;
-
         // One change can uncheck the old item before checking the new one (preset chips, radio groups):
-        // wait until both have happened, so the shape slides instead of fading out and back in.
+        // wait until both have happened, so the shape slides instead of fading out and back in. Normal priority
+        // runs before the next frame is drawn, so the slide starts in the same frame as the click.
         void OnSelectionChanged(object sender, RoutedEventArgs e)
         {
             if (_selectionPending) return;
             _selectionPending = true;
-            Dispatcher.BeginInvoke(DispatcherPriority.Loaded, new Action(() =>
+            Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
             {
                 _selectionPending = false;
                 Update(true);
@@ -79,9 +82,9 @@ namespace Shutdown.Ui
         }
 
         /// <summary>Where the accent shape is drawn right now (mid-slide while it moves).</summary>
-        internal Rect IndicatorRect => (Rect)GetValue(IndicatorRectProperty);
+        internal Rect IndicatorRect => CurrentRect();
 
-        internal bool IndicatorShown => (double)GetValue(IndicatorOpacityProperty) > 0;
+        internal bool IndicatorShown => CurrentOpacity() > 0;
 
         /// <summary>Where the accent shape is heading: the checked item's bounds, or empty when nothing is checked.</summary>
         internal Rect IndicatorTarget => _target;
@@ -89,7 +92,7 @@ namespace Shutdown.Ui
         void Update(bool selectionChanged)
         {
             Rect target = Rect.Empty;
-            var rects = new List<Rect>();
+            _scan.Clear();
             if (Child is Panel panel && Visibility == Visibility.Visible)
             {
                 foreach (UIElement element in panel.Children)
@@ -99,59 +102,89 @@ namespace Shutdown.Ui
                     var part = toggle.Template?.FindName("Bd", toggle) as FrameworkElement ?? toggle;
                     if (part.ActualWidth <= 0 || !IsAncestorOf(part)) continue;
                     var bounds = part.TransformToAncestor(this).TransformBounds(new Rect(part.RenderSize));
-                    rects.Add(bounds);
+                    _scan.Add(bounds);
                     if (part is Border border) _radius = border.CornerRadius.TopLeft;
                     if (toggle.IsChecked == true) target = bounds;
                 }
             }
 
-            if (!SameRects(rects))
+            bool redraw = false;
+            if (!SameRects(_scan))
             {
                 _itemRects.Clear();
-                _itemRects.AddRange(rects);
-                InvalidateVisual();
+                _itemRects.AddRange(_scan);
+                redraw = true;
             }
-            if (Near(target, _target)) return;
-
-            bool wasShown = !_target.IsEmpty;
-            _target = target;
-            // A move caused by layout (language, window, mode) jumps; only a new selection slides.
-            bool animate = selectionChanged && Animations && SystemParameters.ClientAreaAnimation && IsLoaded;
-            if (target.IsEmpty)
+            if (!Near(target, _target))
             {
-                Animate(IndicatorOpacityProperty, animate ? new DoubleAnimation(0, SlideTime) : null, 0.0);
-                return;
+                bool wasShown = !_target.IsEmpty;
+                _target = target;
+                // A move caused by layout (language, window, mode) jumps; only a new selection slides.
+                bool animate = selectionChanged && Animations && SystemParameters.ClientAreaAnimation && IsLoaded;
+                if (target.IsEmpty) SetOpacity(0, animate);
+                else if (!wasShown || !animate)
+                {
+                    SetRect(target, false);
+                    SetOpacity(1, animate);
+                }
+                else
+                {
+                    SetOpacity(1, false);
+                    SetRect(target, true);
+                }
+                redraw = true;
             }
-            if (!wasShown || !animate)
-            {
-                Animate(IndicatorRectProperty, null, target);
-                Animate(IndicatorOpacityProperty, animate ? new DoubleAnimation(1, SlideTime) : null, 1.0);
-                return;
-            }
-            Animate(IndicatorOpacityProperty, null, 1.0);
-            Animate(IndicatorRectProperty, new RectAnimation(target, SlideTime) { EasingFunction = Ease }, target);
+            if (redraw) InvalidateVisual();
         }
 
-        void Animate(DependencyProperty property, AnimationTimeline animation, object end)
+        void SetRect(Rect end, bool animate)
         {
-            if (animation == null)
+            if (animate && !_rect.IsEmpty)
             {
-                BeginAnimation(property, null);
-                SetValue(property, end);
-                return;
+                _rectFrom = CurrentRect();
+                var slide = new RectAnimation(_rectFrom, end, SlideTime) { EasingFunction = Ease };
+                slide.Freeze();
+                _rectClock = slide.CreateClock();
             }
-            // Start from what is drawn now, mid-slide included.
-            object now = GetValue(property);
-            if (animation is DoubleAnimation fade)
-            {
-                fade.From = (double)now;
-                fade.EasingFunction = Ease;
-            }
-            else if (animation is RectAnimation slide) slide.From = (Rect)now;
-            // The base value is the end state, so clearing the animation later keeps the shape where it went.
-            SetValue(property, end);
-            BeginAnimation(property, animation);
+            else _rectClock = null;
+            _rect = end;
         }
+
+        void SetOpacity(double end, bool animate)
+        {
+            if (animate)
+            {
+                _opacityFrom = CurrentOpacity();
+                var fade = new DoubleAnimation(_opacityFrom, end, SlideTime) { EasingFunction = Ease };
+                fade.Freeze();
+                _opacityClock = fade.CreateClock();
+            }
+            else _opacityClock = null;
+            _opacity = end;
+        }
+
+        // The clock's eased progress between the stored start and end; a clock that has not ticked yet is at its start.
+        static double Progress(AnimationClock clock)
+        {
+            if (clock == null) return 1;
+            double? p = clock.CurrentProgress;
+            if (p == null) return clock.CurrentState == ClockState.Active ? 0 : 1;
+            return Ease.Ease(p.Value);
+        }
+
+        Rect CurrentRect()
+        {
+            if (_rectClock == null || _rect.IsEmpty || _rectFrom.IsEmpty) return _rect;
+            double t = Progress(_rectClock);
+            return new Rect(
+                _rectFrom.X + (_rect.X - _rectFrom.X) * t,
+                _rectFrom.Y + (_rect.Y - _rectFrom.Y) * t,
+                _rectFrom.Width + (_rect.Width - _rectFrom.Width) * t,
+                _rectFrom.Height + (_rect.Height - _rectFrom.Height) * t);
+        }
+
+        double CurrentOpacity() =>
+            _opacityClock == null ? _opacity : _opacityFrom + (_opacity - _opacityFrom) * Progress(_opacityClock);
 
         protected override void OnRender(DrawingContext dc)
         {
@@ -160,11 +193,10 @@ namespace Shutdown.Ui
                 foreach (var rect in _itemRects)
                     dc.DrawRoundedRectangle(fill, null, rect, _radius, _radius);
 
-            double opacity = (double)GetValue(IndicatorOpacityProperty);
-            var indicator = IndicatorRect;
-            if (opacity <= 0 || indicator.IsEmpty || IndicatorBrush == null) return;
-            dc.PushOpacity(opacity);
-            dc.DrawRoundedRectangle(IndicatorBrush, null, indicator, _radius, _radius);
+            var brush = IndicatorBrush;
+            if (brush == null || _rect.IsEmpty || (_opacityClock == null && _opacity <= 0)) return;
+            dc.PushOpacity(_opacity, _opacityClock);
+            dc.DrawRoundedRectangle(brush, null, _rect, _rectClock, _radius, null, _radius, null);
             dc.Pop();
         }
 

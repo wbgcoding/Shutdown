@@ -247,7 +247,23 @@ namespace Shutdown
         {
             if (_loading) return;
             UpdateUi();
-            Persist();
+            PersistSoon();
+        }
+
+        /// <summary>Input changes are saved after this pause, so a click's first animation frames never wait on the disk.</summary>
+        internal static TimeSpan InputSaveDelay = TimeSpan.FromMilliseconds(400);
+        DispatcherTimer _saveTimer;
+
+        void PersistSoon()
+        {
+            if (InputSaveDelay <= TimeSpan.Zero) { Persist(); return; }
+            if (_saveTimer == null)
+            {
+                _saveTimer = new DispatcherTimer(DispatcherPriority.Background) { Interval = InputSaveDelay };
+                _saveTimer.Tick += (s, e) => Persist();
+            }
+            _saveTimer.Stop();
+            _saveTimer.Start();
         }
 
         void UpdateUi()
@@ -506,6 +522,7 @@ namespace Shutdown
         bool Persist()
         {
             if (_loading) return true;
+            _saveTimer?.Stop();
             _settings.Action = SelectedAction.ToString();
             _settings.Mode = SelectedMode.ToString();
             _settings.Hours = DurHours.Value;
