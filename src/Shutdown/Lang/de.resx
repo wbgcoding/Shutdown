@@ -45,6 +45,9 @@
   <data name="PendingShutdown" xml:space="preserve"><value>Herunterfahren geplant</value></data>
   <data name="PendingRestart" xml:space="preserve"><value>Neustart geplant</value></data>
   <data name="PendingHibernate" xml:space="preserve"><value>Ruhezustand geplant</value></data>
+  <data name="TitlePendingShutdown" xml:space="preserve"><value>Herunterfahren in {0}</value></data>
+  <data name="TitlePendingRestart" xml:space="preserve"><value>Neustart in {0}</value></data>
+  <data name="TitlePendingHibernate" xml:space="preserve"><value>Ruhezustand in {0}</value></data>
   <data name="PendingRemaining" xml:space="preserve"><value>noch {0}</value></data>
   <data name="PendingKeepOpen" xml:space="preserve"><value>Fenster offen lassen.</value></data>
   <data name="MsgMissed" xml:space="preserve"><value>Der geplante Zeitpunkt ist verstrichen, während der PC im Energiesparmodus oder Ruhezustand war. Es wurde nichts ausgeführt.</value></data>

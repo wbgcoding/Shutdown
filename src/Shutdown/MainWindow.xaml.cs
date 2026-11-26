@@ -20,6 +20,7 @@ namespace Shutdown
             public DateTime TargetUtc;
             /// <summary>Uptime at the target; it puts TargetUtc right again after the clock is set.</summary>
             public TimeSpan Due;
+            public TimeSpan Total;
             public DateTime Target => TargetUtc.ToLocalTime();
             public bool AppTimed;
         }
@@ -108,12 +109,8 @@ namespace Shutdown
 
             foreach (var sp in new[] { DurHours, DurMinutes, AtHour, AtMinute }) sp.ValueChanged += (s, e) => OnInputChanged(s, null);
 
-            var restored = RestoredTargetUtc(settings);
-            // Only Windows-timed actions are ever stored; anything else is a damaged file.
-            if (restored.HasValue && Enum.TryParse(settings.PendingAction, out PowerAction pa) &&
-                Enum.IsDefined(typeof(PowerAction), pa) && !Schedule.IsAppTimed(pa))
-                _pending = new Pending { Action = pa, TargetUtc = restored.Value, Due = TimeSpan.FromMilliseconds(settings.PendingDue.Value), AppTimed = false };
-            else
+            _pending = RestorePending(settings);
+            if (_pending == null)
             {
                 // Expired, unreadable or from before a restart (Windows dropped it): forget it so it never shows up again.
                 settings.PendingAction = null;
@@ -146,26 +143,6 @@ namespace Shutdown
 
             _loading = false;
             RefreshTexts();
-        }
-
-        TimeSpan DueOf(DateTime targetUtc) => Uptime() + (targetUtc - NowUtc());
-
-        // The target is kept as uptime, so setting the clock neither hides the schedule nor shifts its time.
-        DateTime? RestoredTargetUtc(Settings s)
-        {
-            if (!s.PendingDue.HasValue || !SameBoot(s.PendingBoot)) return null;
-            double remainingMs = s.PendingDue.Value - Uptime().TotalMilliseconds;
-            if (remainingMs <= 0 || remainingMs > Schedule.MaxSeconds * 1000d) return null;
-            return NowUtc().AddMilliseconds(remainingMs);
-        }
-
-        static bool SameBoot(string stored)
-        {
-            if (string.IsNullOrEmpty(stored)) return false;
-            string current = BootMarker();
-            // Unknown on either side: rather show a card that may be stale (Abort clears it) than hide a live schedule.
-            if (stored == UnknownBoot || current == null) return true;
-            return stored == current;
         }
 
         void OnLanguageChanged(object sender, EventArgs e) => RefreshTexts();
@@ -340,7 +317,7 @@ namespace Shutdown
             ResultText.Text = !r.Ok ? L[r.ErrorKey] : SelectedMode == TimeMode.Countdown
                 ? L.F("SummaryAt", L.DateText(r.Target), L.TimeText(r.Target))
                 : L.F("SummaryIn", L.Span(WholeMinutesUp(r.TargetUtc - now.ToUniversalTime())));
-            UpdatePending(now);
+            UpdatePending();
         }
 
         // Runs every second: a new resource reference only when the colour actually changes.
@@ -364,32 +341,6 @@ namespace Shutdown
         // 59:59.6 left reads "in 1 h", not "in 59 min".
         static TimeSpan WholeMinutesUp(TimeSpan t) =>
             t >= TimeSpan.FromMinutes(1) ? TimeSpan.FromMinutes(Math.Ceiling(t.TotalMinutes)) : t;
-
-        // The time left turns yellow in the last 5 minutes and red in the last minute.
-        internal static string ClockBrushKey(TimeSpan left) =>
-            left <= TimeSpan.FromMinutes(1) ? "Urgent" : left <= TimeSpan.FromMinutes(5) ? "Warn" : "Text";
-
-        void UpdatePending(DateTime now)
-        {
-            if (_pending == null)
-            {
-                // Move focus before the card collapses so Tab can continue from Start.
-                if (PendingCard.IsKeyboardFocusWithin && !StartButton.Focus())
-                    (ActRestart.IsChecked == true ? ActRestart : ActHibernate.IsChecked == true ? ActHibernate : ActShutdown).Focus();
-                PendingCard.Visibility = Visibility.Collapsed;
-                return;
-            }
-            var L = Loc.I;
-            PendingCard.Visibility = Visibility.Visible;
-            PendingTitle.Text = L[_pending.Action == PowerAction.Restart ? "PendingRestart" :
-                                  _pending.Action == PowerAction.Hibernate ? "PendingHibernate" : "PendingShutdown"];
-            PendingWhen.Text = L.F("SummaryAt", L.DateText(_pending.Target), L.TimeText(_pending.Target));
-            var left = _pending.TargetUtc - now.ToUniversalTime();
-            PendingClock.Text = L.Clock(left);
-            SetBrush(PendingClock, ClockBrushKey(left));
-            System.Windows.Automation.AutomationProperties.SetName(PendingClock, L.F("PendingRemaining", L.Clock(left)));
-            PendingKeepOpen.Visibility = _pending.AppTimed ? Visibility.Visible : Visibility.Collapsed;
-        }
 
         internal void OnTick()
         {

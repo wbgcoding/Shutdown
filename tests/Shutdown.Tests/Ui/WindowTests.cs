@@ -7,6 +7,7 @@ using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
+using System.Windows.Shell;
 using System.Windows.Threading;
 using Shutdown.Core;
 using Shutdown.Ui;
@@ -88,15 +89,20 @@ namespace Shutdown.Tests
         {
             var s = new Settings { PendingAction = "Shutdown", PendingDue = Due(30), PendingBoot = Marker };
             var w = Make(s);
+            Assert.Equal(1d, w.TaskbarItemInfo.ProgressValue);
+            _now = _now.AddMinutes(5);
+            w.OnTick();
+            Assert.Equal(25d / 30, w.TaskbarItemInfo.ProgressValue, 8);
             Click(w.Extend15Button);
 
-            Assert.Equal(new[] { "/a", "/s /f /t 2700" }, _runner.Calls);
+            Assert.Equal(new[] { "/a", "/s /f /t 2400" }, _runner.Calls);
             Assert.Equal(Visibility.Visible, w.PendingCard.Visibility);
-            Assert.Equal("0:45:00", w.PendingClock.Text);
-            var target = _now.AddMinutes(45);
+            Assert.Equal("0:40:00", w.PendingClock.Text);
+            Assert.Equal(40d / 45, w.TaskbarItemInfo.ProgressValue, 8);
+            var target = _now.AddMinutes(40);
             Assert.Equal(Loc.I.F("SummaryAt", Loc.I.DateText(target), Loc.I.TimeText(target)), w.PendingWhen.Text);
             Assert.Equal("Shutdown", s.PendingAction);
-            Assert.Equal(Due(45), s.PendingDue);
+            Assert.Equal(Due(40), s.PendingDue);
         });
 
         [Fact]
@@ -143,6 +149,50 @@ namespace Shutdown.Tests
             w.OnTick();
             Assert.Equal("Urgent", w.PendingClock.Tag);
             Assert.Same(w.FindResource("Urgent"), w.PendingClock.Foreground);
+        });
+
+        [Fact]
+        public void Pending_countdown_updates_the_window_title_and_taskbar_until_aborted() => Sta.Run(() =>
+        {
+            var w = Make();
+            var start = _now;
+            Click(w.StartButton);
+
+            _now = start.AddMinutes(50);
+            w.OnTick();
+            Assert.Equal("Shutting down in 0:10:00", w.Title);
+            Assert.Equal(TaskbarItemProgressState.Normal, w.TaskbarItemInfo.ProgressState);
+            Assert.Equal(10d / 60, w.TaskbarItemInfo.ProgressValue, 8);
+
+            _now = start.AddMinutes(56);
+            w.OnTick();
+            Assert.Equal("Shutting down in 0:04:00", w.Title);
+            Assert.Equal(TaskbarItemProgressState.Paused, w.TaskbarItemInfo.ProgressState);
+            Assert.Equal(4d / 60, w.TaskbarItemInfo.ProgressValue, 8);
+
+            _now = start.AddSeconds(3570);
+            w.OnTick();
+            Assert.Equal("Shutting down in 0:00:30", w.Title);
+            Assert.Equal(TaskbarItemProgressState.Error, w.TaskbarItemInfo.ProgressState);
+            Assert.Equal(30d / 3600, w.TaskbarItemInfo.ProgressValue, 8);
+
+            Click(w.AbortButton);
+            Assert.Equal("Shutdown", w.Title);
+            Assert.Equal(TaskbarItemProgressState.None, w.TaskbarItemInfo.ProgressState);
+            Assert.Equal(0d, w.TaskbarItemInfo.ProgressValue);
+        });
+
+        [Fact]
+        public void Restored_restart_title_follows_the_active_language() => Sta.Run(() =>
+        {
+            var w = Make(new Settings { PendingAction = "Restart", PendingDue = Due(10), PendingBoot = Marker });
+            Assert.Equal("Restarting in 0:10:00", w.Title);
+            try
+            {
+                Loc.I.Apply("de");
+                Assert.Equal("Neustart in 0:10:00", w.Title);
+            }
+            finally { Loc.I.Apply("en"); }
         });
 
         [Theory]
@@ -445,12 +495,14 @@ namespace Shutdown.Tests
 
             Assert.Empty(_runner.Calls);
             Assert.Equal("2:00:00", w.PendingClock.Text);
+            Assert.Equal("Hibernating in 2:00:00", w.Title);
             Assert.Null(_store.Load().PendingDue);
 
             _now = _now.AddHours(1);
             w.OnTick();
             Assert.Empty(_runner.Calls);
             Assert.Equal(Visibility.Visible, w.PendingCard.Visibility);
+            Assert.Equal(0.5, w.TaskbarItemInfo.ProgressValue, 8);
 
             _now = _now.AddHours(1);
             w.OnTick();

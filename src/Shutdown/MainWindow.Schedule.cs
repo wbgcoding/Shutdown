@@ -37,14 +37,15 @@ namespace Shutdown
                 HideMessage();
                 pending.TargetUtc = targetUtc;
                 pending.Due += span;
+                pending.Total += span;
                 UpdateUi();
                 return;
             }
 
-            ReplaceSchedule(pending.Action, ComputeExtension);
+            ReplaceSchedule(pending.Action, ComputeExtension, pending.Total + span);
         }
 
-        void ReplaceSchedule(PowerAction action, Func<ScheduleResult> compute)
+        void ReplaceSchedule(PowerAction action, Func<ScheduleResult> compute, TimeSpan? total = null)
         {
             HideMessage();
             if (!TryRun(Schedule.AbortArgs, out int abortCode)) return;
@@ -65,22 +66,55 @@ namespace Shutdown
                 return;
             }
 
-            if (Schedule.IsAppTimed(action))
+            bool appTimed = Schedule.IsAppTimed(action);
+            if (appTimed || Execute(Schedule.ArgsFor(action, result.Seconds), out bool maybeScheduled) || maybeScheduled)
             {
-                _pending = new Pending { Action = action, TargetUtc = result.TargetUtc, Due = DueOf(result.TargetUtc), AppTimed = true };
-                SyncKeepAwake();
-            }
-            else if (Execute(Schedule.ArgsFor(action, result.Seconds), out bool maybeScheduled) || maybeScheduled)
-            {
-                // Keep Abort available when Windows may still hold the timer.
-                _pending = new Pending { Action = action, TargetUtc = result.TargetUtc, Due = DueOf(result.TargetUtc), AppTimed = false };
-                _settings.PendingAction = action.ToString();
-                _settings.PendingDue = (long)_pending.Due.TotalMilliseconds;
-                _settings.PendingBoot = BootMarker() ?? UnknownBoot;
+                var uptime = Uptime();
+                var remaining = result.TargetUtc - NowUtc();
+                _pending = new Pending
+                {
+                    Action = action,
+                    TargetUtc = result.TargetUtc,
+                    Due = uptime + remaining,
+                    Total = total ?? remaining,
+                    AppTimed = appTimed
+                };
+                if (appTimed) SyncKeepAwake();
+                else
+                {
+                    _settings.PendingAction = action.ToString();
+                    _settings.PendingDue = (long)_pending.Due.TotalMilliseconds;
+                    _settings.PendingBoot = BootMarker() ?? UnknownBoot;
+                }
             }
             bool saved = Persist();
             if (!saved && _pending?.AppTimed == false && _msgKind == MessageKind.None) ShowInfo("MsgNotSaved");
             UpdateUi();
+        }
+
+        Pending RestorePending(Settings settings)
+        {
+            // Only Windows-timed actions are stored.
+            if (!settings.PendingDue.HasValue || !SameBoot(settings.PendingBoot) ||
+                !Enum.TryParse(settings.PendingAction, out PowerAction action) ||
+                !Enum.IsDefined(typeof(PowerAction), action) || Schedule.IsAppTimed(action)) return null;
+
+            var uptime = Uptime();
+            double remainingMs = settings.PendingDue.Value - uptime.TotalMilliseconds;
+            if (remainingMs <= 0 || remainingMs > Schedule.MaxSeconds * 1000d) return null;
+
+            var due = TimeSpan.FromMilliseconds(settings.PendingDue.Value);
+            var remaining = due - uptime;
+            return new Pending { Action = action, Due = due, Total = remaining, TargetUtc = NowUtc() + remaining };
+        }
+
+        static bool SameBoot(string stored)
+        {
+            if (string.IsNullOrEmpty(stored)) return false;
+            string current = BootMarker();
+            // Keep the Abort button available when the boot marker cannot be verified.
+            if (stored == UnknownBoot || current == null) return true;
+            return stored == current;
         }
     }
 }

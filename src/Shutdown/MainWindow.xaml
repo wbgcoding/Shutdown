@@ -9,6 +9,9 @@
         FontFamily="{StaticResource UiFont}" FontSize="13"
         UseLayoutRounding="True" TextOptions.TextFormattingMode="Display"
         AutomationProperties.AutomationId="MainWindow">
+  <Window.TaskbarItemInfo>
+    <TaskbarItemInfo/>
+  </Window.TaskbarItemInfo>
   <!-- The app draws its own title bar; dragging, snapping and the system menu (Alt+Space) stay native. -->
   <WindowChrome.WindowChrome>
     <WindowChrome CaptionHeight="44" ResizeBorderThickness="0" GlassFrameThickness="0" CornerRadius="0"
