@@ -1,4 +1,7 @@
 using System;
+using System.Windows;
+using System.Windows.Automation;
+using System.Windows.Controls.Primitives;
 using Shutdown.Core;
 
 namespace Shutdown
@@ -7,6 +10,46 @@ namespace Shutdown
     {
         bool _updatingCountdown;
         bool _countdownOverflow;
+
+        sealed class PresetChip : ToggleButton
+        {
+            readonly Action _select;
+
+            public int Minutes { get; }
+
+            public PresetChip(int minutes, Action select)
+            {
+                Minutes = minutes;
+                _select = select;
+            }
+
+            // Activating a preset always selects its duration, including through UI Automation.
+            protected override void OnToggle() => _select();
+        }
+
+        void RefreshPresetChips()
+        {
+            Chips.Children.Clear();
+            var style = (Style)FindResource("ChipToggle");
+            foreach (int duration in new[] { 15, 30, 60, 120, 180 })
+            {
+                int hours = Math.DivRem(duration, 60, out int minutes);
+                var chip = new PresetChip(duration, () => SetCountdown(hours, minutes))
+                {
+                    Style = style,
+                    Content = hours > 0 ? Loc.I.F("ChipHours", hours) : Loc.I.F("ChipMinutes", minutes),
+                };
+                AutomationProperties.SetAutomationId(chip, "Chip" + duration);
+                Chips.Children.Add(chip);
+            }
+        }
+
+        void UpdatePresetChips()
+        {
+            int duration = DurHours.Value * 60 + DurMinutes.Value;
+            foreach (PresetChip chip in Chips.Children)
+                chip.IsChecked = chip.Minutes == duration;
+        }
 
         void InitializeCountdown(Settings settings)
         {

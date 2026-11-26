@@ -388,15 +388,15 @@ namespace Shutdown.Tests
             Assert.Equal(5, w.Chips.Children.Count);
             for (int i = 0; i < 5; i++)
             {
-                var b = (Button)w.Chips.Children[i];
+                var b = Assert.IsAssignableFrom<ToggleButton>(w.Chips.Children[i]);
                 Assert.Equal(ids[i], AutomationProperties.GetAutomationId(b));
                 Assert.Equal(en[i], b.Content);
             }
             Loc.I.Apply("de");
             Assert.Equal(5, w.Chips.Children.Count);
-            Assert.Equal(Loc.I.F("ChipMinutes", 15), ((Button)w.Chips.Children[0]).Content);
-            Assert.Equal(Loc.I.F("ChipHours", 3), ((Button)w.Chips.Children[4]).Content);
-            Assert.Equal("Chip180", AutomationProperties.GetAutomationId((Button)w.Chips.Children[4]));
+            Assert.Equal(Loc.I.F("ChipMinutes", 15), ((ToggleButton)w.Chips.Children[0]).Content);
+            Assert.Equal(Loc.I.F("ChipHours", 3), ((ToggleButton)w.Chips.Children[4]).Content);
+            Assert.Equal("Chip180", AutomationProperties.GetAutomationId(w.Chips.Children[4]));
         });
 
         [Theory]
@@ -410,9 +410,14 @@ namespace Shutdown.Tests
             var w = Make();
             w.DurHours.Value = 9;
             w.DurMinutes.Value = 9;
-            Click(ById<Button>(w, id));
+            var chip = ById<ToggleButton>(w, id);
+            var onClick = typeof(ToggleButton).GetMethod("OnClick", BindingFlags.Instance | BindingFlags.NonPublic);
+            onClick.Invoke(chip, null);
             Assert.Equal(h, w.DurHours.Value);
             Assert.Equal(m, w.DurMinutes.Value);
+            Assert.True(chip.IsChecked);
+            onClick.Invoke(chip, null);
+            Assert.True(chip.IsChecked);
             Assert.Equal(h, _store.Load().Hours);
             Assert.Equal(m, _store.Load().Minutes);
         });

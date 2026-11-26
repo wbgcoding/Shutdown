@@ -859,14 +859,17 @@ namespace Shutdown.Tests
         });
 
         [Fact]
-        public void Chip_sets_the_countdown() => Sta.Run(() =>
+        public void Only_the_preset_that_matches_the_countdown_is_checked() => Sta.Run(() =>
         {
             var w = Make();
-            // 15 min, 30 min, 1 h, 2 h, 3 h.
-            Assert.Equal(5, w.Chips.Children.Count);
-            Click((Button)w.Chips.Children[1]);
-            Assert.Equal(0, w.DurHours.Value);
-            Assert.Equal(30, w.DurMinutes.Value);
+            w.DurHours.Value = 0;
+            w.DurMinutes.Value = 30;
+            foreach (ToggleButton chip in w.Chips.Children)
+                Assert.Equal(System.Windows.Automation.AutomationProperties.GetAutomationId(chip) == "Chip30", chip.IsChecked);
+
+            w.DurHours.Value = 1;
+            foreach (ToggleButton chip in w.Chips.Children)
+                Assert.False(chip.IsChecked);
         });
 
         [Fact]

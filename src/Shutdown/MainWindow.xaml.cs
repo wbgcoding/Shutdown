@@ -253,18 +253,7 @@ namespace Shutdown
             Extend15Button.Content = "+" + L.F("ChipMinutes", 15);
             Extend60Button.Content = "+" + L.F("ChipHours", 1);
 
-            Chips.Children.Clear();
-            foreach (var (h, m) in new[] { (0, 15), (0, 30), (1, 0), (2, 0), (3, 0) })
-            {
-                var b = new Button
-                {
-                    Style = (Style)FindResource("ChipButton"),
-                    Content = h > 0 ? L.F("ChipHours", h) : L.F("ChipMinutes", m),
-                };
-                System.Windows.Automation.AutomationProperties.SetAutomationId(b, "Chip" + (h * 60 + m));
-                b.Click += (s, e) => SetCountdown(h, m);
-                Chips.Children.Add(b);
-            }
+            RefreshPresetChips();
             UpdateUi();
             RenderMessage();
         }
@@ -311,6 +300,7 @@ namespace Shutdown
 
             AppTimedNote.Visibility = appTimed ? Visibility.Visible : Visibility.Collapsed;
             Chips.Visibility = SelectedMode == TimeMode.Countdown ? Visibility.Visible : Visibility.Collapsed;
+            UpdatePresetChips();
 
             var r = Compute(now);
             StartButton.IsEnabled = r.Ok;

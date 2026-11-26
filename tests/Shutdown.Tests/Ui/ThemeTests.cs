@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Media;
 using Shutdown.Ui;
 using Xunit;
@@ -32,6 +33,15 @@ namespace Shutdown.Tests
 
         static Color C(ResourceDictionary r, string key) => ((SolidColorBrush)r[key]).Color;
         static Color Hex(string s) => (Color)ColorConverter.ConvertFromString(s);
+
+        static (SolidColorBrush text, SolidColorBrush fill) CheckedChipBrushes(ResourceDictionary resources)
+        {
+            var chip = new ToggleButton { Style = (Style)Application.Current.Resources["ChipToggle"], IsChecked = true };
+            chip.Resources.MergedDictionaries.Add(resources);
+            chip.ApplyTemplate();
+            var border = (Border)chip.Template.FindName("Bd", chip);
+            return ((SolidColorBrush)chip.Foreground, (SolidColorBrush)border.Background);
+        }
 
         static readonly string[] Keys =
         {
@@ -153,6 +163,32 @@ namespace Shutdown.Tests
             // #767676 on white is the classic 4.54:1 threshold grey.
             Assert.Equal(4.54, Theme.Contrast(Hex("#767676"), Colors.White), 2);
         }
+
+        [Theory]
+        [InlineData("light")]
+        [InlineData("dark")]
+        public void Checked_chip_text_reaches_aa_contrast(string theme) => Sta.Run(() =>
+        {
+            if (SystemParameters.HighContrast) return;
+            WithOverride(theme, r =>
+            {
+                var (text, fill) = CheckedChipBrushes(r);
+                Assert.True(Theme.Contrast(text.Color, fill.Color) >= 4.5, $"{theme}: checked chip text below 4.5:1");
+            });
+        });
+
+        [Fact]
+        public void Checked_chip_uses_the_accent_keys_that_high_contrast_maps_to_highlight() => Sta.Run(() =>
+        {
+            var r = new ResourceDictionary
+            {
+                ["Accent"] = SystemColors.HighlightBrush,
+                ["AccentText"] = SystemColors.HighlightTextBrush
+            };
+            var (text, fill) = CheckedChipBrushes(r);
+            Assert.Same(r["AccentText"], text);
+            Assert.Same(r["Accent"], fill);
+        });
 
         [Theory]
         [InlineData("light")]
