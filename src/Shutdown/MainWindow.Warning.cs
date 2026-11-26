@@ -16,15 +16,17 @@ namespace Shutdown
         internal static Action<Window> Flash = WindowFlash.Flash;
         internal static Action<Window> ShowNoActivate = ShowWithoutFocus;
 
-        internal bool IsInTray { get; set; }
-
         void WarnLastMinute()
         {
             var pending = _pending;
             if (pending == null || pending.WarnedLastMinute || pending.Due - Uptime() > LastMinuteThreshold) return;
 
             pending.WarnedLastMinute = true;
-            if (WindowState == WindowState.Minimized || IsInTray) ShowNoActivate(this);
+            if (WindowState == WindowState.Minimized || IsInTray)
+            {
+                ShowNoActivate(this);
+                if (IsVisible) HideTrayIcon();
+            }
             Topmost = true;
             Flash(this);
 
@@ -46,7 +48,7 @@ namespace Shutdown
         [return: MarshalAs(UnmanagedType.Bool)]
         static extern bool ShowWindow(IntPtr hwnd, int command);
 
-        static void ShowWithoutFocus(Window window)
+        internal static void ShowWithoutFocus(Window window)
         {
             if (!window.IsVisible)
             {

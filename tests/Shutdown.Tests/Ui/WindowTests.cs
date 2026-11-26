@@ -69,6 +69,51 @@ namespace Shutdown.Tests
 
         static void Click(Button b) => b.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent, b));
 
+        sealed class FakeTray : ITrayIcon
+        {
+            public Action Restore { get; private set; }
+            public Func<ContextMenu> CreateMenu { get; private set; }
+            public string Tooltip { get; private set; }
+            public bool Visible { get; private set; }
+            public bool Disposed { get; private set; }
+
+            public ITrayIcon Create(Action restore, Func<ContextMenu> createMenu)
+            {
+                Restore = restore;
+                CreateMenu = createMenu;
+                return this;
+            }
+
+            public void Show(string text)
+            {
+                Tooltip = text;
+                Visible = true;
+            }
+
+            public void Hide() => Visible = false;
+
+            public void Dispose()
+            {
+                Hide();
+                Disposed = true;
+            }
+        }
+
+        static void ClickTrayItem(ContextMenu menu, string id)
+        {
+            foreach (var entry in menu.Items)
+            {
+                if (entry is MenuItem item && AutomationProperties.GetAutomationId(item) == id)
+                {
+                    item.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent, item));
+                    return;
+                }
+            }
+            Assert.Fail("Missing tray menu item: " + id);
+        }
+
+        static void FlushDispatcher() => Dispatcher.CurrentDispatcher.Invoke(DispatcherPriority.Background, new Action(() => { }));
+
         [Theory]
         [InlineData("45", 2700)]
         [InlineData("65", 3900)]
@@ -846,6 +891,124 @@ namespace Shutdown.Tests
             Assert.Equal(Loc.I["CloseGuard"], w.MessageText.Text);
             Assert.Equal(Visibility.Visible, w.CloseAnywayButton.Visibility);
             Assert.Equal(Loc.I["KeepOpen"], w.DismissButton.Content);
+        });
+
+        [Fact]
+        public void Minimize_creates_the_tray_icon_and_either_open_action_restores_the_window() => Sta.Run(() =>
+        {
+            var w = Make();
+            var tray = new FakeTray();
+            w.CreateTrayIcon = tray.Create;
+            w.ShowActivated = false;
+            w.Show();
+            FlushDispatcher();
+            Assert.Null(tray.Restore);
+
+            Click(w.MinimizeButton);
+            FlushDispatcher();
+            Assert.True(w.IsLoaded);
+            Assert.False(w.IsVisible);
+            Assert.True(w.IsInTray);
+            Assert.True(tray.Visible);
+            Assert.Equal("Shutdown", tray.Tooltip);
+
+            var menu = tray.CreateMenu();
+            Assert.Equal("TrayMenu", AutomationProperties.GetAutomationId(menu));
+            Assert.Equal(3, menu.Items.Count);
+            Assert.Equal("Open", Assert.IsType<MenuItem>(menu.Items[0]).Header);
+            Assert.IsType<Separator>(menu.Items[1]);
+            Assert.Equal("Exit", Assert.IsType<MenuItem>(menu.Items[2]).Header);
+
+            tray.Restore();
+            Assert.Equal(WindowState.Normal, w.WindowState);
+            Assert.True(w.IsVisible);
+            Assert.True(w.ShowInTaskbar);
+            Assert.False(w.IsInTray);
+            Assert.False(tray.Visible);
+
+            w.WindowState = WindowState.Minimized;
+            Assert.True(tray.Visible);
+            Loc.I.Apply("de");
+            var germanMenu = tray.CreateMenu();
+            Assert.Equal("Öffnen", Assert.IsType<MenuItem>(germanMenu.Items[0]).Header);
+            Assert.Equal("Beenden", Assert.IsType<MenuItem>(germanMenu.Items[2]).Header);
+            ClickTrayItem(germanMenu, "TrayOpen");
+            Assert.True(w.IsVisible);
+            Assert.False(tray.Visible);
+        });
+
+        [Fact]
+        public void Tray_exit_restores_the_hibernate_guard_and_closes_once_the_schedule_is_cancelled() => Sta.Run(() =>
+        {
+            var w = Make(new Settings { Action = "Hibernate" });
+            var tray = new FakeTray();
+            w.CreateTrayIcon = tray.Create;
+            w.ShowActivated = false;
+            w.Show();
+            Click(w.StartButton);
+            w.WindowState = WindowState.Minimized;
+            Assert.Equal("Hibernating in 1:00:00", tray.Tooltip);
+
+            _now = _now.AddMinutes(5);
+            w.OnTick();
+            Assert.Equal("Hibernating in 0:55:00", tray.Tooltip);
+            var menu = tray.CreateMenu();
+            Assert.Equal(w.Extend15Button.Content, Assert.IsType<MenuItem>(menu.Items[1]).Header);
+            Assert.Equal(Loc.I["Abort"], Assert.IsType<MenuItem>(menu.Items[2]).Header);
+            ClickTrayItem(menu, "TrayExtend15");
+            Assert.True(w.IsInTray);
+            Assert.Equal("Hibernating in 1:10:00", tray.Tooltip);
+
+            ClickTrayItem(menu, "TrayExit");
+            FlushDispatcher();
+            Assert.Equal(Loc.I["CloseGuard"], w.MessageText.Text);
+            Assert.True(w.IsVisible);
+            Assert.Equal(WindowState.Normal, w.WindowState);
+            Assert.False(tray.Visible);
+            Assert.False(tray.Disposed);
+
+            w.WindowState = WindowState.Minimized;
+            FlushDispatcher();
+            Assert.True(tray.Visible);
+            ClickTrayItem(tray.CreateMenu(), "TrayAbort");
+            Assert.Equal("Shutdown", tray.Tooltip);
+            ClickTrayItem(tray.CreateMenu(), "TrayExit");
+            Assert.True(tray.Disposed);
+            Assert.False(tray.Visible);
+            Assert.False(w.IsInTray);
+        });
+
+        [Fact]
+        public void Last_minute_restores_the_window_from_the_tray_without_activation() => Sta.Run(() =>
+        {
+            var previousShow = MainWindow.ShowNoActivate;
+            MainWindow.ShowNoActivate = MainWindow.ShowWithoutFocus;
+            try
+            {
+                var w = Make(new Settings { Action = "Hibernate", Hours = 0, Minutes = 2 });
+                var tray = new FakeTray();
+                w.CreateTrayIcon = tray.Create;
+                w.ShowActivated = false;
+                w.Show();
+                w.ShowActivated = true;
+                Click(w.StartButton);
+                w.WindowState = WindowState.Minimized;
+                Assert.True(tray.Visible);
+
+                _now = _now.AddMinutes(1);
+                w.OnTick();
+                Assert.True(w.IsVisible);
+                Assert.Equal(WindowState.Normal, w.WindowState);
+                Assert.False(w.IsActive);
+                Assert.True(w.ShowActivated);
+                Assert.True(w.ShowInTaskbar);
+                Assert.False(w.IsInTray);
+                Assert.False(tray.Visible);
+            }
+            finally
+            {
+                MainWindow.ShowNoActivate = previousShow;
+            }
         });
 
         [Fact]

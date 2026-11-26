@@ -34,12 +34,14 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+    <Reference Include="System.Windows.Forms" />
   </ItemGroup>
 
   <ItemGroup>
     <!-- Both languages live in the main assembly so the exe stays a single file. -->
     <EmbeddedResource Update="Lang\en.resx" WithCulture="false" LogicalName="Shutdown.Lang.en.resources" />
     <EmbeddedResource Update="Lang\de.resx" WithCulture="false" LogicalName="Shutdown.Lang.de.resources" />
+    <EmbeddedResource Include="Assets\Shutdown.ico" LogicalName="Shutdown.TrayIcon.ico" />
   </ItemGroup>
 
   <ItemGroup>

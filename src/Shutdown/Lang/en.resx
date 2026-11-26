@@ -54,6 +54,8 @@
   <data name="TitleMinimize" xml:space="preserve"><value>Minimize</value></data>
   <data name="TitleClose" xml:space="preserve"><value>Close</value></data>
   <data name="Abort" xml:space="preserve"><value>Cancel schedule</value></data>
+  <data name="TrayOpen" xml:space="preserve"><value>Open</value></data>
+  <data name="TrayExit" xml:space="preserve"><value>Exit</value></data>
   <data name="JumpIn30" xml:space="preserve"><value>Shut down in 30 minutes</value></data>
   <data name="JumpIn60" xml:space="preserve"><value>Shut down in 1 hour</value></data>
   <data name="PendingShutdown" xml:space="preserve"><value>Shutdown scheduled</value></data>

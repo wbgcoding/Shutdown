@@ -220,7 +220,7 @@ namespace Shutdown
                 var signalled = DateTime.UtcNow;
                 Dispatcher.BeginInvoke(new Action(() =>
                 {
-                    if (!_owned || !(MainWindow is MainWindow w) || !w.IsVisible) return;
+                    if (!_owned || !(MainWindow is MainWindow w) || !w.IsLoaded) return;
                     // A newer build can take over once the countdown no longer needs this window.
                     // A request that waited about as long as the newer build waits (a busy window) is stale: that build
                     // gives up soon, so closing now could leave no window at all. The margin covers closing the window.

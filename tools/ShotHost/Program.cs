@@ -44,6 +44,8 @@ static class Program
 
     static void StartRendering(Window w, string target)
     {
+        if (w != Application.Current.MainWindow) return;
+
         // The app's Display text mode snaps glyphs to the 96 dpi grid and renders them unsmoothed into a
         // bitmap; Ideal with grayscale smoothing matches how the text looks on a 200 % screen.
         TextOptions.SetTextFormattingMode(w, TextFormattingMode.Ideal);

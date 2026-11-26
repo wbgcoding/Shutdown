@@ -155,6 +155,7 @@ namespace Shutdown
         protected override void OnClosed(EventArgs e)
         {
             _tick.Stop();
+            DisposeTrayIcon();
             _pending = null;
             SyncKeepAwake();
             Loc.I.Changed -= OnLanguageChanged;
@@ -182,8 +183,9 @@ namespace Shutdown
 
         public void BringToFront()
         {
-            if (WindowState == WindowState.Minimized) WindowState = WindowState.Normal;
             Show();
+            if (WindowState == WindowState.Minimized) WindowState = WindowState.Normal;
+            HideTrayIcon();
             // Topmost for a moment lifts the window above others even where Windows refuses the focus.
             if (!Topmost)
             {
@@ -296,6 +298,7 @@ namespace Shutdown
                 ? L.F("SummaryAt", L.RelativeDateText(r.Target, now), L.TimeText(r.Target))
                 : L.F("SummaryIn", L.Span(WholeMinutesUp(r.TargetUtc - now.ToUniversalTime())));
             UpdatePending(now);
+            if (IsInTray) _trayIcon.Show(Title);
         }
 
         // Runs every second: a new resource reference only when the colour actually changes.
@@ -513,8 +516,8 @@ namespace Shutdown
             {
                 e.Cancel = true;
                 SetMessage(MessageKind.CloseGuard, "CloseGuard", null, false);
-                // Closed from the taskbar while minimized: the warning must be seen.
-                if (WindowState == WindowState.Minimized) Dispatcher.BeginInvoke(new Action(BringToFront));
+                // Restore after the close attempt returns so the warning can be seen.
+                if (IsInTray || WindowState == WindowState.Minimized) Dispatcher.BeginInvoke(new Action(BringToFront));
                 return;
             }
             Persist();
