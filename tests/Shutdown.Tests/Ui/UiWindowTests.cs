@@ -327,6 +327,27 @@ namespace Shutdown.Tests
         });
 
         [Fact]
+        public void Start_button_offers_to_reschedule_the_selected_action() => Sta.Run(() =>
+        {
+            var w = Make();
+            Click(w.StartButton);
+            w.ActRestart.IsChecked = true;
+
+            Assert.Equal("Reschedule", w.StartText.Text);
+            Assert.Equal("Reschedule: Restart", AutomationProperties.GetName(w.StartButton));
+            Assert.Equal("\uE72C", w.StartIcon.Text);
+            Assert.Equal(Visibility.Visible, w.StartIcon.Visibility);
+
+            Loc.I.Apply("de");
+            Assert.Equal("Neu planen", w.StartText.Text);
+            Assert.Equal("Neu planen: Neu starten", AutomationProperties.GetName(w.StartButton));
+
+            Click(w.AbortButton);
+            Assert.Equal("Neustart planen", w.StartText.Text);
+            Assert.Equal("Neustart planen", AutomationProperties.GetName(w.StartButton));
+        });
+
+        [Fact]
         public void The_app_timed_note_shows_only_for_hibernate() => Sta.Run(() =>
         {
             var w = Make();

@@ -312,8 +312,16 @@ namespace Shutdown
             if (!prevDay && PrevDay.IsKeyboardFocused) NextDay.Focus();
             PrevDay.IsEnabled = prevDay;
 
-            StartText.Text = L[action == PowerAction.Restart ? "StartRestart" : action == PowerAction.Hibernate ? "StartHibernate" : "StartShutdown"];
-            System.Windows.Automation.AutomationProperties.SetName(StartButton, StartText.Text);
+            var (startKey, actionKey) = action switch
+            {
+                PowerAction.Restart => ("StartRestart", "ActRestart"),
+                PowerAction.Hibernate => ("StartHibernate", "ActHibernate"),
+                _ => ("StartShutdown", "ActShutdown")
+            };
+            bool pending = _pending != null;
+            StartText.Text = L[pending ? "StartReschedule" : startKey];
+            System.Windows.Automation.AutomationProperties.SetName(StartButton,
+                pending ? L.F("StartRescheduleFmt", L[actionKey]) : StartText.Text);
             bool power = action == PowerAction.Shutdown;
             StartPower.Visibility = power ? Visibility.Visible : Visibility.Collapsed;
             StartIcon.Visibility = power ? Visibility.Collapsed : Visibility.Visible;
