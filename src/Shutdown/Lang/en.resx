@@ -7,12 +7,15 @@
   <data name="ActShutdown" xml:space="preserve"><value>Shut down</value></data>
   <data name="ActRestart" xml:space="preserve"><value>Restart</value></data>
   <data name="ActHibernate" xml:space="preserve"><value>Hibernate</value></data>
+  <data name="ActSleep" xml:space="preserve"><value>Sleep</value></data>
   <data name="HibernateUnavailable" xml:space="preserve"><value>Hibernation is turned off on this PC.</value></data>
+  <data name="SleepUnavailable" xml:space="preserve"><value>Sleep is not available on this PC.</value></data>
   <data name="ModeCountdown" xml:space="preserve"><value>Countdown</value></data>
   <data name="ModeAt" xml:space="preserve"><value>Date and time</value></data>
   <data name="TipShutdown" xml:space="preserve"><value>Turns the PC off. Open programs are closed without asking.</value></data>
   <data name="TipRestart" xml:space="preserve"><value>Restarts the PC. Open programs are closed without asking.</value></data>
   <data name="TipHibernate" xml:space="preserve"><value>Saves the session to disk and turns the PC off. On the next start everything is as it was.</value></data>
+  <data name="TipSleep" xml:space="preserve"><value>Puts the PC into a low-power state. It wakes in seconds with everything still open.</value></data>
   <data name="TipCountdown" xml:space="preserve"><value>Runs once the set time has passed.</value></data>
   <data name="TipAt" xml:space="preserve"><value>Runs at a set date and time.</value></data>
   <data name="Hours" xml:space="preserve"><value>Hours</value></data>
@@ -39,11 +42,13 @@
   <data name="ClockDay" xml:space="preserve"><value>{0} d {1}</value></data>
   <data name="ClockDays" xml:space="preserve"><value>{0} d {1}</value></data>
   <data name="AppTimedHibernate" xml:space="preserve"><value>Windows has no timer for hibernation, so Shutdown runs the countdown itself: keep this window open.</value></data>
+  <data name="AppTimedSleep" xml:space="preserve"><value>Windows has no timer for sleep, so Shutdown runs the countdown itself: keep this window open.</value></data>
   <data name="StartShutdown" xml:space="preserve"><value>Schedule shutdown</value></data>
   <data name="StartTip" xml:space="preserve"><value>Schedules the action (Enter)</value></data>
   <data name="ShutdownComment" xml:space="preserve"><value>Scheduled with the Shutdown app.</value></data>
   <data name="StartRestart" xml:space="preserve"><value>Schedule restart</value></data>
   <data name="StartHibernate" xml:space="preserve"><value>Schedule hibernation</value></data>
+  <data name="StartSleep" xml:space="preserve"><value>Schedule sleep</value></data>
   <data name="StartReschedule" xml:space="preserve"><value>Reschedule</value></data>
   <data name="StartRescheduleFmt" xml:space="preserve"><value>Reschedule: {0}</value></data>
   <data name="TitleMinimize" xml:space="preserve"><value>Minimize</value></data>
@@ -52,9 +57,11 @@
   <data name="PendingShutdown" xml:space="preserve"><value>Shutdown scheduled</value></data>
   <data name="PendingRestart" xml:space="preserve"><value>Restart scheduled</value></data>
   <data name="PendingHibernate" xml:space="preserve"><value>Hibernation scheduled</value></data>
+  <data name="PendingSleep" xml:space="preserve"><value>Sleep scheduled</value></data>
   <data name="TitlePendingShutdown" xml:space="preserve"><value>Shutting down in {0}</value></data>
   <data name="TitlePendingRestart" xml:space="preserve"><value>Restarting in {0}</value></data>
   <data name="TitlePendingHibernate" xml:space="preserve"><value>Hibernating in {0}</value></data>
+  <data name="TitlePendingSleep" xml:space="preserve"><value>Going to sleep in {0}</value></data>
   <data name="PendingRemaining" xml:space="preserve"><value>{0} left</value></data>
   <data name="LastMinute" xml:space="preserve"><value>Less than a minute left.</value></data>
   <data name="PendingKeepOpen" xml:space="preserve"><value>Keep this window open.</value></data>
@@ -74,7 +81,7 @@
   <data name="CloseGuard" xml:space="preserve"><value>The countdown runs in this window. Closing it cancels the countdown.</value></data>
   <data name="CloseAnyway" xml:space="preserve"><value>Close anyway</value></data>
   <data name="KeepOpen" xml:space="preserve"><value>Keep open</value></data>
-  <data name="NewerBuildWaits" xml:space="preserve"><value>A newer version of Shutdown was started. Start it again once the hibernation countdown in this window has run or is cancelled.</value></data>
+  <data name="NewerBuildWaits" xml:space="preserve"><value>A newer version was started. This window stays open because a timed action needs it.</value></data>
   <data name="NewerBuildWaitsUnsaved" xml:space="preserve"><value>A newer version of Shutdown was started. The schedule in this window could not be saved, so the new version would not show it. Start the new version again once this schedule is cancelled.</value></data>
   <data name="MsgOldCancelled" xml:space="preserve"><value>The previous schedule was cancelled and no new one was set.</value></data>
   <data name="ErrInvalidTime" xml:space="preserve"><value>This time does not exist on that day because of the clock change.</value></data>

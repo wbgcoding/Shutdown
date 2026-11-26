@@ -16,6 +16,12 @@ namespace Shutdown.Tests
         public int Run(string args) { Calls.Add(args); return Result(args); }
     }
 
+    sealed class FakeSuspendRunner : ISuspendRunner
+    {
+        public int Calls { get; private set; }
+        public void Run() => Calls++;
+    }
+
     static class TestEnvironment
     {
         /// <summary>Runs before any test: nothing a test does may reach the real log or shut the PC down.</summary>
@@ -23,6 +29,7 @@ namespace Shutdown.Tests
         internal static void Init()
         {
             ShutdownRunner.BlockedForTests = true;
+            SuspendRunner.BlockedForTests = true;
             MainWindow.Flash = _ => { };
             MainWindow.ShowNoActivate = _ => { };
             Log.Dir = Path.Combine(Path.GetTempPath(), "ShutdownTestLog");

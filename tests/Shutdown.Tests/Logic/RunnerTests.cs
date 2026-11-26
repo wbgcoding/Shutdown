@@ -54,5 +54,13 @@ namespace Shutdown.Tests
             IShutdownRunner r = new ShutdownRunner();
             Assert.Throws<InvalidOperationException>(() => r.Run("/a"));
         }
+
+        [Fact]
+        public void Suspend_runner_is_blocked_in_tests()
+        {
+            Assert.True(SuspendRunner.BlockedForTests);
+            ISuspendRunner runner = new SuspendRunner();
+            Assert.Throws<InvalidOperationException>(runner.Run);
+        }
     }
 }

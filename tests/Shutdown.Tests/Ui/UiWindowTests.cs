@@ -95,6 +95,7 @@ namespace Shutdown.Tests
             Assert.Equal(expected == "Restart", w.ActRestart.IsChecked == true);
             Assert.Equal(expected == "Shutdown", w.ActShutdown.IsChecked == true);
             Assert.NotEqual(true, w.ActHibernate.IsChecked);
+            Assert.NotEqual(true, w.ActSleep.IsChecked);
         });
 
         [Fact]
@@ -107,27 +108,39 @@ namespace Shutdown.Tests
         });
 
         [Theory]
-        [InlineData(false)]
-        [InlineData(true)]
-        public void Hibernate_info_is_available_only_when_hibernate_is_disabled(bool allowed) => Sta.Run(() =>
+        [InlineData(false, false)]
+        [InlineData(false, true)]
+        [InlineData(true, false)]
+        [InlineData(true, true)]
+        public void An_unavailable_action_has_a_disabled_segment_and_an_enabled_info_badge(bool sleep, bool allowed) => Sta.Run(() =>
         {
-            var previous = MainWindow.HibernateAllowed;
-            MainWindow.HibernateAllowed = () => allowed;
+            var previousHibernate = MainWindow.HibernateAllowed;
+            var previousSleep = MainWindow.SleepAllowed;
+            if (sleep) MainWindow.SleepAllowed = () => allowed;
+            else MainWindow.HibernateAllowed = () => allowed;
             try
             {
-                var w = Make();
-                var info = ById<Button>(w, "HibernateInfo");
-                Assert.Equal(allowed, w.ActHibernate.IsEnabled);
+                string action = sleep ? "Sleep" : "Hibernate";
+                var w = Make(new Settings { Action = action });
+                var segment = sleep ? w.ActSleep : w.ActHibernate;
+                var info = ById<Button>(w, action + "Info");
+                Assert.Equal(allowed, segment.IsEnabled);
+                Assert.Equal(allowed, segment.IsChecked == true);
+                Assert.Equal(!allowed, w.ActShutdown.IsChecked == true);
+                string help = Loc.I[allowed ? "Tip" + action : action + "Unavailable"];
+                Assert.Equal(help, segment.ToolTip);
+                Assert.Equal(help, AutomationProperties.GetHelpText(segment));
                 Assert.Equal(allowed ? Visibility.Collapsed : Visibility.Visible, info.Visibility);
                 if (allowed) return;
 
+                Assert.True(ToolTipService.GetShowOnDisabled(segment));
                 Assert.True(info.IsEnabled);
                 Assert.True(info.Focusable);
                 Assert.True(info.IsTabStop);
-                Assert.Equal(Loc.I["HibernateUnavailable"], AutomationProperties.GetName(info));
+                Assert.Equal(help, AutomationProperties.GetName(info));
                 Assert.True(info.Width >= 24 && info.Height >= 24);
                 var tip = Assert.IsType<ToolTip>(info.ToolTip);
-                Assert.Equal(Loc.I["HibernateUnavailable"], tip.Content);
+                Assert.Equal(help, tip.Content);
 
                 try
                 {
@@ -136,7 +149,40 @@ namespace Shutdown.Tests
                 }
                 finally { tip.IsOpen = false; }
             }
-            finally { MainWindow.HibernateAllowed = previous; }
+            finally
+            {
+                MainWindow.HibernateAllowed = previousHibernate;
+                MainWindow.SleepAllowed = previousSleep;
+            }
+        });
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void German_action_segments_fit_on_one_row(bool available) => Sta.Run(() =>
+        {
+            var w = Make();
+            Loc.I.Apply("de");
+            w.ActHibernate.IsEnabled = available;
+            w.ActSleep.IsEnabled = available;
+            if (available) w.ActSleep.IsChecked = true;
+
+            var row = Assert.IsType<UniformGrid>(w.ActShutdown.Parent);
+            Assert.Equal(1, row.Rows);
+            Assert.Equal(4, row.Children.Count);
+            var root = Assert.IsAssignableFrom<FrameworkElement>(w.Content);
+            double clientWidth = w.Width - w.BorderThickness.Left - w.BorderThickness.Right;
+            root.Measure(new Size(clientWidth, double.PositiveInfinity));
+            root.Arrange(new Rect(0, 0, clientWidth, root.DesiredSize.Height));
+            double cellWidth = row.ActualWidth / row.Children.Count;
+
+            double widest = 0;
+            foreach (UIElement segment in row.Children)
+            {
+                segment.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+                widest = Math.Max(widest, segment.DesiredSize.Width);
+            }
+            Assert.True(widest <= cellWidth, $"The widest German segment needs {widest} px and its cell has {cellWidth} px.");
         });
 
         [Theory]
@@ -313,10 +359,12 @@ namespace Shutdown.Tests
             Assert.Null(s.PendingBoot);
         });
 
-        [Fact]
-        public void A_stored_hibernate_schedule_is_never_restored() => Sta.Run(() =>
+        [Theory]
+        [InlineData("Hibernate")]
+        [InlineData("Sleep")]
+        public void A_stored_app_timed_schedule_is_never_restored(string action) => Sta.Run(() =>
         {
-            var s = new Settings { PendingAction = "Hibernate", PendingDue = Due(30), PendingBoot = Marker };
+            var s = new Settings { PendingAction = action, PendingDue = Due(30), PendingBoot = Marker };
             var w = Make(s);
             Assert.Equal(Visibility.Collapsed, w.PendingCard.Visibility);
             Assert.Null(s.PendingAction);
@@ -389,12 +437,16 @@ namespace Shutdown.Tests
         [InlineData("en", "Shutdown", "Schedule shutdown", "")]
         [InlineData("en", "Restart", "Schedule restart", "")]
         [InlineData("en", "Hibernate", "Schedule hibernation", "")]
+        [InlineData("en", "Sleep", "Schedule sleep", "\uE945")]
         [InlineData("de", "Shutdown", "Herunterfahren planen", "")]
+        [InlineData("de", "Sleep", "Energie sparen planen", "\uE945")]
         public void Start_button_follows_the_action_and_language(string lang, string action, string text, string icon) => Sta.Run(() =>
         {
             var w = Make();
             Loc.I.Apply(lang);
-            (action == "Restart" ? w.ActRestart : action == "Hibernate" ? w.ActHibernate : w.ActShutdown).IsChecked = true;
+            var segment = ById<RadioButton>(w, "Act" + action);
+            segment.IsEnabled = true;
+            segment.IsChecked = true;
             Assert.Equal(text, w.StartText.Text);
             Assert.Equal(icon, w.StartIcon.Text);
             bool power = action == "Shutdown";
@@ -440,7 +492,7 @@ namespace Shutdown.Tests
         });
 
         [Fact]
-        public void The_app_timed_note_shows_only_for_hibernate() => Sta.Run(() =>
+        public void The_app_timed_note_shows_for_hibernate_and_sleep() => Sta.Run(() =>
         {
             var w = Make();
             Assert.Equal(Visibility.Collapsed, w.AppTimedNote.Visibility);
@@ -448,6 +500,13 @@ namespace Shutdown.Tests
             Assert.Equal(Visibility.Collapsed, w.AppTimedNote.Visibility);
             w.ActHibernate.IsChecked = true;
             Assert.Equal(Visibility.Visible, w.AppTimedNote.Visibility);
+            Assert.Equal(Loc.I["AppTimedHibernate"], w.AppTimedText.Text);
+            w.ActSleep.IsEnabled = true;
+            w.ActSleep.IsChecked = true;
+            Assert.Equal(Visibility.Visible, w.AppTimedNote.Visibility);
+            Assert.Equal(Loc.I["AppTimedSleep"], w.AppTimedText.Text);
+            Loc.I.Apply("de");
+            Assert.Equal(Loc.I["AppTimedSleep"], w.AppTimedText.Text);
             w.ActShutdown.IsChecked = true;
             Assert.Equal(Visibility.Collapsed, w.AppTimedNote.Visibility);
         });
@@ -787,7 +846,7 @@ namespace Shutdown.Tests
         public void The_window_has_the_documented_ids() => Sta.Run(() =>
         {
             var w = Make();
-            foreach (var id in new[] { "ActShutdown", "ActRestart", "ActHibernate", "ModeCountdown", "ModeAt", "Start", "Abort",
+            foreach (var id in new[] { "ActShutdown", "ActRestart", "ActHibernate", "ActSleep", "SleepInfo", "ModeCountdown", "ModeAt", "Start", "Abort",
                 "PrevDay", "NextDay", "Today", "Tomorrow", "DurHours", "DurHoursUp", "DurHoursDown", "DurMinutes",
                 "AtHour", "AtMinute", "ResultText", "PendingCard", "PendingClock", "MessageCard", "MessageText",
                 "CopyMessage", "OpenLog", "CloseAnyway", "DismissMessage" })

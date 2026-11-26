@@ -23,6 +23,7 @@ namespace Shutdown.Tests
         readonly string _dir = Path.Combine(Path.GetTempPath(), "ShutdownTests-" + Guid.NewGuid().ToString("N"));
         DateTime _now = new DateTime(2026, 10, 16, 12, 0, 0, DateTimeKind.Local);
         readonly FakeRunner _runner = new FakeRunner();
+        readonly FakeSuspendRunner _suspendRunner = new FakeSuspendRunner();
         SettingsStore _store;
         readonly List<bool> _awake = new List<bool>();
         static readonly DateTime Boot = new DateTime(2026, 10, 16, 5, 0, 0, DateTimeKind.Utc);
@@ -61,7 +62,7 @@ namespace Shutdown.Tests
             MainWindow.BootMarker = () => _marker;
             MainWindow.KeepAwake = on => _awake.Add(on);
             _store = new SettingsStore(Path.Combine(_dir, SettingsStore.FileName));
-            var w = new MainWindow(_store, s, _runner, () => _now);
+            var w = new MainWindow(_store, s, _runner, _suspendRunner, () => _now);
             _windows.Add(w);
             return w;
         }
@@ -591,6 +592,42 @@ namespace Shutdown.Tests
         });
 
         [Fact]
+        public void Sleep_stays_pending_until_due_and_runs_once_through_the_suspend_runner() => Sta.Run(() =>
+        {
+            var w = Make();
+            w.ActSleep.IsEnabled = true;
+            w.ActSleep.IsChecked = true;
+            Assert.Equal(Visibility.Visible, w.AppTimedNote.Visibility);
+            Assert.Equal(Loc.I["AppTimedSleep"], w.AppTimedText.Text);
+
+            Click(w.StartButton);
+            Assert.Equal("Sleep scheduled", w.PendingTitle.Text);
+            Assert.Equal("Going to sleep in 1:00:00", w.Title);
+            Assert.Equal(Visibility.Visible, w.PendingKeepOpen.Visibility);
+            Assert.Equal(new[] { true }, _awake);
+            var saved = _store.Load();
+            Assert.Equal("Sleep", saved.Action);
+            Assert.Null(saved.PendingAction);
+
+            Assert.False(w.CloseForNewerBuild());
+            Assert.Equal(Loc.I["NewerBuildWaits"], w.MessageText.Text);
+            Click(w.CloseButton);
+            Assert.Equal(Loc.I["CloseGuard"], w.MessageText.Text);
+            Assert.Equal(Visibility.Visible, w.CloseAnywayButton.Visibility);
+
+            w.OnTick();
+            Assert.Equal(0, _suspendRunner.Calls);
+            _now = _now.AddHours(1);
+            w.OnTick();
+            w.OnTick();
+            Assert.Equal(1, _suspendRunner.Calls);
+            Assert.Equal(new[] { "/a" }, _runner.Calls);
+            Assert.Equal(new[] { true, false }, _awake);
+            Assert.Equal(Visibility.Collapsed, w.PendingCard.Visibility);
+            Assert.Equal(Visibility.Collapsed, w.MessageCard.Visibility);
+        });
+
+        [Fact]
         public void Postponing_hibernate_moves_its_due_uptime_without_calling_the_runner() => Sta.Run(() =>
         {
             var w = Make();
@@ -616,16 +653,20 @@ namespace Shutdown.Tests
             Assert.Equal(Visibility.Collapsed, w.PendingCard.Visibility);
         });
 
-        [Fact]
-        public void App_timed_run_missed_during_sleep_is_skipped() => Sta.Run(() =>
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void App_timed_run_missed_during_sleep_is_skipped(bool sleep) => Sta.Run(() =>
         {
             var w = Make();
-            w.ActHibernate.IsChecked = true;
-            Assert.Equal(Loc.I["AppTimedHibernate"], w.AppTimedText.Text);
+            var action = sleep ? w.ActSleep : w.ActHibernate;
+            action.IsEnabled = true;
+            action.IsChecked = true;
             Click(w.StartButton);
             _now = _now.AddHours(1).AddMinutes(10);
             w.OnTick();
             Assert.Equal(new[] { "/a" }, _runner.Calls);
+            Assert.Equal(0, _suspendRunner.Calls);
             Assert.Equal(Loc.I["MsgMissed"], w.MessageText.Text);
         });
 

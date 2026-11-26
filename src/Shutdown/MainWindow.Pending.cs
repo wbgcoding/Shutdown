@@ -29,7 +29,7 @@ namespace Shutdown
                 Title = "Shutdown";
                 // Move focus before the card collapses so Tab can continue from Start.
                 if (PendingCard.IsKeyboardFocusWithin && !StartButton.Focus())
-                    (ActRestart.IsChecked == true ? ActRestart : ActHibernate.IsChecked == true ? ActHibernate : ActShutdown).Focus();
+                    ActionButton(SelectedAction).Focus();
                 PendingCard.Visibility = Visibility.Collapsed;
                 return;
             }
@@ -40,6 +40,7 @@ namespace Shutdown
             {
                 PowerAction.Restart => ("TitlePendingRestart", "PendingRestart"),
                 PowerAction.Hibernate => ("TitlePendingHibernate", "PendingHibernate"),
+                PowerAction.Sleep => ("TitlePendingSleep", "PendingSleep"),
                 _ => ("TitlePendingShutdown", "PendingShutdown")
             };
             Title = L.F(titleKey, clock);

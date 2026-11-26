@@ -133,7 +133,7 @@ namespace Shutdown
 
         /// <summary>
         /// Asks an older running build to close and waits for its lock. It declines (and comes to the front
-        /// instead) while it must stay open for a timed hibernate; then this start only activates it.
+        /// instead) while a timed action needs it open. In that case this start only activates it.
         /// </summary>
         Takeover TakeOver()
         {
@@ -174,7 +174,7 @@ namespace Shutdown
                 Dispatcher.BeginInvoke(new Action(() =>
                 {
                     if (!_owned || !(MainWindow is MainWindow w) || !w.IsVisible) return;
-                    // A newer build was started: close so it can take over, unless a timed hibernate needs this window.
+                    // A newer build can take over once the countdown no longer needs this window.
                     // A request that waited about as long as the newer build waits (a busy window) is stale: that build
                     // gives up soon, so closing now could leave no window at all. The margin covers closing the window.
                     bool stale = DateTime.UtcNow - signalled > ClaimTimeout - CloseMargin;

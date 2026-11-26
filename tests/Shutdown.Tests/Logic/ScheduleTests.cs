@@ -280,7 +280,7 @@ namespace Shutdown.Tests
         [InlineData(PowerAction.Hibernate, 0, "/h /f")]
         [InlineData(PowerAction.Hibernate, 3600, "/h /f")]
         [InlineData(PowerAction.Hibernate, 315360000, "/h /f")]
-        public void Args_for_every_action(PowerAction a, int seconds, string expected)
+        public void Args_for_shutdown_exe_actions(PowerAction a, int seconds, string expected)
         {
             Assert.Equal(expected, Schedule.ArgsFor(a, seconds, "Example comment"));
         }
@@ -290,6 +290,7 @@ namespace Shutdown.Tests
         {
             foreach (PowerAction a in Enum.GetValues(typeof(PowerAction)))
             {
+                if (a == PowerAction.Sleep) continue;
                 var args = Schedule.ArgsFor(a, 90, "Example comment");
                 Assert.Contains("/f", args.Split(' '));
                 Assert.DoesNotContain("/d", args);
@@ -312,14 +313,14 @@ namespace Shutdown.Tests
         public void App_timing_is_defined_for_every_action()
         {
             foreach (PowerAction a in Enum.GetValues(typeof(PowerAction)))
-                Assert.Equal(a == PowerAction.Hibernate, Schedule.IsAppTimed(a));
+                Assert.Equal(a == PowerAction.Hibernate || a == PowerAction.Sleep, Schedule.IsAppTimed(a));
         }
 
         [Fact]
         public void Enum_names_match_what_settings_store()
         {
             // Settings persist these names; renaming one would orphan stored schedules.
-            Assert.Equal(new[] { "Shutdown", "Restart", "Hibernate" }, Enum.GetNames(typeof(PowerAction)));
+            Assert.Equal(new[] { "Shutdown", "Restart", "Hibernate", "Sleep" }, Enum.GetNames(typeof(PowerAction)));
             Assert.Equal(new[] { "Countdown", "At" }, Enum.GetNames(typeof(TimeMode)));
         }
     }
@@ -449,6 +450,11 @@ namespace Shutdown.Tests
             Assert.False(Schedule.IsAppTimed(PowerAction.Shutdown));
             Assert.False(Schedule.IsAppTimed(PowerAction.Restart));
             Assert.True(Schedule.IsAppTimed(PowerAction.Hibernate));
+            Assert.True(Schedule.IsAppTimed(PowerAction.Sleep));
         }
+
+        [Fact]
+        public void Sleep_has_no_shutdown_exe_arguments() =>
+            Assert.Throws<ArgumentException>("action", () => Schedule.ArgsFor(PowerAction.Sleep, 0, ""));
     }
 }

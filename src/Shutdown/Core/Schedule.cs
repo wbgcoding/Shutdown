@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace Shutdown.Core
 {
-    public enum PowerAction { Shutdown, Restart, Hibernate }
+    public enum PowerAction { Shutdown, Restart, Hibernate, Sleep }
 
     public enum TimeMode { Countdown, At }
 
@@ -65,16 +65,19 @@ namespace Shutdown.Core
             return ScheduleResult.Valid(targetUtc, (int)Math.Ceiling(diff));
         }
 
-        /// <summary>Hibernate has no Windows timer, so the app counts down itself and runs it at the target.</summary>
-        public static bool IsAppTimed(PowerAction action) => action == PowerAction.Hibernate;
+        /// <summary>The app counts down for hibernate and sleep because Windows has no timer for them.</summary>
+        public static bool IsAppTimed(PowerAction action) => action == PowerAction.Hibernate || action == PowerAction.Sleep;
 
         /// <summary>
         /// Always forced: shutdown.exe implies /f for any /t above 0 anyway. Shutdown and restart hand
         /// the timer to Windows; hibernate takes no /t and runs when the app's countdown ends.
         /// </summary>
-        public static string ArgsFor(PowerAction action, int seconds, string comment) =>
-            action == PowerAction.Hibernate ? "/h /f" :
-            (action == PowerAction.Restart ? "/r" : "/s") + " /f /t " + seconds + " /c \"" + comment + "\"";
+        public static string ArgsFor(PowerAction action, int seconds, string comment)
+        {
+            if (action == PowerAction.Sleep) throw new ArgumentException("Sleep cannot run through shutdown.exe.", nameof(action));
+            if (action == PowerAction.Hibernate) return "/h /f";
+            return (action == PowerAction.Restart ? "/r" : "/s") + " /f /t " + seconds + " /c \"" + comment + "\"";
+        }
 
         public const string AbortArgs = "/a";
     }

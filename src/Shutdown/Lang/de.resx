@@ -7,12 +7,15 @@
   <data name="ActShutdown" xml:space="preserve"><value>Herunterfahren</value></data>
   <data name="ActRestart" xml:space="preserve"><value>Neu starten</value></data>
   <data name="ActHibernate" xml:space="preserve"><value>Ruhezustand</value></data>
+  <data name="ActSleep" xml:space="preserve"><value>Energie sparen</value></data>
   <data name="HibernateUnavailable" xml:space="preserve"><value>Ruhezustand ist auf diesem PC deaktiviert.</value></data>
+  <data name="SleepUnavailable" xml:space="preserve"><value>Energie sparen ist auf diesem PC nicht verfügbar.</value></data>
   <data name="ModeCountdown" xml:space="preserve"><value>Zeitspanne</value></data>
   <data name="ModeAt" xml:space="preserve"><value>Datum und Uhrzeit</value></data>
   <data name="TipShutdown" xml:space="preserve"><value>Schaltet den PC aus. Offene Programme werden ohne Nachfrage beendet.</value></data>
   <data name="TipRestart" xml:space="preserve"><value>Startet den PC neu. Offene Programme werden ohne Nachfrage beendet.</value></data>
   <data name="TipHibernate" xml:space="preserve"><value>Speichert die Sitzung auf der Festplatte und schaltet den PC aus. Beim nächsten Start ist alles wieder wie vorher.</value></data>
+  <data name="TipSleep" xml:space="preserve"><value>Versetzt den PC in einen Stromsparzustand. Er ist in Sekunden wieder wach, alles bleibt offen.</value></data>
   <data name="TipCountdown" xml:space="preserve"><value>Läuft nach Ablauf der eingestellten Zeit.</value></data>
   <data name="TipAt" xml:space="preserve"><value>Läuft zu einem festen Datum und einer Uhrzeit.</value></data>
   <data name="Hours" xml:space="preserve"><value>Stunden</value></data>
@@ -39,11 +42,13 @@
   <data name="ClockDay" xml:space="preserve"><value>{0} Tag {1}</value></data>
   <data name="ClockDays" xml:space="preserve"><value>{0} Tage {1}</value></data>
   <data name="AppTimedHibernate" xml:space="preserve"><value>Windows hat für den Ruhezustand keinen Timer, darum zählt Shutdown selbst herunter: Fenster offen lassen.</value></data>
+  <data name="AppTimedSleep" xml:space="preserve"><value>Windows hat für das Energiesparen keinen Timer, darum zählt Shutdown selbst herunter: Fenster offen lassen.</value></data>
   <data name="StartShutdown" xml:space="preserve"><value>Herunterfahren planen</value></data>
   <data name="StartTip" xml:space="preserve"><value>Plant die Aktion (Enter)</value></data>
   <data name="ShutdownComment" xml:space="preserve"><value>Geplant mit der App Shutdown.</value></data>
   <data name="StartRestart" xml:space="preserve"><value>Neustart planen</value></data>
   <data name="StartHibernate" xml:space="preserve"><value>Ruhezustand planen</value></data>
+  <data name="StartSleep" xml:space="preserve"><value>Energie sparen planen</value></data>
   <data name="StartReschedule" xml:space="preserve"><value>Neu planen</value></data>
   <data name="StartRescheduleFmt" xml:space="preserve"><value>Neu planen: {0}</value></data>
   <data name="TitleMinimize" xml:space="preserve"><value>Minimieren</value></data>
@@ -52,9 +57,11 @@
   <data name="PendingShutdown" xml:space="preserve"><value>Herunterfahren geplant</value></data>
   <data name="PendingRestart" xml:space="preserve"><value>Neustart geplant</value></data>
   <data name="PendingHibernate" xml:space="preserve"><value>Ruhezustand geplant</value></data>
+  <data name="PendingSleep" xml:space="preserve"><value>Energie sparen geplant</value></data>
   <data name="TitlePendingShutdown" xml:space="preserve"><value>Herunterfahren in {0}</value></data>
   <data name="TitlePendingRestart" xml:space="preserve"><value>Neustart in {0}</value></data>
   <data name="TitlePendingHibernate" xml:space="preserve"><value>Ruhezustand in {0}</value></data>
+  <data name="TitlePendingSleep" xml:space="preserve"><value>Energie sparen in {0}</value></data>
   <data name="PendingRemaining" xml:space="preserve"><value>noch {0}</value></data>
   <data name="LastMinute" xml:space="preserve"><value>Noch weniger als eine Minute.</value></data>
   <data name="PendingKeepOpen" xml:space="preserve"><value>Fenster offen lassen.</value></data>
@@ -74,7 +81,7 @@
   <data name="CloseGuard" xml:space="preserve"><value>Shutdown zählt in diesem Fenster herunter. Schließen bricht das ab.</value></data>
   <data name="CloseAnyway" xml:space="preserve"><value>Trotzdem schließen</value></data>
   <data name="KeepOpen" xml:space="preserve"><value>Offen lassen</value></data>
-  <data name="NewerBuildWaits" xml:space="preserve"><value>Eine neuere Version von Shutdown wurde gestartet. Starte sie erneut, sobald der Ruhezustand-Countdown in diesem Fenster abgelaufen ist oder abgebrochen wurde.</value></data>
+  <data name="NewerBuildWaits" xml:space="preserve"><value>Eine neuere Version wurde gestartet. Dieses Fenster bleibt offen, weil eine zeitgesteuerte Aktion es braucht.</value></data>
   <data name="NewerBuildWaitsUnsaved" xml:space="preserve"><value>Eine neuere Version von Shutdown wurde gestartet. Die Planung in diesem Fenster konnte nicht gespeichert werden, die neue Version würde sie daher nicht anzeigen. Starte die neue Version erneut, sobald diese Planung abgebrochen wurde.</value></data>
   <data name="MsgOldCancelled" xml:space="preserve"><value>Die bisherige Planung wurde abgebrochen, eine neue wurde nicht gesetzt.</value></data>
   <data name="ErrInvalidTime" xml:space="preserve"><value>Diese Uhrzeit gibt es an diesem Tag wegen der Zeitumstellung nicht.</value></data>

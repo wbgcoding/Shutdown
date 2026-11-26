@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:core="clr-namespace:Shutdown.Core"
         xmlns:ui="clr-namespace:Shutdown.Ui"
-        Title="Shutdown" Width="450" SizeToContent="Height" ResizeMode="CanMinimize"
+        Title="Shutdown" Width="630" SizeToContent="Height" ResizeMode="CanMinimize"
         WindowStartupLocation="CenterScreen"
         Background="{DynamicResource Bg}" Foreground="{DynamicResource Text}"
         FontFamily="{StaticResource UiFont}" FontSize="13"
@@ -91,8 +91,8 @@
               </RadioButton>
               <Button Width="24" Height="24" MinHeight="24" Padding="0" Margin="0,0,2,0"
                       HorizontalAlignment="Right" VerticalAlignment="Center"
-                      Click="OnHibernateInfoClick" MouseLeave="OnHibernateInfoDismiss"
-                      LostKeyboardFocus="OnHibernateInfoDismiss" PreviewKeyDown="OnHibernateInfoKeyDown"
+                      Click="OnActionInfoClick" MouseLeave="OnActionInfoDismiss"
+                      LostKeyboardFocus="OnActionInfoDismiss" PreviewKeyDown="OnActionInfoKeyDown"
                       AutomationProperties.AutomationId="HibernateInfo"
                       AutomationProperties.Name="{Binding [HibernateUnavailable], Source={x:Static core:Loc.I}}">
                 <Button.Style>
@@ -107,6 +107,50 @@
                 </Button.Style>
                 <Button.ToolTip>
                   <ToolTip Placement="Bottom" Content="{Binding [HibernateUnavailable], Source={x:Static core:Loc.I}}"/>
+                </Button.ToolTip>
+                <ui:InfoBadge/>
+              </Button>
+            </Grid>
+            <Grid>
+              <RadioButton x:Name="ActSleep" GroupName="Action" Checked="OnInputChanged"
+                           AutomationProperties.AutomationId="ActSleep"
+                           AutomationProperties.Name="{Binding [ActSleep], Source={x:Static core:Loc.I}}">
+                <RadioButton.Style>
+                  <Style TargetType="RadioButton" BasedOn="{StaticResource Segment}">
+                    <Setter Property="ToolTip" Value="{Binding [TipSleep], Source={x:Static core:Loc.I}}"/>
+                    <Setter Property="AutomationProperties.HelpText" Value="{Binding [TipSleep], Source={x:Static core:Loc.I}}"/>
+                    <Style.Triggers>
+                      <Trigger Property="IsEnabled" Value="False">
+                        <Setter Property="Padding" Value="4,4,28,4"/>
+                        <Setter Property="ToolTip" Value="{Binding [SleepUnavailable], Source={x:Static core:Loc.I}}"/>
+                        <Setter Property="AutomationProperties.HelpText" Value="{Binding [SleepUnavailable], Source={x:Static core:Loc.I}}"/>
+                      </Trigger>
+                    </Style.Triggers>
+                  </Style>
+                </RadioButton.Style>
+                <StackPanel Orientation="Horizontal">
+                  <ui:IconGlyph x:Name="SleepIcon" Style="{StaticResource Icon}" Text="&#xE945;" FontSize="13" Margin="0,0,5,0"/>
+                  <TextBlock Text="{Binding [ActSleep], Source={x:Static core:Loc.I}}"/>
+                </StackPanel>
+              </RadioButton>
+              <Button Width="24" Height="24" MinHeight="24" Padding="0" Margin="0,0,2,0"
+                      HorizontalAlignment="Right" VerticalAlignment="Center"
+                      Click="OnActionInfoClick" MouseLeave="OnActionInfoDismiss"
+                      LostKeyboardFocus="OnActionInfoDismiss" PreviewKeyDown="OnActionInfoKeyDown"
+                      AutomationProperties.AutomationId="SleepInfo"
+                      AutomationProperties.Name="{Binding [SleepUnavailable], Source={x:Static core:Loc.I}}">
+                <Button.Style>
+                  <Style TargetType="Button" BasedOn="{StaticResource GhostButton}">
+                    <Setter Property="Visibility" Value="Collapsed"/>
+                    <Style.Triggers>
+                      <DataTrigger Binding="{Binding IsEnabled, ElementName=ActSleep}" Value="False">
+                        <Setter Property="Visibility" Value="Visible"/>
+                      </DataTrigger>
+                    </Style.Triggers>
+                  </Style>
+                </Button.Style>
+                <Button.ToolTip>
+                  <ToolTip Placement="Bottom" Content="{Binding [SleepUnavailable], Source={x:Static core:Loc.I}}"/>
                 </Button.ToolTip>
                 <ui:InfoBadge/>
               </Button>
@@ -203,8 +247,7 @@
             </Grid.ColumnDefinitions>
             <ui:InfoBadge Margin="0,0,10,0"/>
             <TextBlock x:Name="AppTimedText" Grid.Column="1" FontSize="12" Foreground="{DynamicResource Text}"
-                       VerticalAlignment="Center" TextWrapping="Wrap" AutomationProperties.AutomationId="AppTimedNote"
-                       Text="{Binding [AppTimedHibernate], Source={x:Static core:Loc.I}}"/>
+                       VerticalAlignment="Center" TextWrapping="Wrap" AutomationProperties.AutomationId="AppTimedNote"/>
           </Grid>
         </Border>
       </StackPanel>

@@ -34,6 +34,7 @@ namespace Shutdown
         readonly SettingsStore _store;
         readonly Settings _settings;
         readonly IShutdownRunner _runner;
+        readonly ISuspendRunner _suspendRunner;
         readonly DispatcherTimer _tick;
         readonly Action _unwatchTheme;
         DateTime _date;
@@ -74,19 +75,20 @@ namespace Shutdown
         DateTime NowUtc() => _clock().ToUniversalTime();
 
         public MainWindow(SettingsStore store, Settings settings, IShutdownRunner runner, Func<DateTime> clock = null)
+            : this(store, settings, runner, new SuspendRunner(), clock)
+        {
+        }
+
+        internal MainWindow(SettingsStore store, Settings settings, IShutdownRunner runner, ISuspendRunner suspendRunner, Func<DateTime> clock)
         {
             _clock = clock ?? (() => DateTime.Now);
             _store = store;
             _settings = settings;
             _runner = runner;
+            _suspendRunner = suspendRunner;
             InitializeComponent();
 
-            if (!HibernateAllowed()) ActHibernate.IsEnabled = false;
-
-            // TryParse also takes any number; only named actions count.
-            var action = Enum.TryParse(settings.Action, out PowerAction a) && Enum.IsDefined(typeof(PowerAction), a) ? a : PowerAction.Shutdown;
-            if (action == PowerAction.Hibernate && !ActHibernate.IsEnabled) action = PowerAction.Shutdown;
-            (action == PowerAction.Restart ? ActRestart : action == PowerAction.Hibernate ? ActHibernate : ActShutdown).IsChecked = true;
+            InitializeAction(settings.Action);
             (settings.Mode == nameof(TimeMode.At) ? ModeAt : ModeCountdown).IsChecked = true;
             InitializeCountdown(settings);
 
@@ -197,7 +199,7 @@ namespace Shutdown
 
         /// <summary>
         /// Closes for a newer build of the app that was just started; false (window stays) while a timed
-        /// hibernate needs this window open, with the reason shown.
+        /// action needs this window open, with the reason shown.
         /// </summary>
         public bool CloseForNewerBuild()
         {
@@ -216,10 +218,6 @@ namespace Shutdown
             Close();
             return true;
         }
-
-        PowerAction SelectedAction =>
-            ActRestart.IsChecked == true ? PowerAction.Restart :
-            ActHibernate.IsChecked == true ? PowerAction.Hibernate : PowerAction.Shutdown;
 
         TimeMode SelectedMode => ModeAt.IsChecked == true ? TimeMode.At : TimeMode.Countdown;
 
@@ -268,11 +266,12 @@ namespace Shutdown
             if (!prevDay && PrevDay.IsKeyboardFocused) NextDay.Focus();
             PrevDay.IsEnabled = prevDay;
 
-            var (startKey, actionKey) = action switch
+            var (startKey, actionKey, icon) = action switch
             {
-                PowerAction.Restart => ("StartRestart", "ActRestart"),
-                PowerAction.Hibernate => ("StartHibernate", "ActHibernate"),
-                _ => ("StartShutdown", "ActShutdown")
+                PowerAction.Restart => ("StartRestart", "ActRestart", "\uE72C"),
+                PowerAction.Hibernate => ("StartHibernate", "ActHibernate", "\uE708"),
+                PowerAction.Sleep => ("StartSleep", "ActSleep", SleepIcon.Text),
+                _ => ("StartShutdown", "ActShutdown", "")
             };
             bool pending = _pending != null;
             StartText.Text = L[pending ? "StartReschedule" : startKey];
@@ -281,9 +280,10 @@ namespace Shutdown
             bool power = action == PowerAction.Shutdown;
             StartPower.Visibility = power ? Visibility.Visible : Visibility.Collapsed;
             StartIcon.Visibility = power ? Visibility.Collapsed : Visibility.Visible;
-            StartIcon.Text = action == PowerAction.Restart ? "\uE72C" : action == PowerAction.Hibernate ? "\uE708" : "";
+            StartIcon.Text = icon;
 
             AppTimedNote.Visibility = appTimed ? Visibility.Visible : Visibility.Collapsed;
+            AppTimedText.Text = appTimed ? L[action == PowerAction.Sleep ? "AppTimedSleep" : "AppTimedHibernate"] : "";
             Chips.Visibility = SelectedMode == TimeMode.Countdown ? Visibility.Visible : Visibility.Collapsed;
             UpdatePresetChips();
 
@@ -330,6 +330,7 @@ namespace Shutdown
                 var late = Uptime() - p.Due;
                 ClearPending();
                 if (late > MissedGrace) ShowInfo("MsgMissed");
+                else if (p.Action == PowerAction.Sleep) _suspendRunner.Run();
                 else Execute(Schedule.ArgsFor(p.Action, 0, Loc.I["ShutdownComment"]));
             }
             UpdateUi();
