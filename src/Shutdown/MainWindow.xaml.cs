@@ -270,6 +270,8 @@ namespace Shutdown
             DurMinutes.Caption = L["Minutes"];
             AtHour.Caption = L["Hour"];
             AtMinute.Caption = L["Minute"];
+            Extend15Button.Content = "+" + L.F("ChipMinutes", 15);
+            Extend60Button.Content = "+" + L.F("ChipHours", 1);
 
             Chips.Children.Clear();
             foreach (var (h, m) in new[] { (0, 15), (0, 30), (1, 0), (2, 0), (3, 0) })
@@ -372,7 +374,7 @@ namespace Shutdown
             if (_pending == null)
             {
                 // Move focus before the card collapses so Tab can continue from Start.
-                if (AbortButton.IsKeyboardFocused && !StartButton.Focus())
+                if (PendingCard.IsKeyboardFocusWithin && !StartButton.Focus())
                     (ActRestart.IsChecked == true ? ActRestart : ActHibernate.IsChecked == true ? ActHibernate : ActShutdown).Focus();
                 PendingCard.Visibility = Visibility.Collapsed;
                 return;
@@ -407,50 +409,8 @@ namespace Shutdown
 
         void OnStart(object sender, RoutedEventArgs e)
         {
-            var now = Now();
-            var r = Compute(now);
-            if (!r.Ok) { UpdateUi(); return; }
-            var action = SelectedAction;
-            bool appTimed = Schedule.IsAppTimed(action);
-
-            HideMessage();
-            // Replace whatever is scheduled; "nothing pending" is the normal answer here.
-            // Any other answer means an old schedule may still run, so stop instead.
-            if (!TryRun(Schedule.AbortArgs, out int abortCode)) return;
-            if (abortCode != 0 && abortCode != ShutdownRunner.ErrorNoShutdownInProgress)
-            {
-                ShowRunError(Schedule.AbortArgs, abortCode);
-                return;
-            }
-            bool replaced = _pending != null;
-            ClearPending();
-
-            // The abort call took time; the target must count from now, not from the click.
-            r = Compute(Now());
-            if (!r.Ok)
-            {
-                // The inline error says why; this says the old schedule is gone too.
-                if (replaced) ShowInfo("MsgOldCancelled");
-                UpdateUi();
-                return;
-            }
-
-            if (appTimed)
-            {
-                _pending = new Pending { Action = action, TargetUtc = r.TargetUtc, Due = DueOf(r.TargetUtc), AppTimed = true };
-                SyncKeepAwake();
-            }
-            else if (Execute(Schedule.ArgsFor(action, r.Seconds), out bool maybeScheduled) || maybeScheduled)
-            {
-                // Also when Windows may hold it after a failed take-back: the card keeps Abort reachable.
-                _pending = new Pending { Action = action, TargetUtc = r.TargetUtc, Due = DueOf(r.TargetUtc), AppTimed = false };
-                _settings.PendingAction = action.ToString();
-                _settings.PendingDue = (long)_pending.Due.TotalMilliseconds;
-                _settings.PendingBoot = BootMarker() ?? UnknownBoot;
-            }
-            bool saved = Persist();
-            if (!saved && _pending?.AppTimed == false && _msgKind == MessageKind.None) ShowInfo("MsgNotSaved");
-            UpdateUi();
+            if (!Compute(Now()).Ok) { UpdateUi(); return; }
+            ReplaceSchedule(SelectedAction, () => Compute(Now()));
         }
 
         void OnAbort(object sender, RoutedEventArgs e)

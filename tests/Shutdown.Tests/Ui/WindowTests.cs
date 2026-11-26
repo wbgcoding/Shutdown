@@ -84,6 +84,52 @@ namespace Shutdown.Tests
         });
 
         [Fact]
+        public void Postponing_shutdown_replaces_the_windows_timer_and_updates_the_card() => Sta.Run(() =>
+        {
+            var s = new Settings { PendingAction = "Shutdown", PendingDue = Due(30), PendingBoot = Marker };
+            var w = Make(s);
+            Click(w.Extend15Button);
+
+            Assert.Equal(new[] { "/a", "/s /f /t 2700" }, _runner.Calls);
+            Assert.Equal(Visibility.Visible, w.PendingCard.Visibility);
+            Assert.Equal("0:45:00", w.PendingClock.Text);
+            var target = _now.AddMinutes(45);
+            Assert.Equal(Loc.I.F("SummaryAt", Loc.I.DateText(target), Loc.I.TimeText(target)), w.PendingWhen.Text);
+            Assert.Equal("Shutdown", s.PendingAction);
+            Assert.Equal(Due(45), s.PendingDue);
+        });
+
+        [Fact]
+        public void Postponing_past_the_windows_limit_keeps_the_old_timer() => Sta.Run(() =>
+        {
+            var due = Due((Schedule.MaxSeconds - 899) / 60d);
+            var s = new Settings { PendingAction = "Shutdown", PendingDue = due, PendingBoot = Marker };
+            var w = Make(s);
+            var oldTime = w.PendingWhen.Text;
+            Click(w.Extend15Button);
+
+            Assert.Empty(_runner.Calls);
+            Assert.Equal(Visibility.Visible, w.PendingCard.Visibility);
+            Assert.Equal(oldTime, w.PendingWhen.Text);
+            Assert.Equal(due, s.PendingDue);
+            Assert.Equal(Loc.I["ErrTooLong"], w.MessageText.Text);
+        });
+
+        [Fact]
+        public void Failed_abort_during_postpone_keeps_the_old_timer() => Sta.Run(() =>
+        {
+            var s = new Settings { PendingAction = "Shutdown", PendingDue = Due(30), PendingBoot = Marker };
+            var w = Make(s);
+            _runner.Result = a => ShutdownRunner.ErrorAccessDenied;
+            Click(w.Extend15Button);
+
+            Assert.Equal(new[] { "/a" }, _runner.Calls);
+            Assert.Equal("0:30:00", w.PendingClock.Text);
+            Assert.Equal(Due(30), s.PendingDue);
+            Assert.Equal(Loc.I["ErrAccessDenied"], w.MessageText.Text);
+        });
+
+        [Fact]
         public void Time_left_turns_yellow_then_red_near_the_end() => Sta.Run(() =>
         {
             var w = Make();
@@ -385,6 +431,30 @@ namespace Shutdown.Tests
             _now = _now.AddHours(1).AddSeconds(1);
             w.OnTick();
             Assert.Equal(new[] { "/a", "/h /f" }, _runner.Calls);
+            Assert.Equal(Visibility.Collapsed, w.PendingCard.Visibility);
+        });
+
+        [Fact]
+        public void Postponing_hibernate_moves_its_due_uptime_without_calling_the_runner() => Sta.Run(() =>
+        {
+            var w = Make();
+            w.ActHibernate.IsChecked = true;
+            Click(w.StartButton);
+            _runner.Calls.Clear();
+            Click(w.Extend60Button);
+
+            Assert.Empty(_runner.Calls);
+            Assert.Equal("2:00:00", w.PendingClock.Text);
+            Assert.Null(_store.Load().PendingDue);
+
+            _now = _now.AddHours(1);
+            w.OnTick();
+            Assert.Empty(_runner.Calls);
+            Assert.Equal(Visibility.Visible, w.PendingCard.Visibility);
+
+            _now = _now.AddHours(1);
+            w.OnTick();
+            Assert.Equal(new[] { "/h /f" }, _runner.Calls);
             Assert.Equal(Visibility.Collapsed, w.PendingCard.Visibility);
         });
 
@@ -760,9 +830,19 @@ namespace Shutdown.Tests
         {
             var w = Make();
             Assert.Equal("Schedule shutdown", w.StartText.Text);
+            Assert.Equal("Extend15", AutomationProperties.GetAutomationId(w.Extend15Button));
+            Assert.Equal("Extend60", AutomationProperties.GetAutomationId(w.Extend60Button));
+            Assert.Equal("+15 min", w.Extend15Button.Content);
+            Assert.Equal("+1 h", w.Extend60Button.Content);
+            Assert.Equal("Postpone by 15 minutes", AutomationProperties.GetName(w.Extend15Button));
+            Assert.Equal("Postpone by 1 hour", AutomationProperties.GetName(w.Extend60Button));
             Loc.I.Apply("de");
             Assert.Equal("Herunterfahren planen", w.StartText.Text);
             Assert.Equal("Stunden", w.DurHours.CaptionText.Text);
+            Assert.Equal("+15 Min.", w.Extend15Button.Content);
+            Assert.Equal("+1 Std.", w.Extend60Button.Content);
+            Assert.Equal("Um 15 Minuten verschieben", AutomationProperties.GetName(w.Extend15Button));
+            Assert.Equal("Um 1 Stunde verschieben", AutomationProperties.GetName(w.Extend60Button));
             Loc.I.Apply("en");
             Assert.Equal("Schedule shutdown", w.StartText.Text);
         });

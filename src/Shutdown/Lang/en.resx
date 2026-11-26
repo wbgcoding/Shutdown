@@ -22,6 +22,8 @@
   <data name="DecreaseFmt" xml:space="preserve"><value>Decrease {0}</value></data>
   <data name="ChipMinutes" xml:space="preserve"><value>{0} min</value></data>
   <data name="ChipHours" xml:space="preserve"><value>{0} h</value></data>
+  <data name="Postpone15" xml:space="preserve"><value>Postpone by 15 minutes</value></data>
+  <data name="Postpone60" xml:space="preserve"><value>Postpone by 1 hour</value></data>
   <data name="SummaryAt" xml:space="preserve"><value>{0} at {1}</value></data>
   <data name="SummaryIn" xml:space="preserve"><value>in {0}</value></data>
   <data name="SpanDay" xml:space="preserve"><value>{0} d</value></data>
