@@ -142,7 +142,7 @@ namespace Shutdown.Ui
                 case Key.Down: Step(-1, commitText: true); e.Handled = true; break;
                 case Key.PageUp: Step(10, commitText: true); e.Handled = true; break;
                 case Key.PageDown: Step(-10, commitText: true); e.Handled = true; break;
-                case Key.Enter: Commit(); Box.SelectAll(); e.Handled = true; break;
+                case Key.Enter: Commit(); Box.SelectAll(); break;
                 // Space raises no PreviewTextInput, so the digit filter never sees it.
                 case Key.Space: e.Handled = true; break;
             }

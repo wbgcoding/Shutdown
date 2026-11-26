@@ -7,6 +7,7 @@ using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
+using System.Windows.Interop;
 using System.Windows.Shell;
 using System.Windows.Threading;
 using Shutdown.Core;
@@ -66,6 +67,46 @@ namespace Shutdown.Tests
         }
 
         static void Click(Button b) => b.RaiseEvent(new RoutedEventArgs(ButtonBase.ClickEvent, b));
+
+        [Theory]
+        [InlineData("45", 2700)]
+        [InlineData("65", 3900)]
+        public void Enter_in_minutes_commits_and_schedules(string minutes, int seconds) => Sta.Run(() =>
+        {
+            var w = Make(new Settings { Hours = 0, Minutes = 5 });
+            var box = w.DurMinutes.Box;
+
+            // Give the access key a presentation source without showing the window.
+            using (var source = new HwndSource(new HwndSourceParameters()))
+            {
+                box.Text = minutes;
+
+                var enter = new KeyEventArgs(Keyboard.PrimaryDevice, source, 0, Key.Enter)
+                {
+                    RoutedEvent = Keyboard.PreviewKeyDownEvent
+                };
+                box.RaiseEvent(enter);
+                Assert.False(enter.Handled);
+
+                var button = w.StartButton;
+                var parent = (Panel)button.Parent;
+                int index = parent.Children.IndexOf(button);
+                parent.Children.RemoveAt(index);
+                try
+                {
+                    source.RootVisual = button;
+                    Assert.True(AccessKeyManager.IsKeyRegistered(source, "\r"));
+                    AccessKeyManager.ProcessKey(source, "\r", false);
+                }
+                finally
+                {
+                    source.RootVisual = null;
+                    parent.Children.Insert(index, button);
+                }
+            }
+
+            Assert.Equal(new[] { "/a", $"/s /f /t {seconds} /c \"Scheduled with the Shutdown app.\"" }, _runner.Calls);
+        });
 
         [Fact]
         public void Forced_shutdown_replaces_pending_and_hands_the_timer_to_windows() => Sta.Run(() =>

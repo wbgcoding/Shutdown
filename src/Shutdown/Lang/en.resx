@@ -35,6 +35,7 @@
   <data name="ClockDays" xml:space="preserve"><value>{0} d {1}</value></data>
   <data name="AppTimedHibernate" xml:space="preserve"><value>Windows has no timer for hibernation, so Shutdown runs the countdown itself: keep this window open.</value></data>
   <data name="StartShutdown" xml:space="preserve"><value>Schedule shutdown</value></data>
+  <data name="StartTip" xml:space="preserve"><value>Schedules the action (Enter)</value></data>
   <data name="ShutdownComment" xml:space="preserve"><value>Scheduled with the Shutdown app.</value></data>
   <data name="StartRestart" xml:space="preserve"><value>Schedule restart</value></data>
   <data name="StartHibernate" xml:space="preserve"><value>Schedule hibernation</value></data>

@@ -156,7 +156,7 @@ namespace Shutdown.Tests
         {
             var s = Make();
             s.Box.Text = "7";
-            Assert.True(Press(s, Key.Enter));
+            Assert.False(Press(s, Key.Enter));
             Assert.Equal("07", s.Box.Text);
             s.Box.Text = "500";
             Press(s, Key.Enter);

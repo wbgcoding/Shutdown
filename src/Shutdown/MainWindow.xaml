@@ -238,7 +238,8 @@
         <ColumnDefinition Width="*"/>
       </Grid.ColumnDefinitions>
       <Button x:Name="StartButton" Style="{StaticResource AccentButton}" Click="OnStart" MinHeight="36"
-              AutomationProperties.AutomationId="Start">
+              IsDefault="True" AutomationProperties.AutomationId="Start" AutomationProperties.AcceleratorKey="Enter"
+              ToolTip="{Binding [StartTip], Source={x:Static core:Loc.I}}">
         <StackPanel Orientation="Horizontal">
           <ui:PowerGlyph x:Name="StartPower" Margin="0,0,8,0"/>
           <ui:IconGlyph x:Name="StartIcon" Style="{StaticResource Icon}" FontSize="13" Margin="0,0,8,0" Visibility="Collapsed"/>
