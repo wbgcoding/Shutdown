@@ -246,11 +246,12 @@
       <Setter Property="Margin" Value="0,0,6,6"/>
     </Style>
 
-    <!-- Lives in a SelectionSlider: it paints the resting fill and the sliding accent behind the transparent chip. -->
+    <!-- Lives in a SelectionSlider: it paints the resting fill, the outline and the sliding accent behind the
+         transparent chip, so the chip's own border only reserves the outline's space. -->
     <Style x:Key="ChipToggle" TargetType="ToggleButton">
       <Setter Property="Background" Value="Transparent"/>
       <Setter Property="Foreground" Value="{DynamicResource Text}"/>
-      <Setter Property="BorderBrush" Value="{DynamicResource ControlBorder}"/>
+      <Setter Property="BorderBrush" Value="Transparent"/>
       <Setter Property="BorderThickness" Value="1"/>
       <Setter Property="Padding" Value="10,3"/>
       <Setter Property="MinHeight" Value="28"/>
@@ -278,7 +279,6 @@
               </Trigger>
               <Trigger Property="IsChecked" Value="True">
                 <Setter TargetName="Bd" Property="Background" Value="Transparent"/>
-                <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource Accent}"/>
                 <Setter Property="Foreground" Value="{DynamicResource AccentText}"/>
               </Trigger>
               <Trigger Property="IsEnabled" Value="False">

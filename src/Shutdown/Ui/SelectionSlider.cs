@@ -12,8 +12,9 @@ namespace Shutdown.Ui
     /// <summary>
     /// Draws the selection of a row of toggles as one accent shape that slides to the newly checked item.
     /// The toggles inside keep a transparent background while checked; their template part "Bd" gives the shape's
-    /// bounds and corner radius. <see cref="ItemFill"/> paints the resting background of each item underneath the
-    /// accent shape, for items that are separate pills rather than parts of one segmented bar.
+    /// bounds and corner radius. <see cref="ItemFill"/> and <see cref="ItemBorder"/> paint the resting look of each item
+    /// underneath the accent shape, for items that are separate pills rather than parts of one segmented bar. Drawn
+    /// here, an outline never sits on top of the sliding shape and never jumps to the new item ahead of it.
     /// </summary>
     /// <remarks>
     /// The shape is drawn once with animation clocks attached to its rectangle and opacity, so a slide only sends
@@ -29,6 +30,11 @@ namespace Shutdown.Ui
             nameof(ItemFill), typeof(Brush), typeof(SelectionSlider),
             new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsRender));
 
+        public static readonly DependencyProperty ItemBorderProperty = DependencyProperty.Register(
+            nameof(ItemBorder), typeof(Brush), typeof(SelectionSlider),
+            new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsRender,
+                (d, e) => ((SelectionSlider)d)._itemPen = null));
+
         static readonly Duration SlideTime = new Duration(TimeSpan.FromMilliseconds(200));
         static readonly IEasingFunction Ease = Freeze(new CubicEase { EasingMode = EasingMode.EaseOut });
 
@@ -38,6 +44,7 @@ namespace Shutdown.Ui
         readonly List<Rect> _itemRects = new List<Rect>();
         readonly List<Rect> _scan = new List<Rect>();
         double _radius;
+        Pen _itemPen;
         Rect _target = Rect.Empty;
         bool _selectionPending;
 
@@ -79,6 +86,13 @@ namespace Shutdown.Ui
         {
             get => (Brush)GetValue(ItemFillProperty);
             set => SetValue(ItemFillProperty, value);
+        }
+
+        /// <summary>A 1 px outline around each item, drawn inside its bounds.</summary>
+        public Brush ItemBorder
+        {
+            get => (Brush)GetValue(ItemBorderProperty);
+            set => SetValue(ItemBorderProperty, value);
         }
 
         /// <summary>Where the accent shape is drawn right now (mid-slide while it moves).</summary>
@@ -189,9 +203,26 @@ namespace Shutdown.Ui
         protected override void OnRender(DrawingContext dc)
         {
             var fill = ItemFill;
-            if (fill != null)
+            var border = ItemBorder;
+            if (border != null && _itemPen == null) _itemPen = Freeze(new Pen(border, 1));
+            var pen = border == null ? null : _itemPen;
+            if (fill != null || pen != null)
                 foreach (var rect in _itemRects)
-                    dc.DrawRoundedRectangle(fill, null, rect, _radius, _radius);
+                {
+                    if (pen == null)
+                    {
+                        dc.DrawRoundedRectangle(fill, null, rect, _radius, _radius);
+                        continue;
+                    }
+                    // Snap the outline to device pixels like the Border it replaces, so it stays a sharp 1 px line.
+                    var guidelines = new GuidelineSet(new[] { rect.Left, rect.Right }, new[] { rect.Top, rect.Bottom });
+                    guidelines.Freeze();
+                    dc.PushGuidelineSet(guidelines);
+                    var inner = new Rect(rect.X + 0.5, rect.Y + 0.5, Math.Max(0, rect.Width - 1), Math.Max(0, rect.Height - 1));
+                    double r = Math.Max(0, _radius - 0.5);
+                    dc.DrawRoundedRectangle(fill, pen, inner, r, r);
+                    dc.Pop();
+                }
 
             var brush = IndicatorBrush;
             if (brush == null || _rect.IsEmpty || (_opacityClock == null && _opacity <= 0)) return;

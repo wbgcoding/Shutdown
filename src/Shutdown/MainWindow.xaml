@@ -238,6 +238,7 @@
         </StackPanel>
 
         <ui:SelectionSlider HorizontalAlignment="Center" Margin="0,8,0,-6" ItemFill="{DynamicResource Control}"
+                            ItemBorder="{DynamicResource ControlBorder}"
                             Visibility="{Binding Visibility, ElementName=Chips}">
           <WrapPanel x:Name="Chips"/>
         </ui:SelectionSlider>
