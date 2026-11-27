@@ -14,7 +14,7 @@ namespace Shutdown.Ui
     public sealed class PowerGlyph : Viewbox
     {
         // 16 x 16 design box: ring around (8, 9.5) open 35 degrees either side of the top, short stem into the gap.
-        static readonly Geometry Outline = Freeze(Geometry.Parse("M 4.99,5.2 A 5.25,5.25 0 1 0 11.01,5.2 M 8,2.75 L 8,7.75"));
+        static readonly Geometry Outline = Frozen.Of(Geometry.Parse("M 4.99,5.2 A 5.25,5.25 0 1 0 11.01,5.2 M 8,2.75 L 8,7.75"));
 
         public PowerGlyph()
         {
@@ -36,12 +36,6 @@ namespace Shutdown.Ui
             var canvas = new Canvas { Width = 16, Height = 16 };
             canvas.Children.Add(path);
             Child = canvas;
-        }
-
-        static Geometry Freeze(Geometry g)
-        {
-            g.Freeze();
-            return g;
         }
     }
 }

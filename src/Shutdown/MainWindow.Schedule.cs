@@ -38,7 +38,7 @@ namespace Shutdown
                 pending.TargetUtc = targetUtc;
                 pending.Due += span;
                 pending.Total += span;
-                if (pending.Due - Uptime() > LastMinuteThreshold) ResetLastMinuteWarning();
+                ResetLastMinuteWarning();
                 UpdateUi();
                 return;
             }
@@ -50,19 +50,20 @@ namespace Shutdown
         {
             HideMessage();
             if (!TryRun(Schedule.AbortArgs, out int abortCode)) return;
-            if (abortCode != 0 && abortCode != ShutdownRunner.ErrorNoShutdownInProgress)
+            if (!AbortSucceeded(abortCode))
             {
                 ShowRunError(Schedule.AbortArgs, abortCode);
                 return;
             }
             bool replaced = _pending != null;
-            ClearPending();
+            ClearPending(persist: false);
 
             // Recompute after the abort so its runtime does not count toward the new timer.
             var result = compute();
             if (!result.Ok)
             {
                 if (replaced) ShowInfo("MsgOldCancelled");
+                Persist();
                 UpdateUi();
                 return;
             }

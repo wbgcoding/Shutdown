@@ -12,8 +12,8 @@ namespace Shutdown.Ui
     public sealed class InfoBadge : Viewbox
     {
         // 16 x 16 design box: full circle, dot above a short stem.
-        static readonly Geometry Mark = Freeze(Geometry.Parse("M 8,7.2 L 8,11.6"));
-        static readonly Geometry Dot = Freeze(new EllipseGeometry(new Point(8, 4.7), 1.05, 1.05));
+        static readonly Geometry Mark = Frozen.Of(Geometry.Parse("M 8,7.2 L 8,11.6"));
+        static readonly Geometry Dot = Frozen.Of(new EllipseGeometry(new Point(8, 4.7), 1.05, 1.05));
 
         public InfoBadge()
         {
@@ -31,12 +31,6 @@ namespace Shutdown.Ui
             canvas.Children.Add(stem);
             canvas.Children.Add(dot);
             Child = canvas;
-        }
-
-        static Geometry Freeze(Geometry g)
-        {
-            g.Freeze();
-            return g;
         }
     }
 }

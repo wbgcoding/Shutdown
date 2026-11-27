@@ -38,14 +38,14 @@ namespace Shutdown.Ui
         public int Value
         {
             get => _value;
-            set => SetValue(value, Maximum);
+            set => SetClamped(value, Maximum);
         }
 
         public int PendingValue => int.TryParse(Box.Text, NumberStyles.None, CultureInfo.InvariantCulture, out int value)
             ? Clamp(value, TypedMaximum ?? Maximum)
             : _value;
 
-        void SetValue(int value, int maximum)
+        void SetClamped(int value, int maximum)
         {
             int v = Clamp(value, maximum);
             bool changed = v != _value;
@@ -117,7 +117,7 @@ namespace Shutdown.Ui
                 Render();
                 return TryCommitCarry(value - _value);
             }
-            SetValue(value, TypedMaximum ?? Maximum);
+            SetClamped(value, TypedMaximum ?? Maximum);
             return true;
         }
 

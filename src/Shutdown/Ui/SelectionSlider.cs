@@ -36,7 +36,7 @@ namespace Shutdown.Ui
                 (d, e) => ((SelectionSlider)d)._itemPen = null));
 
         static readonly Duration SlideTime = new Duration(TimeSpan.FromMilliseconds(200));
-        static readonly IEasingFunction Ease = Freeze(new CubicEase { EasingMode = EasingMode.EaseOut });
+        static readonly IEasingFunction Ease = Frozen.Of(new CubicEase { EasingMode = EasingMode.EaseOut });
 
         /// <summary>Off in tests that need the shape at its target at once.</summary>
         internal static bool Animations = true;
@@ -204,7 +204,7 @@ namespace Shutdown.Ui
         {
             var fill = ItemFill;
             var border = ItemBorder;
-            if (border != null && _itemPen == null) _itemPen = Freeze(new Pen(border, 1));
+            if (border != null && _itemPen == null) _itemPen = Frozen.Of(new Pen(border, 1));
             var pen = border == null ? null : _itemPen;
             if (fill != null || pen != null)
                 foreach (var rect in _itemRects)
@@ -254,12 +254,6 @@ namespace Shutdown.Ui
             if (a.IsEmpty || b.IsEmpty) return a.IsEmpty == b.IsEmpty;
             return Math.Abs(a.X - b.X) < 0.5 && Math.Abs(a.Y - b.Y) < 0.5
                 && Math.Abs(a.Width - b.Width) < 0.5 && Math.Abs(a.Height - b.Height) < 0.5;
-        }
-
-        static T Freeze<T>(T freezable) where T : Freezable
-        {
-            freezable.Freeze();
-            return freezable;
         }
     }
 }

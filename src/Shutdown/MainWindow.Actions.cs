@@ -23,12 +23,19 @@ namespace Shutdown
 
         void InitializeAction(string stored)
         {
-            ActHibernate.IsEnabled = HibernateAllowed();
-            ActSleep.IsEnabled = SleepAllowed();
+            RefreshActionAvailability();
 
             var button = Enum.TryParse(stored, out PowerAction action) && Enum.IsDefined(typeof(PowerAction), stored.Trim())
                 ? ActionButton(action) : ActShutdown;
             (button.IsEnabled ? button : ActShutdown).IsChecked = true;
+        }
+
+        // The app can stay open in the tray for days while hibernation or sleep gets turned on or off.
+        void RefreshActionAvailability()
+        {
+            ActHibernate.IsEnabled = HibernateAllowed();
+            ActSleep.IsEnabled = SleepAllowed();
+            if (!ActionButton(SelectedAction).IsEnabled) ActShutdown.IsChecked = true;
         }
 
         PowerAction SelectedAction =>

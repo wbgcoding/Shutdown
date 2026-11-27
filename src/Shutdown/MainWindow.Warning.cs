@@ -2,7 +2,6 @@ using System;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Automation;
-using System.Windows.Automation.Peers;
 using System.Windows.Interop;
 using Shutdown.Core;
 using Shutdown.Ui;
@@ -11,7 +10,7 @@ namespace Shutdown
 {
     public partial class MainWindow
     {
-        static readonly TimeSpan LastMinuteThreshold = TimeSpan.FromMinutes(1);
+        static readonly TimeSpan LastMinuteThreshold = TaskbarState.LastMinute;
 
         internal static Action<Window> Flash = WindowFlash.Flash;
         internal static Action<Window> ShowNoActivate = ShowWithoutFocus;
@@ -31,8 +30,7 @@ namespace Shutdown
             Flash(this);
 
             AutomationProperties.SetName(PendingClock, Loc.I["LastMinute"]);
-            if (AutomationPeer.ListenerExists(AutomationEvents.LiveRegionChanged))
-                UIElementAutomationPeer.CreatePeerForElement(PendingClock)?.RaiseAutomationEvent(AutomationEvents.LiveRegionChanged);
+            AnnounceChange(PendingClock);
         }
 
         void ResetLastMinuteWarning()

@@ -28,6 +28,16 @@ namespace Shutdown.Core
         /// <summary>Marker of the Windows start the schedule was made in (BootInfo); a new start drops the schedule.</summary>
         [DataMember(Order = 12)] public string PendingBoot { get; set; }
 
+        /// <summary>Forgets the stored schedule; true when there was one to forget.</summary>
+        public bool ClearPending()
+        {
+            if (PendingAction == null && PendingDue == null && PendingBoot == null) return false;
+            PendingAction = null;
+            PendingDue = null;
+            PendingBoot = null;
+            return true;
+        }
+
         [OnDeserializing]
         void OnDeserializing(StreamingContext c)
         {

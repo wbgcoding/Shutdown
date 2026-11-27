@@ -105,9 +105,7 @@ namespace Shutdown
             if (_pending == null)
             {
                 // Expired, unreadable or from before a restart (Windows dropped it): forget it so it never shows up again.
-                settings.PendingAction = null;
-                settings.PendingDue = null;
-                settings.PendingBoot = null;
+                settings.ClearPending();
             }
 
             if (settings.Left.HasValue && settings.Top.HasValue && OnScreen(settings.Left.Value, settings.Top.Value))
@@ -121,6 +119,7 @@ namespace Shutdown
             _unwatchTheme = Theme.Watch(() => { Theme.Apply(Application.Current.Resources); Theme.ApplyTitleBar(this); });
             SystemEvents.TimeChanged += OnTimeChanged;
             SourceInitialized += (s, e) => Theme.ApplyTitleBar(this);
+            Activated += (s, e) => RefreshActionAvailability();
             SizeChanged += (s, e) => KeepOnScreen();
             // Without the system frame, Windows 10 draws no window edge (Windows 11 adds its own border and corners).
             if (Environment.OSVersion.Version.Build < 22000)
@@ -155,6 +154,7 @@ namespace Shutdown
         protected override void OnClosed(EventArgs e)
         {
             _tick.Stop();
+            _saveTimer?.Stop();
             DisposeTrayIcon();
             _pending = null;
             SyncKeepAwake();
@@ -331,8 +331,7 @@ namespace Shutdown
             System.Windows.Automation.AutomationProperties.SetHelpText(StartButton, errorKey == null ? "" : Loc.I[errorKey]);
             if (errorKey == _lastInputError) return;
             _lastInputError = errorKey;
-            if (errorKey != null && !_loading && AutomationPeer.ListenerExists(AutomationEvents.LiveRegionChanged))
-                UIElementAutomationPeer.CreatePeerForElement(ResultText)?.RaiseAutomationEvent(AutomationEvents.LiveRegionChanged);
+            if (errorKey != null && !_loading) AnnounceChange(ResultText);
         }
 
         // 59:59.6 left reads "in 1 h", not "in 59 min".
@@ -381,7 +380,7 @@ namespace Shutdown
             }
             if (TryRun(Schedule.AbortArgs, out int code))
             {
-                if (code == 0 || code == ShutdownRunner.ErrorNoShutdownInProgress) ClearPending();
+                if (AbortSucceeded(code)) ClearPending();
                 else ShowRunError(Schedule.AbortArgs, code);
             }
             UpdateUi();
@@ -396,20 +395,14 @@ namespace Shutdown
             KeepAwake(need);
         }
 
-        void ClearPending()
+        void ClearPending(bool persist = true)
         {
             ResetLastMinuteWarning();
             _pending = null;
             SyncKeepAwake();
             // The close warning and the note for a newer copy are about the countdown that just ended.
             if (_msgKind == MessageKind.CloseGuard || _msgKey == "NewerBuildWaits" || _msgKey == "NewerBuildWaitsUnsaved") HideMessage();
-            if (_settings.PendingAction != null || _settings.PendingDue != null || _settings.PendingBoot != null)
-            {
-                _settings.PendingAction = null;
-                _settings.PendingDue = null;
-                _settings.PendingBoot = null;
-                Persist();
-            }
+            if (_settings.ClearPending() && persist) Persist();
         }
 
         /// <summary>Runs shutdown.exe; false and an error message when it fails.</summary>
@@ -423,10 +416,20 @@ namespace Shutdown
             if (code == 0) return true;
             // A timed-out call may still have registered the schedule; take it back so none stays hidden.
             if (code == ShutdownRunner.TimeoutCode)
-                maybeScheduled = !TryRun(Schedule.AbortArgs, out int undo) ||
-                                 (undo != 0 && undo != ShutdownRunner.ErrorNoShutdownInProgress);
+                maybeScheduled = !TryRun(Schedule.AbortArgs, out int undo) || !AbortSucceeded(undo);
             ShowRunError(args, code);
             return false;
+        }
+
+        // Nothing left to abort counts as aborted.
+        static bool AbortSucceeded(int code) => code == 0 || code == ShutdownRunner.ErrorNoShutdownInProgress;
+
+        // Without a listener (no screen reader) there is nothing to raise and no peer to create. CreatePeerForElement,
+        // not FromElement: the latter is null until a client asked for the peer, as for a card that was just collapsed.
+        static void AnnounceChange(UIElement element)
+        {
+            if (AutomationPeer.ListenerExists(AutomationEvents.LiveRegionChanged))
+                UIElementAutomationPeer.CreatePeerForElement(element)?.RaiseAutomationEvent(AutomationEvents.LiveRegionChanged);
         }
 
         bool TryRun(string args, out int code)
@@ -467,10 +470,7 @@ namespace Shutdown
                 RestoreWithoutFocus();
                 Flash(this);
             }
-            // Without a listener (no screen reader) there is nothing to raise, and no peer to create.
-            if (kind != MessageKind.None && AutomationPeer.ListenerExists(AutomationEvents.LiveRegionChanged))
-                // FromElement is null until a client asked for the peer, as for a card that was just collapsed.
-                UIElementAutomationPeer.CreatePeerForElement(MessageText)?.RaiseAutomationEvent(AutomationEvents.LiveRegionChanged);
+            if (kind != MessageKind.None) AnnounceChange(MessageText);
         }
 
         void RenderMessage()
