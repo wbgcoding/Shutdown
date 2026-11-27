@@ -102,7 +102,7 @@
   <data name="MenuSelectAll" xml:space="preserve"><value>Alles auswählen</value></data>
   <data name="ElevatedRunning" xml:space="preserve"><value>Shutdown läuft bereits als Administrator. Wechsle zu diesem Fenster oder schließe es und starte Shutdown erneut.</value></data>
   <data name="InstallerWelcome" xml:space="preserve"><value>Willkommen bei Shutdown</value></data>
-  <data name="InstallerWelcomeDescription" xml:space="preserve"><value>Mit Shutdown legen Sie fest, wann Ihr PC herunterfährt, neu startet, in den Ruhezustand oder in „Energie sparen“ wechselt.%n%nDieser Assistent installiert Version %1 in wenigen Schritten. Klicken Sie auf „Weiter“, um zu beginnen.</value></data>
+  <data name="InstallerWelcomeDescription" xml:space="preserve"><value>Mit Shutdown legen Sie fest, wann Ihr PC herunterfährt, neu startet, in den Ruhezustand oder in „Energie sparen“ wechselt.%n%nDieser Assistent installiert Version %1 in wenigen Schritten.%nKlicken Sie auf „Weiter“, um zu beginnen.</value></data>
   <data name="InstallerDowngrade" xml:space="preserve"><value>Shutdown %1 ist bereits installiert. Das Setup kann diese Version nicht durch %2 ersetzen.</value></data>
   <data name="InstallerPreviousUninstallFailed" xml:space="preserve"><value>Die vorhandene Installation konnte nicht entfernt werden. Schließen Sie Shutdown und deinstallieren Sie es in den Windows-Einstellungen, bevor Sie fortfahren.</value></data>
   <data name="InstallerPerUserFirst" xml:space="preserve"><value>Shutdown ist bereits nur für Ihr Konto installiert. Deinstallieren Sie diese Kopie zuerst in den Windows-Einstellungen und starten Sie das Setup dann erneut.</value></data>

@@ -59,14 +59,6 @@ Name: "de"; MessagesFile: "compiler:Languages\German.isl"
 
 #include "..\dist\installer-messages.iss"
 
-[Messages]
-; The ready page is off, so the tasks page starts the install: its text names that button.
-en.SelectTasksLabel2=Select the additional tasks you would like Setup to perform while installing [name], then click Install.
-de.SelectTasksLabel2=Wählen Sie die zusätzlichen Aufgaben aus, die das Setup während der Installation von [name] ausführen soll, und klicken Sie danach auf „Installieren“.
-
-[Tasks]
-Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"
-
 [InstallDelete]
 ; Older versions put the shortcut into a Start menu folder of its own.
 Type: files; Name: "{autoprograms}\Shutdown\Shutdown.lnk"; Check: IsManagedInstall
@@ -74,13 +66,14 @@ Type: dirifempty; Name: "{autoprograms}\Shutdown"; Check: IsManagedInstall
 
 [Files]
 Source: "..\dist\Shutdown.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\src\Shutdown\Assets\Shutdown.ico"; Flags: dontcopy
 
 [Icons]
 Name: "{autoprograms}\Shutdown"; Filename: "{app}\Shutdown.exe"; WorkingDir: "{app}"; Check: IsManagedInstall
-Name: "{autodesktop}\Shutdown"; Filename: "{app}\Shutdown.exe"; WorkingDir: "{app}"; Tasks: desktopicon; Check: IsManagedInstall
 
-[Run]
-Filename: "{app}\Shutdown.exe"; WorkingDir: "{app}"; Description: "{cm:InstallerRun}"; Flags: nowait postinstall skipifsilent runasoriginaluser; Check: IsManagedInstall
+[UninstallDelete]
+; Created from the finish page, so the uninstall log does not list it.
+Type: files; Name: "{autodesktop}\Shutdown.lnk"
 
 [Code]
 const
@@ -93,6 +86,13 @@ const
   SWP_NOSIZE = $0001;
   GWL_ID = -12;
   EVENT_MODIFY_STATE = $0002;
+  IMAGE_ICON = 1;
+  LR_LOADFROMFILE = $0010;
+  WM_SETICON = $0080;
+  ICON_SMALL = 0;
+  ICON_BIG = 1;
+  SM_CXICON = 11;
+  SM_CXSMICON = 49;
   InstanceMutex = 'Local\BGCoding.Shutdown.Instance';
   QuitEvent = 'Local\BGCoding.Shutdown.Quit';
 
@@ -102,6 +102,9 @@ var
   ManagedDir, PortableDir: String;
   DeleteAppData: Boolean;
   PreviousWizardOnShow: TNotifyEvent;
+  LaunchBox, DesktopBox: TNewCheckBox;
+  IconDpi: Cardinal;
+  SmallIcon, BigIcon: THandle;
 
 function AllowSetForegroundWindow(ProcessId: Cardinal): Boolean;
   external 'AllowSetForegroundWindow@user32.dll stdcall';
@@ -121,6 +124,48 @@ function SetEvent(Handle: THandle): Boolean;
 function CloseHandle(Handle: THandle): Boolean;
   external 'CloseHandle@kernel32.dll stdcall';
 
+function LoadImage(Instance: THandle; Name: String; ImageType: Cardinal; Width, Height: Integer;
+  Flags: Cardinal): THandle;
+  external 'LoadImageW@user32.dll stdcall';
+function DestroyIcon(Icon: THandle): Boolean;
+  external 'DestroyIcon@user32.dll stdcall';
+function GetDpiForWindow(Window: HWND): Cardinal;
+  external 'GetDpiForWindow@user32.dll stdcall';
+function GetSystemMetricsForDpi(Index: Integer; Dpi: Cardinal): Integer;
+  external 'GetSystemMetricsForDpi@user32.dll stdcall';
+
+function SetWindowIcon(Window: HWND; Kind, Size: Integer; const Path: String; Previous: THandle): THandle;
+begin
+  Result := LoadImage(0, Path, IMAGE_ICON, Size, Size, LR_LOADFROMFILE);
+  if Result = 0 then
+  begin
+    Result := Previous;
+    Exit;
+  end;
+  SendMessage(Window, WM_SETICON, Kind, Result);
+  if Previous <> 0 then
+    DestroyIcon(Previous);
+end;
+
+// Windows scales the stock title bar icon up from 16 px, which blurs it above 100 %; pick the matching frame instead.
+procedure SetSharpIcon;
+var
+  Window: HWND;
+  Dpi: Cardinal;
+  Path: String;
+begin
+  Window := WizardForm.Handle;
+  Dpi := GetDpiForWindow(Window);
+  if (Dpi = 0) or (Dpi = IconDpi) then
+    Exit;
+  IconDpi := Dpi;
+  Path := ExpandConstant('{tmp}\Shutdown.ico');
+  if not FileExists(Path) then
+    ExtractTemporaryFile('Shutdown.ico');
+  SmallIcon := SetWindowIcon(Window, ICON_SMALL, GetSystemMetricsForDpi(SM_CXSMICON, Dpi), Path, SmallIcon);
+  BigIcon := SetWindowIcon(Window, ICON_BIG, GetSystemMetricsForDpi(SM_CXICON, Dpi), Path, BigIcon);
+end;
+
 procedure RaiseWizard;
 var
   Window: HWND;
@@ -128,6 +173,7 @@ var
 begin
   if WizardSilent then
     Exit;
+  SetSharpIcon;
   Window := WizardForm.Handle;
   for Attempt := 1 to 20 do
   begin
@@ -333,14 +379,25 @@ begin
   begin
     ManagedDir := WizardForm.DirEdit.Text;
     WizardForm.DirEdit.Text := PortableDir;
-    WizardForm.NextButton.Caption := SetupMessage(msgButtonInstall);
   end
   else
   begin
     PortableDir := WizardForm.DirEdit.Text;
     WizardForm.DirEdit.Text := ManagedDir;
-    WizardForm.NextButton.Caption := SetupMessage(msgButtonNext);
   end;
+end;
+
+function CreateFinishBox(const Caption: String; Checked: Boolean): TNewCheckBox;
+begin
+  Result := TNewCheckBox.Create(WizardForm);
+  Result.Parent := WizardForm.FinishedPage;
+  Result.Caption := Caption;
+  Result.Checked := Checked;
+end;
+
+function DesktopShortcut: String;
+begin
+  Result := ExpandConstant('{autodesktop}\Shutdown.lnk');
 end;
 
 procedure InitializeWizard;
@@ -380,20 +437,47 @@ begin
     PortableBox.Visible := False;
     Description.Visible := False;
   end;
+
+  LaunchBox := CreateFinishBox(CustomMessage('InstallerRun'), True);
+  // An update keeps the earlier choice; a first install offers the shortcut.
+  DesktopBox := CreateFinishBox(CustomMessage('CreateDesktopIcon'), (ExistingRoot = 0) or FileExists(DesktopShortcut));
+  SetWindowLong(LaunchBox.Handle, GWL_ID, 1003);
+  SetWindowLong(DesktopBox.Handle, GWL_ID, 1004);
   RaiseWizard;
 end;
 
 procedure CurPageChanged(CurPageID: Integer);
+var
+  Top: Integer;
 begin
-  // Without a ready page the last page before copying starts the install, so its button says so.
-  if ((CurPageID = wpSelectDir) and not IsManagedInstall) or (CurPageID = wpSelectTasks) then
+  // Without a ready page the folder page starts the install, so its button says so.
+  if CurPageID = wpSelectDir then
     WizardForm.NextButton.Caption := SetupMessage(msgButtonInstall);
+  if CurPageID = wpFinished then
+  begin
+    Top := WizardForm.FinishedLabel.Top + WizardForm.FinishedLabel.Height + ScaleY(16);
+    LaunchBox.SetBounds(WizardForm.FinishedLabel.Left, Top, WizardForm.FinishedLabel.Width, ScaleY(20));
+    DesktopBox.SetBounds(LaunchBox.Left, Top + ScaleY(28), LaunchBox.Width, ScaleY(20));
+    LaunchBox.Visible := IsManagedInstall;
+    DesktopBox.Visible := IsManagedInstall;
+  end;
   RaiseWizard;
 end;
 
-function ShouldSkipPage(PageID: Integer): Boolean;
+procedure CurStepChanged(CurStep: TSetupStep);
+var
+  App: String;
+  ResultCode: Integer;
 begin
-  Result := not IsManagedInstall and (PageID = wpSelectTasks);
+  if (CurStep <> ssDone) or not IsManagedInstall then
+    Exit;
+  App := ExpandConstant('{app}\Shutdown.exe');
+  if DesktopBox.Checked then
+    CreateShellLink(DesktopShortcut, '', App, '', ExpandConstant('{app}'), '', 0, SW_SHOWNORMAL)
+  else
+    DeleteFile(DesktopShortcut);
+  if LaunchBox.Checked and not WizardSilent then
+    ExecAsOriginalUser(App, '', ExpandConstant('{app}'), SW_SHOWNORMAL, ewNoWait, ResultCode);
 end;
 
 function InstallRoot: Integer;
