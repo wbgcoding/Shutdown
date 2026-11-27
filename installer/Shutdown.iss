@@ -439,8 +439,9 @@ begin
   end;
 
   LaunchBox := CreateFinishBox(CustomMessage('InstallerRun'), True);
-  // An update keeps the earlier choice; a first install offers the shortcut.
-  DesktopBox := CreateFinishBox(CustomMessage('CreateDesktopIcon'), (ExistingRoot = 0) or FileExists(DesktopShortcut));
+  // An update keeps the earlier choice, also when it moves between all users and only me; a first install offers it.
+  DesktopBox := CreateFinishBox(CustomMessage('CreateDesktopIcon'), (ExistingRoot = 0) or
+    FileExists(ExpandConstant('{userdesktop}\Shutdown.lnk')) or FileExists(ExpandConstant('{commondesktop}\Shutdown.lnk')));
   SetWindowLong(LaunchBox.Handle, GWL_ID, 1003);
   SetWindowLong(DesktopBox.Handle, GWL_ID, 1004);
   RaiseWizard;
@@ -472,10 +473,15 @@ begin
   if (CurStep <> ssDone) or not IsManagedInstall then
     Exit;
   App := ExpandConstant('{app}\Shutdown.exe');
-  if DesktopBox.Checked then
-    CreateShellLink(DesktopShortcut, '', App, '', ExpandConstant('{app}'), '', 0, SW_SHOWNORMAL)
-  else
-    DeleteFile(DesktopShortcut);
+  // A shortcut that cannot be written must not keep the app from starting.
+  try
+    if DesktopBox.Checked then
+      CreateShellLink(DesktopShortcut, '', App, '', ExpandConstant('{app}'), '', 0, SW_SHOWNORMAL)
+    else
+      DeleteFile(DesktopShortcut);
+  except
+    Log('Desktop shortcut: ' + GetExceptionMessage);
+  end;
   if LaunchBox.Checked and not WizardSilent then
     ExecAsOriginalUser(App, '', ExpandConstant('{app}'), SW_SHOWNORMAL, ewNoWait, ResultCode);
 end;
