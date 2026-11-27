@@ -206,7 +206,8 @@ begin
      TryPackVersion('{#AppVersion}', OfferedVersion) then
     Comparison := ComparePackedVersion(InstalledVersion, OfferedVersion)
   else
-    Comparison := 1;
+    // A damaged version entry must not block every install; the files are simply replaced.
+    Comparison := -1;
 end;
 
 function CheckInstalledVersion(Root: Integer; var Installed: String; var Comparison: Integer;
@@ -320,8 +321,6 @@ begin
 
   if (ExistingRoot = HKLM) and not IsAdmin then
     Result := ShellExec('runas', Executable, Args, '', SW_SHOWNORMAL, ewWaitUntilTerminated, ExitCode)
-  else if (ExistingRoot = HKCU) and IsAdmin then
-    Exit
   else
     Result := Exec(Executable, Args, '', SW_SHOWNORMAL, ewWaitUntilTerminated, ExitCode);
   if Result then
