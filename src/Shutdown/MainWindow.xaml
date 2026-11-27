@@ -27,7 +27,7 @@
     </Grid.ColumnDefinitions>
     <ui:AppLogo Width="24" Height="24" Margin="12,0,9,0" VerticalAlignment="Center"/>
     <!-- Hidden from screen readers: the window itself carries the same name. -->
-    <ui:Glyph Grid.Column="1" Style="{StaticResource TitleText}"
+    <ui:TitleGlyph Grid.Column="1" Style="{StaticResource TitleText}"
                Text="{Binding Title, RelativeSource={RelativeSource AncestorType=Window}}"/>
     <Button x:Name="MinimizeButton" Grid.Column="2" Style="{StaticResource CaptionButton}" Click="OnMinimize"
             AutomationProperties.AutomationId="TitleMinimize"

@@ -2,6 +2,11 @@
 
 All notable changes to this project are documented here. The format follows Keep a Changelog; versions follow semantic versioning.
 
+## [1.3.1] - unreleased
+
+### Fixed
+- The window title sits level with the logo in the title bar instead of slightly below it.
+
 ## [1.3.0] - 2026-11-27
 
 ### Fixed

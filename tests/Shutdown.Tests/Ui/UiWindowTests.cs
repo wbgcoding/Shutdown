@@ -784,6 +784,27 @@ namespace Shutdown.Tests
             finally { System.Threading.Thread.CurrentThread.CurrentCulture = previous; }
         });
 
+        [Theory]
+        [InlineData("en")]
+        [InlineData("de")]
+        public void The_title_capitals_sit_level_with_the_logo(string language) => Sta.Run(() =>
+        {
+            var w = Make();
+            Loc.I.Apply(language);
+            Click(w.StartButton);
+            LayOut(w);
+
+            var title = w.TitleBar.Children.OfType<TitleGlyph>().Single();
+            var logo = w.TitleBar.Children.OfType<AppLogo>().Single();
+            Assert.False(string.IsNullOrEmpty(title.Text));
+            Assert.True(new Typeface(title.FontFamily, title.FontStyle, title.FontWeight, title.FontStretch)
+                .TryGetGlyphTypeface(out var glyphs));
+            double titleTop = title.TranslatePoint(new Point(), w.TitleBar).Y;
+            double capitals = titleTop + (title.FontFamily.Baseline - glyphs.CapsHeight / 2) * title.FontSize;
+            double logoCentre = logo.TranslatePoint(new Point(), w.TitleBar).Y + logo.ActualHeight / 2;
+            Assert.True(Math.Abs(capitals - logoCentre) <= 0.5, $"Capitals centre {capitals:F2}, logo centre {logoCentre:F2}.");
+        });
+
         [Fact]
         public void The_date_label_follows_the_language() => Sta.Run(() =>
         {
