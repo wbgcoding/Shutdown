@@ -42,7 +42,7 @@ namespace Shutdown.Tests
 
         [Fact]
         public void Nothing_published_reads_as_null() =>
-            Assert.Null(BuildId.ReadPublished(@"Local\BGCoding.Shutdown.Test." + Guid.NewGuid().ToString("N")));
+            Assert.Null(BuildId.ReadPublished(@"Local\BGCoding.Shutdown.Test." + Guid.NewGuid().ToString("N"), out _));
 
         [Fact]
         public void A_map_in_another_layout_reads_as_null()

@@ -20,7 +20,7 @@ namespace Shutdown.Core
         readonly List<(string Phase, TimeSpan At)> _marks = new List<(string, TimeSpan)>();
         bool _done;
 
-        public StartTrace() : this(SinceProcessStart, s => Log.Write(s)) { }
+        public StartTrace() : this(SinceProcessStart(), s => Log.Write(s)) { }
 
         internal StartTrace(Func<TimeSpan> elapsed, Action<string> write)
         {
@@ -30,10 +30,18 @@ namespace Shutdown.Core
         }
 
         // Counted from the process start, so the time the runtime and WPF need before any app code runs shows up too.
-        static TimeSpan SinceProcessStart()
+        // The start time is read once; a stopwatch measures from there, so a clock change during the start cannot skew it.
+        static Func<TimeSpan> SinceProcessStart()
         {
-            try { return DateTime.Now - Process.GetCurrentProcess().StartTime; }
-            catch (Exception) { return TimeSpan.Zero; }
+            var before = TimeSpan.Zero;
+            try
+            {
+                using (var p = Process.GetCurrentProcess())
+                    before = DateTime.Now - p.StartTime;
+            }
+            catch (Exception) { }
+            var clock = Stopwatch.StartNew();
+            return () => before + clock.Elapsed;
         }
 
         public void Mark(string phase)

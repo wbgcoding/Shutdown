@@ -22,7 +22,7 @@ namespace Shutdown
         const string CommandName = @"Local\BGCoding.Shutdown.Command";
         const string RequestName = @"Local\BGCoding.Shutdown.Request";
         const int MailboxBusyExitCode = 2;
-        const int CommandNotAcknowledgedExitCode = 3;
+        const int CommandNotDeliveredExitCode = 3;
         static readonly TimeSpan AckTimeout = TimeSpan.FromMilliseconds(400);
         static readonly TimeSpan RetryWait = TimeSpan.FromMilliseconds(200);
         static readonly TimeSpan ClaimTimeout = TimeSpan.FromSeconds(5);
@@ -125,7 +125,7 @@ namespace Shutdown
                 // The running copy was started as administrator; a normal start may not even signal it.
                 Log.Write("another instance runs elevated");
                 MessageBox.Show(Loc.I["ElevatedRunning"], "Shutdown", MessageBoxButton.OK, MessageBoxImage.Information);
-                return CommandNotAcknowledgedExitCode;
+                return CommandNotDeliveredExitCode;
             }
         }
 
@@ -162,7 +162,7 @@ namespace Shutdown
                     {
                         CommandInbox.Withdraw(CommandName);
                         Log.Write("running instance did not acknowledge the command");
-                        return CommandNotAcknowledgedExitCode;
+                        return CommandNotDeliveredExitCode;
                     }
                     return 0;
                 }
@@ -171,13 +171,13 @@ namespace Shutdown
                 if (args.Length == 0 || running.HasValue || DateTime.UtcNow >= deadline)
                 {
                     _activate.Set();
-                    if (_ack.WaitOne(AckTimeout)) return CommandNotAcknowledgedExitCode;
+                    if (_ack.WaitOne(AckTimeout)) return CommandNotDeliveredExitCode;
                 }
                 if (TryOwnMutex(_mutex, RetryWait)) break;
                 if (DateTime.UtcNow > deadline)
                 {
                     Log.Write("running instance did not answer");
-                    return CommandNotAcknowledgedExitCode;
+                    return CommandNotDeliveredExitCode;
                 }
             }
             _activate.Reset();
@@ -212,7 +212,7 @@ namespace Shutdown
             {
                 index = WaitHandle.WaitAny(new WaitHandle[] { mutex, ack }, wait);
             }
-            catch (AbandonedMutexException ex) when (ex.MutexIndex == 0) { index = 0; }
+            catch (AbandonedMutexException) { index = 0; }
             if (index == 1) return Reply.Acknowledged;
             if (index != 0) return Reply.TimedOut;
 

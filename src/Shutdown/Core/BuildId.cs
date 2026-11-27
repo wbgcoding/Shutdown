@@ -87,6 +87,5 @@ namespace Shutdown.Core
             catch (Exception) { return null; }
         }
 
-        public static BuildId? ReadPublished(string name) => ReadPublished(name, out _);
     }
 }
