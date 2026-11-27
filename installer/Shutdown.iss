@@ -25,12 +25,9 @@ DisableReadyPage=yes
 ; Installing over an existing folder is always what the user wants (update, repair, portable copy).
 DirExistsWarning=no
 DisableWelcomePage=no
-WizardStyle=modern dynamic windows11
+WizardStyle=modern
 WizardImageFile=WizardImage-100.png,WizardImage-125.png,WizardImage-150.png,WizardImage-175.png,WizardImage-200.png,WizardImage-225.png,WizardImage-250.png
 WizardSmallImageFile=WizardSmallImage-100.png,WizardSmallImage-125.png,WizardSmallImage-150.png,WizardSmallImage-175.png,WizardSmallImage-200.png,WizardSmallImage-225.png,WizardSmallImage-250.png
-; The same blue images suit the light and the dark appearance.
-WizardImageFileDynamicDark=WizardImage-100.png,WizardImage-125.png,WizardImage-150.png,WizardImage-175.png,WizardImage-200.png,WizardImage-225.png,WizardImage-250.png
-WizardSmallImageFileDynamicDark=WizardSmallImage-100.png,WizardSmallImage-125.png,WizardSmallImage-150.png,WizardSmallImage-175.png,WizardSmallImage-200.png,WizardSmallImage-225.png,WizardSmallImage-250.png
 PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
 ; An update keeps the scope of the installed copy without asking again.

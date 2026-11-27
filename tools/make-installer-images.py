@@ -1,13 +1,12 @@
 """Draws the setup wizard images (installer/WizardImage-*.png, installer/WizardSmallImage-*.png).
 
-The large image fills the left side of the welcome and finish pages: the app icon's blue gradient with the white
-power symbol. The small image is the app icon itself, shown at the top of the other pages. One file per display
+The large image fills the left side of the welcome and finish pages: the app icon on white, matching the
+standard light wizard. The small image is the app icon itself, shown at the top of the other pages. One file per display
 scale, so setup never has to stretch a bitmap. Usage: python tools/make-installer-images.py
 """
 import importlib.util
 from pathlib import Path
 
-import numpy as np
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -22,21 +21,12 @@ SMALL = 66
 
 
 def panel(width, height):
-    ss = 4
-    xs = (np.arange(width * ss) + 0.5) / ss
-    ys = (np.arange(height * ss) + 0.5) / ss
-    x, y = np.meshgrid(xs, ys)
-    ro = width * 0.26
-    w = ro * 0.28
-    cx, cy = width / 2, height * 0.42 + 0.1 * ro
-    glyph = icon.power_symbol(x, y, cx, cy, ro, w)
-
-    # Diagonal gradient, lighter at the top left, like light falling on the icon tile.
-    t = np.clip((y / height) * 0.8 + (x / width) * 0.2, 0, 1)[..., None]
-    rgb = icon.TOP * (1 - t) + icon.BOTTOM * t
-    rgb = np.where(glyph[..., None], 255.0, rgb)
-    rgb = rgb.reshape(height, ss, width, ss, 3).mean(axis=(1, 3))
-    return Image.fromarray(rgb.round().astype(np.uint8), 'RGB')
+    # White like the rest of the wizard, with the app icon in the upper half.
+    img = Image.new('RGB', (width, height), (255, 255, 255))
+    size = round(width * 0.5)
+    tile = icon.frame(size)
+    img.paste(tile, ((width - size) // 2, round(height * 0.38) - size // 2), tile)
+    return img
 
 
 def main():
