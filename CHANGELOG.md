@@ -2,6 +2,15 @@
 
 All notable changes to this project are documented here. The format follows Keep a Changelog; versions follow semantic versioning.
 
+## [1.4.0] - unreleased
+
+### Fixed
+- In English, a long date such as "Wed, 12/30/2026" is no longer cut off between the day arrows; it wraps after the weekday.
+- Turning hibernation or sleep on or off in Windows now updates the buttons the next time the window comes to the front, instead of only after a restart.
+- The note that a duration is too long goes away once a new duration is chosen.
+- Screen readers read the preset chips as "15 minutes" or "1 hour" instead of the abbreviations.
+- Setup no longer refuses to install when the installed version number in the registry is damaged.
+
 ## [1.3.0] - 2026-11-26
 
 ### Fixed
