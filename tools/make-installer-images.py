@@ -21,11 +21,11 @@ SMALL = 66
 
 
 def panel(width, height):
-    # White like the rest of the wizard, with the app icon in the upper half.
+    # White like the rest of the wizard; the app icon's top lines up with the welcome heading.
     img = Image.new('RGB', (width, height), (255, 255, 255))
     size = round(width * 0.5)
     tile = icon.frame(size)
-    img.paste(tile, ((width - size) // 2, round(height * 0.38) - size // 2), tile)
+    img.paste(tile, ((width - size) // 2, round(height * 0.045)), tile)
     return img
 
 
