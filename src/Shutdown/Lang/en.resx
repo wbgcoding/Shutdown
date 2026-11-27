@@ -30,6 +30,9 @@
   <data name="DecreaseFmt" xml:space="preserve"><value>Decrease {0}</value></data>
   <data name="ChipMinutes" xml:space="preserve"><value>{0} min</value></data>
   <data name="ChipHours" xml:space="preserve"><value>{0} h</value></data>
+  <data name="ChipMinutesName" xml:space="preserve"><value>{0} minutes</value></data>
+  <data name="ChipHoursName" xml:space="preserve"><value>{0} hours</value></data>
+  <data name="ChipOneHourName" xml:space="preserve"><value>1 hour</value></data>
   <data name="Postpone15" xml:space="preserve"><value>Postpone by 15 minutes</value></data>
   <data name="Postpone60" xml:space="preserve"><value>Postpone by 1 hour</value></data>
   <data name="SummaryAt" xml:space="preserve"><value>{0} at {1}</value></data>
@@ -44,7 +47,7 @@
   <data name="AppTimedHibernate" xml:space="preserve"><value>Windows has no timer for hibernation, so Shutdown runs the countdown itself:</value></data>
   <data name="AppTimedSleep" xml:space="preserve"><value>Windows has no timer for sleep, so Shutdown runs the countdown itself:</value></data>
   <data name="StartShutdown" xml:space="preserve"><value>Schedule shutdown</value></data>
-  <data name="StartTip" xml:space="preserve"><value>Schedules the action (Enter)</value></data>
+  <data name="StartTip" xml:space="preserve"><value>Schedules the action (Enter).</value></data>
   <data name="ShutdownComment" xml:space="preserve"><value>Scheduled with the Shutdown app.</value></data>
   <data name="StartRestart" xml:space="preserve"><value>Schedule restart</value></data>
   <data name="StartHibernate" xml:space="preserve"><value>Schedule hibernation</value></data>

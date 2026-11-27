@@ -445,21 +445,21 @@
 
     <!-- Own menus instead of the built-in ones, so the entries follow the app language -->
     <ContextMenu x:Key="ReadOnlyTextMenu">
-      <MenuItem Command="ApplicationCommands.Copy" Header="{Binding [Copy], Source={x:Static core:Loc.I}}"
+      <MenuItem Command="ApplicationCommands.Copy" AutomationProperties.AutomationId="MenuCopy" Header="{Binding [Copy], Source={x:Static core:Loc.I}}"
                 CommandTarget="{Binding PlacementTarget, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
-      <MenuItem Command="ApplicationCommands.SelectAll" Header="{Binding [MenuSelectAll], Source={x:Static core:Loc.I}}"
+      <MenuItem Command="ApplicationCommands.SelectAll" AutomationProperties.AutomationId="MenuSelectAll" Header="{Binding [MenuSelectAll], Source={x:Static core:Loc.I}}"
                 CommandTarget="{Binding PlacementTarget, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
     </ContextMenu>
 
     <ContextMenu x:Key="EditTextMenu">
-      <MenuItem Command="ApplicationCommands.Cut" Header="{Binding [MenuCut], Source={x:Static core:Loc.I}}"
+      <MenuItem Command="ApplicationCommands.Cut" AutomationProperties.AutomationId="MenuCut" Header="{Binding [MenuCut], Source={x:Static core:Loc.I}}"
                 CommandTarget="{Binding PlacementTarget, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
-      <MenuItem Command="ApplicationCommands.Copy" Header="{Binding [Copy], Source={x:Static core:Loc.I}}"
+      <MenuItem Command="ApplicationCommands.Copy" AutomationProperties.AutomationId="MenuCopy" Header="{Binding [Copy], Source={x:Static core:Loc.I}}"
                 CommandTarget="{Binding PlacementTarget, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
-      <MenuItem Command="ApplicationCommands.Paste" Header="{Binding [MenuPaste], Source={x:Static core:Loc.I}}"
+      <MenuItem Command="ApplicationCommands.Paste" AutomationProperties.AutomationId="MenuPaste" Header="{Binding [MenuPaste], Source={x:Static core:Loc.I}}"
                 CommandTarget="{Binding PlacementTarget, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
       <Separator/>
-      <MenuItem Command="ApplicationCommands.SelectAll" Header="{Binding [MenuSelectAll], Source={x:Static core:Loc.I}}"
+      <MenuItem Command="ApplicationCommands.SelectAll" AutomationProperties.AutomationId="MenuSelectAll" Header="{Binding [MenuSelectAll], Source={x:Static core:Loc.I}}"
                 CommandTarget="{Binding PlacementTarget, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
     </ContextMenu>
   </Application.Resources>

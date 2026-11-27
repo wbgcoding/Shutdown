@@ -56,6 +56,9 @@ namespace Shutdown
                     Content = hours > 0 ? Loc.I.F("ChipHours", hours) : Loc.I.F("ChipMinutes", minutes),
                 };
                 AutomationProperties.SetAutomationId(chip, "Chip" + duration);
+                // Screen readers read the full words, not the "h" or "min" abbreviation on the chip.
+                AutomationProperties.SetName(chip, hours == 0 ? Loc.I.F("ChipMinutesName", minutes)
+                    : hours == 1 ? Loc.I["ChipOneHourName"] : Loc.I.F("ChipHoursName", hours));
                 Chips.Children.Add(chip);
             }
         }
@@ -92,7 +95,15 @@ namespace Shutdown
 
         void OnCountdownChanged(object sender, EventArgs e)
         {
-            if (!_updatingCountdown) OnInputChanged(sender, null);
+            if (_updatingCountdown) return;
+            DropTooLongNote();
+            OnInputChanged(sender, null);
+        }
+
+        // The note explains a duration that was cut or refused; once the user picks another one, the summary line says the rest.
+        void DropTooLongNote()
+        {
+            if (!_loading && _msgKind == MessageKind.Info && _msgKey == "ErrTooLong") HideMessage();
         }
 
         bool TryCarryMinutes(int delta)
@@ -120,6 +131,7 @@ namespace Shutdown
             }
             finally { _updatingCountdown = false; }
 
+            DropTooLongNote();
             OnInputChanged(this, null);
         }
 

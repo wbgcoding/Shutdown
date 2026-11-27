@@ -201,7 +201,8 @@
                   ToolTip="{Binding [PrevDay], Source={x:Static core:Loc.I}}">
             <ui:IconGlyph Style="{StaticResource Icon}" Text="&#xE76B;" FontSize="12"/>
           </Button>
-          <TextBlock x:Name="DateLabel" Grid.Column="2" FontSize="14" FontWeight="SemiBold"
+          <!-- A long English date ("Wed, 12/30/2026") wraps after the weekday instead of being cut off. -->
+          <TextBlock x:Name="DateLabel" Grid.Column="2" FontSize="14" FontWeight="SemiBold" TextWrapping="Wrap" TextAlignment="Center"
                      HorizontalAlignment="Center" VerticalAlignment="Center"
                      AutomationProperties.AutomationId="DateLabel"/>
           <Button x:Name="NextDay" Grid.Column="3" Style="{StaticResource GhostButton}" Click="OnNextDay" MinWidth="32" MinHeight="32"
@@ -240,7 +241,7 @@
         <ui:SelectionSlider HorizontalAlignment="Center" Margin="0,8,0,-6" ItemFill="{DynamicResource Control}"
                             ItemBorder="{DynamicResource ControlBorder}"
                             Visibility="{Binding Visibility, ElementName=Chips}">
-          <WrapPanel x:Name="Chips"/>
+          <WrapPanel x:Name="Chips" Margin="0,0,-6,0"/>
         </ui:SelectionSlider>
         <Border x:Name="AppTimedNote" Background="{DynamicResource Control}" BorderBrush="{DynamicResource Accent}"
                 BorderThickness="1" CornerRadius="6" Padding="10,7" Margin="0,8,0,0">
@@ -303,7 +304,7 @@
     <Border x:Name="MessageCard" Visibility="Collapsed" CornerRadius="8" Padding="12,8" Margin="0,0,0,8"
             AutomationProperties.AutomationId="MessageCard">
       <StackPanel>
-        <TextBox x:Name="MessageText" Style="{StaticResource ReadOnlyText}" FontSize="13"
+        <TextBox x:Name="MessageText" Style="{StaticResource ReadOnlyText}"
                  AutomationProperties.AutomationId="MessageText" AutomationProperties.LiveSetting="Assertive"/>
         <TextBox x:Name="MessageDetail" Style="{StaticResource ReadOnlyText}" FontSize="12" Margin="0,2,0,0"
                  FontFamily="{StaticResource MonoFont}" Foreground="{DynamicResource TextSub}"
@@ -324,20 +325,15 @@
       </StackPanel>
     </Border>
 
-    <Grid>
-      <Grid.ColumnDefinitions>
-        <ColumnDefinition Width="*"/>
-      </Grid.ColumnDefinitions>
-      <Button x:Name="StartButton" Style="{StaticResource AccentButton}" Click="OnStart" MinHeight="36"
-              IsDefault="True" AutomationProperties.AutomationId="Start" AutomationProperties.AcceleratorKey="Enter"
-              ToolTip="{Binding [StartTip], Source={x:Static core:Loc.I}}">
-        <StackPanel Orientation="Horizontal">
-          <ui:PowerGlyph x:Name="StartPower" Margin="0,0,8,0"/>
-          <ui:IconGlyph x:Name="StartIcon" Style="{StaticResource Icon}" FontSize="13" Margin="0,0,8,0" Visibility="Collapsed"/>
-          <TextBlock x:Name="StartText" TextWrapping="Wrap"/>
-        </StackPanel>
-      </Button>
-    </Grid>
+    <Button x:Name="StartButton" Style="{StaticResource AccentButton}" Click="OnStart" MinHeight="36"
+            IsDefault="True" AutomationProperties.AutomationId="Start" AutomationProperties.AcceleratorKey="Enter"
+            ToolTip="{Binding [StartTip], Source={x:Static core:Loc.I}}">
+      <StackPanel Orientation="Horizontal">
+        <ui:PowerGlyph x:Name="StartPower" Margin="0,0,8,0"/>
+        <ui:IconGlyph x:Name="StartIcon" Style="{StaticResource Icon}" FontSize="13" Margin="0,0,8,0" Visibility="Collapsed"/>
+        <TextBlock x:Name="StartText" TextWrapping="Wrap"/>
+      </StackPanel>
+    </Button>
   </StackPanel>
   </DockPanel>
 </Window>

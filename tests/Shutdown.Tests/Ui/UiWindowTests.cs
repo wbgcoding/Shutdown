@@ -523,10 +523,9 @@ namespace Shutdown.Tests
         public void Start_has_its_own_row_and_abort_is_only_shown_in_the_pending_card() => Sta.Run(() =>
         {
             var w = Make();
-            var bottomRow = Assert.IsType<Grid>(w.StartButton.Parent);
-            Assert.Single(bottomRow.ColumnDefinitions);
-            Assert.Same(w.StartButton, Assert.Single(bottomRow.Children.Cast<UIElement>()));
-            Assert.Same(bottomRow, Assert.IsType<StackPanel>(bottomRow.Parent).Children.Cast<UIElement>().Last());
+            var column = Assert.IsType<StackPanel>(w.StartButton.Parent);
+            Assert.Equal(Orientation.Vertical, column.Orientation);
+            Assert.Same(w.StartButton, column.Children.Cast<UIElement>().Last());
 
             var abort = ById<Button>(w.PendingCard, "Abort");
             Assert.Same(w.AbortButton, abort);
@@ -631,8 +630,12 @@ namespace Shutdown.Tests
                 Assert.Equal(ids[i], AutomationProperties.GetAutomationId(b));
                 Assert.Equal(en[i], b.Content);
             }
+            Assert.Equal(new[] { "15 minutes", "30 minutes", "1 hour", "2 hours", "3 hours" },
+                w.Chips.Children.Cast<UIElement>().Select(AutomationProperties.GetName));
             Loc.I.Apply("de");
             Assert.Equal(5, w.Chips.Children.Count);
+            Assert.Equal(new[] { "15 Minuten", "30 Minuten", "1 Stunde", "2 Stunden", "3 Stunden" },
+                w.Chips.Children.Cast<UIElement>().Select(AutomationProperties.GetName));
             Assert.Equal(Loc.I.F("ChipMinutes", 15), ((ToggleButton)w.Chips.Children[0]).Content);
             Assert.Equal(Loc.I.F("ChipHours", 3), ((ToggleButton)w.Chips.Children[4]).Content);
             Assert.Equal("Chip180", AutomationProperties.GetAutomationId(w.Chips.Children[4]));
@@ -694,6 +697,91 @@ namespace Shutdown.Tests
             // Stepping back past today does nothing, even when the button is forced.
             Click(w.PrevDay);
             Assert.Equal(Loc.I.DateText(today), w.DateLabel.Text);
+        });
+
+        [Fact]
+        public void The_too_long_note_goes_away_once_the_duration_fits() => Sta.Run(() =>
+        {
+            var w = Make(new Settings { Hours = 90000, Minutes = 75 });
+            Assert.Equal(Visibility.Visible, w.MessageCard.Visibility);
+            Assert.Equal(Loc.I["ErrTooLong"], w.MessageText.Text);
+            // Other input leaves the note alone; only a new duration replaces what it explains.
+            w.ActRestart.IsChecked = true;
+            Assert.Equal(Visibility.Visible, w.MessageCard.Visibility);
+            w.DurHours.Value = 2;
+            Assert.Equal(Visibility.Collapsed, w.MessageCard.Visibility);
+        });
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void Hibernate_and_sleep_availability_is_checked_again_when_the_window_is_activated(bool sleep) => Sta.Run(() =>
+        {
+            var previousHibernate = MainWindow.HibernateAllowed;
+            var previousSleep = MainWindow.SleepAllowed;
+            try
+            {
+                var w = Make(new Settings { Action = sleep ? "Sleep" : "Hibernate" });
+                var segment = sleep ? w.ActSleep : w.ActHibernate;
+                Assert.True(segment.IsEnabled);
+                Assert.True(segment.IsChecked == true);
+
+                if (sleep) MainWindow.SleepAllowed = () => false;
+                else MainWindow.HibernateAllowed = () => false;
+                typeof(Window).GetMethod("OnActivated", BindingFlags.Instance | BindingFlags.NonPublic)
+                    .Invoke(w, new object[] { EventArgs.Empty });
+                Assert.False(segment.IsEnabled);
+                Assert.True(w.ActShutdown.IsChecked == true);
+
+                MainWindow.HibernateAllowed = () => true;
+                MainWindow.SleepAllowed = () => true;
+                typeof(Window).GetMethod("OnActivated", BindingFlags.Instance | BindingFlags.NonPublic)
+                    .Invoke(w, new object[] { EventArgs.Empty });
+                Assert.True(segment.IsEnabled);
+                Assert.True(w.ActShutdown.IsChecked == true);
+            }
+            finally
+            {
+                MainWindow.HibernateAllowed = previousHibernate;
+                MainWindow.SleepAllowed = previousSleep;
+            }
+        });
+
+        [Theory]
+        [InlineData("en", "en-US")]
+        [InlineData("en", "en-GB")]
+        [InlineData("de", "de-DE")]
+        public void The_longest_date_fits_between_the_day_buttons(string language, string culture) => Sta.Run(() =>
+        {
+            var previous = System.Threading.Thread.CurrentThread.CurrentCulture;
+            System.Threading.Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo(culture);
+            try
+            {
+                // The next day is Wednesday 12/30/2026: the longest day name and the widest short date of the year.
+                _now = new DateTime(2026, 12, 29, 12, 0, 0, DateTimeKind.Local);
+                var w = Make();
+                Loc.I.Apply(language);
+                w.ModeAt.IsChecked = true;
+                Click(w.NextDay);
+                LayOut(w);
+
+                // The label may wrap between words, so every word on its own has to fit.
+                double column = w.DateRow.ColumnDefinitions[2].ActualWidth;
+                Assert.Equal(TextWrapping.Wrap, w.DateLabel.TextWrapping);
+                foreach (string word in w.DateLabel.Text.Split(' '))
+                {
+                    var probe = new TextBlock
+                    {
+                        Text = word, FontFamily = w.DateLabel.FontFamily, FontSize = w.DateLabel.FontSize,
+                        FontWeight = w.DateLabel.FontWeight,
+                    };
+                    probe.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+                    double needed = probe.DesiredSize.Width;
+                    Assert.True(needed <= column, $"\"{word}\" of \"{w.DateLabel.Text}\" needs {needed} px and its column has {column} px.");
+                }
+                Assert.True(w.DateLabel.ActualWidth <= column);
+            }
+            finally { System.Threading.Thread.CurrentThread.CurrentCulture = previous; }
         });
 
         [Fact]
