@@ -34,6 +34,9 @@ namespace Shutdown.Tests
             MainWindow.Flash = _ => { };
             MainWindow.ShowNoActivate = _ => { };
             MainWindow.InputSaveDelay = TimeSpan.Zero;
+            // CI runners and VMs often lack hibernate or modern sleep; tests that need it off say so.
+            MainWindow.HibernateAllowed = () => true;
+            MainWindow.SleepAllowed = () => true;
             Log.Dir = Path.Combine(Path.GetTempPath(), "ShutdownTestLog");
         }
     }
