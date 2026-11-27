@@ -30,7 +30,7 @@
 
 Choose an installer or a portable copy from the [latest release](../../releases/latest).
 
-- Run `Shutdown-Setup-<version>.exe` to **install for your Windows account or all users**. Setup creates a Start menu shortcut and offers a desktop shortcut. Pass `/LANG=en` or `/LANG=de` to override the setup language.
+- Run `Shutdown-Setup-<version>.exe` to **install for your Windows account or all users**. Setup creates a Start menu shortcut, and its last page offers a desktop shortcut and starting Shutdown. Pass `/LANG=en` or `/LANG=de` to override the setup language.
 - Put the **portable executable** `Shutdown.exe` in any folder and run it directly. You can also choose **Portable installation** in Setup to copy `Shutdown.exe` to a folder of your choice.
 
 Requires Windows 10 (version 1903 or newer) or Windows 11. The .NET Framework 4.8 it needs is already part of Windows.

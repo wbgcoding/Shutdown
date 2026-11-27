@@ -2,18 +2,11 @@
 
 All notable changes to this project are documented here. The format follows Keep a Changelog; versions follow semantic versioning.
 
-## [1.4.0] - unreleased
+## [1.3.0] - 2026-11-27
 
 ### Fixed
-- In English, a long date such as "Wed, 12/30/2026" is no longer cut off between the day arrows; it wraps after the weekday.
-- Turning hibernation or sleep on or off in Windows now updates the buttons the next time the window comes to the front, instead of only after a restart.
 - The note that a duration is too long goes away once a new duration is chosen.
 - Screen readers read the preset chips as "15 minutes" or "1 hour" instead of the abbreviations.
-- Setup no longer refuses to install when the installed version number in the registry is damaged.
-
-## [1.3.0] - 2026-11-26
-
-### Fixed
 - With a light Windows accent colour (for example yellow), the start button text is now black instead of hard-to-read white.
 - A settings file that is only locked for a moment (for example by a virus scanner) is no longer replaced with defaults, so a saved schedule stays.
 - Starting Shutdown while a copy already runs as administrator now says so instead of doing nothing.
@@ -38,12 +31,12 @@ All notable changes to this project are documented here. The format follows Keep
 - The preset that matches the countdown stays highlighted.
 - Dates shown for the current day and the next day use Today and Tomorrow.
 - Action and timing choices have tooltips that explain what they do.
-- A badge explains when hibernation is unavailable and can be reached with the keyboard.
+- A badge explains when hibernation is unavailable and can be reached with the keyboard. Turning hibernation or sleep on or off in Windows updates the buttons once the window comes to the front.
 - Sleep is available as a fourth action, with a countdown that runs in the app. The four actions sit in a 2×2 grid in a narrower window.
 - The command line can schedule or cancel an action, including when Shutdown is already open.
 - The taskbar jump list can schedule a shutdown in 30 minutes or 1 hour, or cancel it.
 - Minimizing moves Shutdown to the notification area, where its menu can reopen the window, add 15 minutes, cancel a schedule or exit.
-- Releases include a setup program for the current user or all users, with an option to copy a portable executable. Setup updates an installed copy in place and closes a running Shutdown by itself; it asks first only while hibernation or sleep is scheduled.
+- Releases include a setup program for the current user or all users, with an option to copy a portable executable. Its last page offers to start Shutdown and to create a desktop shortcut. Setup updates an installed copy in place and closes a running Shutdown by itself; it asks first only while hibernation or sleep is scheduled.
 - The highlight slides to the newly chosen action, timing mode or preset; with Windows animations turned off it moves at once.
 - The note for hibernation and sleep puts "Keep this window open" on its own line.
 - Uninstalling cancels a shutdown or restart that Shutdown scheduled. Deleting settings on uninstall removes only Shutdown's own files.
